@@ -1,0 +1,190 @@
+/**
+ * AST (Accordion Sidebar Table) Styles
+ * @package WPVerifier
+ */
+
+.wpv-ast-container {
+	margin: 20px 0;
+}
+
+.wpv-ast-layout {
+	display: flex;
+	gap: 20px;
+	align-items: flex-start;
+}
+
+.wpv-ast-table-container {
+	flex: 2;
+	min-width: 0;
+}
+
+.wpv-ast-sidebar {
+	flex: 1;
+	position: sticky;
+	top: 32px;
+}
+
+.wpv-ast-details {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	padding: 20px;
+	min-height: 200px;
+}
+
+.wpv-ast-placeholder {
+	text-align: center;
+	color: #666;
+	padding: 40px 20px;
+}
+
+.wpv-ast-table .accordion-row {
+	border: 1px solid #c3c4c7;
+	margin-bottom: 1px;
+	background: #fff;
+}
+
+.wpv-ast-table .accordion-header {
+	background: #f6f7f7;
+	padding: 12px 15px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	transition: background 0.2s;
+}
+
+.wpv-ast-table .accordion-header:hover {
+	background: #f0f0f1;
+}
+
+.wpv-ast-table .accordion-header.active {
+	background: #2271b1;
+	color: white;
+}
+
+.wpv-ast-table .accordion-content {
+	display: none;
+	padding: 15px;
+	background: white;
+	border-top: 1px solid #c3c4c7;
+}
+
+.wpv-ast-table .accordion-content.active {
+	display: block;
+}
+
+.wpv-ast-file-name {
+	flex: 2;
+	font-weight: 600;
+}
+
+.wpv-ast-library {
+	flex: 0.5;
+}
+
+.wpv-ast-issue-count {
+	flex: 1;
+}
+
+.wpv-ast-severity {
+	flex: 1;
+}
+
+.wpv-ast-docs {
+	flex: 0.5;
+	text-align: center;
+}
+
+.wpv-learn-more {
+	text-decoration: none;
+	font-size: 11px;
+}
+
+.wpv-issue-docs {
+	margin-left: 8px;
+	text-decoration: none;
+	font-size: 14px;
+}
+
+.wpv-ast-badge {
+	display: inline-block;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.wpv-ast-badge.error {
+	background: #d63638;
+	color: white;
+}
+
+.wpv-ast-badge.warning {
+	background: #dba617;
+	color: white;
+}
+
+.wpv-ast-badge.library {
+	background: #646970;
+	color: white;
+}
+
+.wpv-ast-issue-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wpv-ast-issue-item {
+	padding: 10px;
+	border-bottom: 1px solid #e1e1e1;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.wpv-ast-issue-item:hover {
+	background: #f6f7f7;
+}
+
+.wpv-ast-issue-item:last-child {
+	border-bottom: none;
+}
+
+.wpv-ast-details h3 {
+	margin: 0 0 15px 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #e1e1e1;
+}
+
+.wpv-ast-detail-group {
+	margin-bottom: 15px;
+}
+
+.wpv-ast-detail-group label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.wpv-ast-detail-actions {
+	margin-top: 20px;
+	padding-top: 15px;
+	border-top: 1px solid #e1e1e1;
+	display: flex;
+	gap: 10px;
+}
+
+.wpv-copy-ai .dashicons {
+	margin-top: 3px;
+}
+
+@media (max-width: 1200px) {
+	.wpv-ast-layout {
+		flex-direction: column;
+	}
+	.wpv-ast-sidebar {
+		position: static;
+		width: 100%;
+	}
+}

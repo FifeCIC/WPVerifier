@@ -1,0 +1,22 @@
+/* WP Verifier Tab Styles */
+.coming-soon-badge {
+    display: inline-block;
+    background: #f0f0f1;
+    color: #646970;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.nav-tab .coming-soon-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+}
+
+.nav-tab-active .coming-soon-badge {
+    background: #fff;
+    color: #2271b1;
+}
