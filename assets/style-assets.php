@@ -35,5 +35,11 @@ return array(
             'pages' => array('wp-verifier'),
             'dependencies' => array()
         ),
+        'wpv-plugin-namer' => array(
+            'path' => 'css/admin-plugin-namer.css',
+            'purpose' => 'Plugin Namer tab styles',
+            'pages' => array('wp-verifier'),
+            'dependencies' => array()
+        ),
     ),
 );

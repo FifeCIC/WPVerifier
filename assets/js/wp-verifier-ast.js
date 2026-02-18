@@ -11,7 +11,10 @@
 		
 		init: function(results) {
 			this.results = results;
+			this.currentPlugin = document.getElementById('plugin-check__plugins-dropdown') ? document.getElementById('plugin-check__plugins-dropdown').value : '';
 			this.loadKnownLibraries();
+			this.loadIgnoreRules();
+			this.filterIgnoredIssues();
 			this.render();
 			this.bindEvents();
 		},
@@ -20,6 +23,39 @@
 			if (window.WPVerifierLibraries) {
 				this.knownLibraries = window.WPVerifierLibraries;
 			}
+		},
+
+		loadIgnoreRules: function() {
+			this.ignoreRules = [];
+			const allRules = window.wpvIgnoreRules || {};
+			if (this.currentPlugin && allRules[this.currentPlugin]) {
+				this.ignoreRules = allRules[this.currentPlugin];
+			}
+		},
+
+		filterIgnoredIssues: function() {
+			this.ignoredCount = 0;
+			['errors', 'warnings'].forEach(type => {
+				if (!this.results[type]) return;
+				
+				Object.keys(this.results[type]).forEach(file => {
+					const lines = this.results[type][file];
+					Object.keys(lines).forEach(line => {
+						const columns = lines[line];
+						Object.keys(columns).forEach(column => {
+							columns[column] = columns[column].filter(issue => {
+								const isIgnored = this.isIgnored(file, issue.code);
+								if (isIgnored) this.ignoredCount++;
+								return !isIgnored;
+							});
+						});
+					});
+				});
+			});
+		},
+
+		isIgnored: function(file, code) {
+			return this.ignoreRules.some(rule => rule.file === file && rule.code === code);
 		},
 
 		isLibraryFile: function(file) {
@@ -32,11 +68,11 @@
 
 			const files = this.groupByFile(this.results);
 			
-			$.each(files, (file, issues) => {
+			Object.keys(files).forEach(file => {
+				const issues = files[file];
 				const errorCount = issues.filter(i => i.type === 'ERROR').length;
 				const warningCount = issues.filter(i => i.type === 'WARNING').length;
 				const isLibrary = this.isLibraryFile(file);
-				const hasLearnMore = issues.some(i => i.docs);
 
 				const row = $(`
 					<div class="accordion-row" data-file="${this.escapeHtml(file)}">
@@ -48,7 +84,6 @@
 								${errorCount > 0 ? `<span class="wpv-ast-badge error">${errorCount} errors</span>` : ''}
 								${warningCount > 0 ? `<span class="wpv-ast-badge warning">${warningCount} warnings</span>` : ''}
 							</div>
-							<div class="wpv-ast-docs">${hasLearnMore ? '<a href="#" class="wpv-learn-more">Learn More</a>' : ''}</div>
 						</div>
 						<div class="accordion-content">
 							<ul class="wpv-ast-issue-list"></ul>
@@ -74,17 +109,6 @@
 
 		bindEvents: function() {
 			$(document).off('click', '.accordion-header').on('click', '.accordion-header', function(e) {
-				if ($(e.target).hasClass('wpv-learn-more')) {
-					e.preventDefault();
-					e.stopPropagation();
-					const $row = $(this).closest('.accordion-row');
-					const $firstLink = $row.find('.wpv-issue-docs').first();
-					if ($firstLink.length) {
-						window.open($firstLink.attr('href'), '_blank');
-					}
-					return;
-				}
-				
 				const $header = $(this);
 				const $content = $header.next('.accordion-content');
 				
@@ -111,6 +135,7 @@
 		showDetails: function(file, issue) {
 			const details = $('#wpv-ast-details');
 			const aiPrompt = `I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${issue.line}, Column: ${issue.column}\nType: ${issue.type}\nCode: ${issue.code}\nMessage: ${$('<div>').html(issue.message).text()}\n\nHow can I fix this?`;
+			const isIgnored = this.isIgnored(file, issue.code);
 			
 			details.html(`
 				<h3>${this.escapeHtml(file)}</h3>
@@ -134,6 +159,9 @@
 					<button type="button" class="button wpv-copy-ai" data-prompt="${this.escapeHtml(aiPrompt)}">
 						<span class="dashicons dashicons-clipboard"></span> Copy for AI
 					</button>
+					${!isIgnored ? `<button type="button" class="button wpv-ignore-code" data-file="${this.escapeHtml(file)}" data-code="${this.escapeHtml(issue.code)}">
+						<span class="dashicons dashicons-hidden"></span> Ignore Code
+					</button>` : '<span style="color: #999;">✓ Ignored</span>'}
 					${issue.docs ? `<a href="${issue.docs}" target="_blank" class="button">Learn More</a>` : ''}
 					${issue.link ? `<a href="${issue.link}" target="_blank" class="button button-primary">View in Editor</a>` : ''}
 				</div>
@@ -147,6 +175,45 @@
 					$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
 					setTimeout(() => $btn.html(originalText), 2000);
 				});
+			});
+			
+			$('.wpv-ignore-code').off('click').on('click', function() {
+				const file = $(this).data('file');
+				const code = $(this).data('code');
+				WPVerifierAST.addIgnoreRule(file, code);
+			});
+		},
+
+		addIgnoreRule: function(file, code) {
+			if (!window.PLUGIN_CHECK || !window.PLUGIN_CHECK.actionAddIgnoreRule) {
+				alert('Configuration error.');
+				return;
+			}
+			
+			const payload = new FormData();
+			payload.append('nonce', window.PLUGIN_CHECK.nonce);
+			payload.append('action', window.PLUGIN_CHECK.actionAddIgnoreRule);
+			payload.append('plugin', this.currentPlugin);
+			payload.append('file', file);
+			payload.append('code', code);
+			
+			fetch(ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body: payload
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					alert('Issue ignored. Refresh results to see changes.');
+					location.reload();
+				} else {
+					alert('Failed to add ignore rule: ' + (data.data.message || 'Unknown error'));
+				}
+			})
+			.catch(error => {
+				console.error(error);
+				alert('Failed to add ignore rule.');
 			});
 		},
 

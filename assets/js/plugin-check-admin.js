@@ -55,6 +55,7 @@
 
 	// Check for saved results on page load
 	checkForSavedResults();
+	loadSavedResultsList();
 
 	function saveUserSettings() {
 		const selectedCategories = [];
@@ -83,6 +84,76 @@
 	checkItButton.addEventListener( 'click', ( e ) => {
 		e.preventDefault();
 
+		// Show pre-check summary
+		showPreCheckSummary();
+	} );
+
+	/**
+	 * Show pre-check summary before running checks.
+	 *
+	 * @since 1.9.0
+	 */
+	function showPreCheckSummary() {
+		const selectedPlugin = pluginsList.options[pluginsList.selectedIndex]?.text || 'Unknown';
+		const selectedCategories = [];
+		const selectedTypes = [];
+
+		categoriesList.forEach( ( checkbox ) => {
+			if ( checkbox.checked ) {
+				selectedCategories.push( checkbox.nextSibling.textContent.trim() );
+			}
+		} );
+
+		typesList.forEach( ( checkbox ) => {
+			if ( checkbox.checked ) {
+				selectedTypes.push( checkbox.nextSibling.textContent.trim() );
+			}
+		} );
+
+		const includeExp = includeExperimental && includeExperimental.checked;
+
+		const modal = document.createElement( 'div' );
+		modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100000; display: flex; align-items: center; justify-content: center;';
+		modal.innerHTML = `
+			<div style="background: #fff; padding: 30px; border-radius: 4px; max-width: 500px; width: 90%;">
+				<h2 style="margin: 0 0 20px 0;">Pre-Check Summary</h2>
+				<div style="margin-bottom: 20px;">
+					<strong>Plugin:</strong> ${selectedPlugin}
+				</div>
+				<div style="margin-bottom: 20px;">
+					<strong>Categories (${selectedCategories.length}):</strong><br>
+					${selectedCategories.length ? selectedCategories.join(', ') : 'None selected'}
+				</div>
+				<div style="margin-bottom: 20px;">
+					<strong>Result Types:</strong><br>
+					${selectedTypes.join(', ')}
+				</div>
+				${includeExp ? '<div style="margin-bottom: 20px; color: #dba617;"><strong>⚠ Experimental checks included</strong></div>' : ''}
+				<div style="display: flex; gap: 10px; justify-content: flex-end;">
+					<button type="button" class="button button-secondary" id="precheck-cancel">Cancel</button>
+					<button type="button" class="button button-primary" id="precheck-start">Start Verification</button>
+				</div>
+			</div>
+		`;
+
+		document.body.appendChild( modal );
+
+		document.getElementById( 'precheck-cancel' ).addEventListener( 'click', () => {
+			modal.remove();
+		} );
+
+		document.getElementById( 'precheck-start' ).addEventListener( 'click', () => {
+			modal.remove();
+			startVerification();
+		} );
+	}
+
+	/**
+	 * Start the verification process.
+	 *
+	 * @since 1.9.0
+	 */
+	function startVerification() {
 		resetResults();
 		checkItButton.disabled = true;
 		pluginsList.disabled = true;
@@ -100,15 +171,13 @@
 			.then( cleanUpEnvironment )
 			.then( ( data ) => {
 				console.log( data.message );
-
 				resetForm();
 			} )
 			.catch( ( error ) => {
 				console.error( error );
-
 				resetForm();
 			} );
-	} );
+	}
 
 	// When the Load button is clicked.
 	loadButton.addEventListener( 'click', ( e ) => {
@@ -416,6 +485,7 @@
 		requestSave( format )
 			.then( ( response ) => {
 				announce( defaultString( 'saveSuccess' ) );
+				checkForSavedResults();
 			} )
 			.catch( ( error ) => {
 				console.error( error );
@@ -437,7 +507,25 @@
 			payload.append( 'plugin', pluginsList.value );
 		}
 		payload.append( 'plugin_label', getSelectedPluginLabel() );
-		payload.append( 'results', JSON.stringify( aggregatedResults ) );
+		
+		// Add checked categories
+		const checkedCategories = [];
+		for ( let i = 0; i < categoriesList.length; i++ ) {
+			if ( categoriesList[ i ].checked ) {
+				checkedCategories.push( categoriesList[ i ].value );
+			}
+		}
+		payload.append( 'categories', JSON.stringify( checkedCategories ) );
+		
+		// Add metadata to results
+		const resultsWithMeta = {
+			...aggregatedResults,
+			meta: {
+				checked_categories: checkedCategories,
+				timestamp: new Date().toISOString()
+			}
+		};
+		payload.append( 'results', JSON.stringify( resultsWithMeta ) );
 
 		return fetch( ajaxurl, {
 			method: 'POST',
@@ -481,27 +569,7 @@
 					return;
 				}
 
-				const files = responseData.data.files;
-				if ( ! files || files.length === 0 ) {
-					alert( 'No saved results found.' );
-					return;
-				}
-
-				let options = files.map( ( file, index ) => {
-					const date = new Date( file.modified * 1000 );
-					return `${index + 1}. ${file.filename} (${date.toLocaleString()})`;
-				} ).join( '\n' );
-
-				const selection = prompt( `Select a file to load:\n\n${options}\n\nEnter number (1-${files.length}):` );
-				if ( ! selection ) return;
-
-				const fileIndex = parseInt( selection ) - 1;
-				if ( fileIndex < 0 || fileIndex >= files.length ) {
-					alert( 'Invalid selection.' );
-					return;
-				}
-
-				loadSavedResults( files[ fileIndex ].path );
+				loadSavedResults( responseData.data.path );
 			} )
 			.catch( ( error ) => {
 				console.error( error );
@@ -527,28 +595,111 @@
 		} )
 			.then( ( response ) => response.json() )
 			.then( ( responseData ) => {
-				if ( responseData.success && responseData.data.files && responseData.data.files.length > 0 ) {
-					loadButton.disabled = false;
-				} else {
-					loadButton.disabled = true;
-				}
+				loadButton.disabled = ! ( responseData.success && responseData.data && responseData.data.path );
 			} )
-			.catch( () => {
+			.catch( ( error ) => {
 				loadButton.disabled = true;
 			} );
 	}
 
-	function loadSavedResults( filePath ) {
-		fetch( filePath )
+	function loadSavedResultsList() {
+		const listContainer = document.getElementById( 'plugin-check__saved-results-list' );
+		if ( ! listContainer ) {
+			return;
+		}
+
+		if ( ! pluginCheck.actionListSavedResults ) {
+			listContainer.innerHTML = '<p style="color: #d63638;">Configuration error.</p>';
+			return;
+		}
+
+		const payload = new FormData();
+		payload.append( 'nonce', pluginCheck.nonce );
+		payload.append( 'action', pluginCheck.actionListSavedResults );
+
+		fetch( ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: payload,
+		} )
 			.then( ( response ) => response.json() )
+			.then( ( responseData ) => {
+				if ( ! responseData.success || ! responseData.data.results.length ) {
+					listContainer.innerHTML = '<p style="color: #666;">No saved results found.</p>';
+					return;
+				}
+
+				let html = '<ul style="list-style: none; margin: 0; padding: 0;">';
+				responseData.data.results.forEach( ( item ) => {
+					const date = new Date( item.modified * 1000 ).toLocaleDateString();
+					html += '<li style="margin-bottom: 8px;"><a href="#" class="plugin-check__load-saved" data-path="' + item.path + '" style="text-decoration: none; display: block; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">' +
+						'<strong>' + item.plugin + '</strong><br>' +
+						'<small style="color: #666;">' + date + '</small>' +
+						'</a></li>';
+				} );
+				html += '</ul>';
+				listContainer.innerHTML = html;
+
+				listContainer.querySelectorAll( '.plugin-check__load-saved' ).forEach( ( link ) => {
+					link.addEventListener( 'click', ( e ) => {
+						e.preventDefault();
+						loadSavedResults( link.getAttribute( 'data-path' ) );
+					} );
+				} );
+			} )
+			.catch( ( error ) => {
+				console.error( 'Error loading saved results list:', error );
+				listContainer.innerHTML = '<p style="color: #d63638;">Error loading saved results.</p>';
+			} );
+	}
+
+	function loadSavedResults( filePath ) {
+		const normalizedPath = filePath.replace( /\\/g, '/' );
+		const contentPath = normalizedPath.split( '/wp-content/' )[1];
+		if ( ! contentPath ) {
+			alert( 'Invalid file path.' );
+			return;
+		}
+		// Use WordPress content URL from current page URL
+		const currentUrl = window.location.href;
+		const wpContentBase = currentUrl.substring( 0, currentUrl.indexOf( '/wp-admin/' ) ) + '/wp-content/';
+		const contentUrl = wpContentBase + contentPath;
+		
+		fetch( contentUrl )
+			.then( ( response ) => {
+				if ( ! response.ok ) {
+					throw new Error( 'File not found: ' + contentUrl );
+				}
+				return response.json();
+			} )
 			.then( ( data ) => {
 				resetResults();
-				aggregatedResults = data;
+				// Transform loaded data to match expected format
+				if ( data.results ) {
+					aggregatedResults = { errors: {}, warnings: {} };
+					for ( const file in data.results ) {
+						for ( const issue of data.results[ file ] ) {
+							const type = issue.type === 'ERROR' ? 'errors' : 'warnings';
+							if ( ! aggregatedResults[ type ][ file ] ) {
+								aggregatedResults[ type ][ file ] = {};
+							}
+							if ( ! aggregatedResults[ type ][ file ][ issue.line ] ) {
+								aggregatedResults[ type ][ file ][ issue.line ] = {};
+							}
+							if ( ! aggregatedResults[ type ][ file ][ issue.line ][ issue.column ] ) {
+								aggregatedResults[ type ][ file ][ issue.line ][ issue.column ] = [];
+							}
+							aggregatedResults[ type ][ file ][ issue.line ][ issue.column ].push( issue );
+						}
+					}
+				} else {
+					aggregatedResults = data;
+				}
 				renderResultsMessage( false );
 			} )
 			.catch( ( error ) => {
 				console.error( error );
-				alert( 'Failed to parse saved results file.' );
+				alert( 'Failed to load results: ' + error.message );
 			} );
 	}
 
@@ -694,7 +845,41 @@
 	 */
 	async function runChecks( data ) {
 		let isSuccessMessage = true;
+		const totalChecks = data.checks.length;
+		const startTime = Date.now();
+		let aggregatedReadiness = null;
+		
+		// Create progress indicator
+		const progressDiv = document.createElement('div');
+		progressDiv.id = 'plugin-check__progress';
+		progressDiv.style.cssText = 'margin: 20px 0; padding: 15px; background: #f0f0f1; border-left: 4px solid #2271b1; border-radius: 4px;';
+		progressDiv.innerHTML = `
+			<div style="margin-bottom: 10px;">
+				<strong style="font-size: 14px;">Running check 0 of ${totalChecks}...</strong>
+				<span style="float: right; color: #2271b1; font-weight: 600;">0%</span>
+			</div>
+			<div style="background: #fff; height: 8px; border-radius: 4px; overflow: hidden;">
+				<div id="plugin-check__progress-bar" style="background: #2271b1; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+			</div>
+			<div id="plugin-check__progress-details" style="margin-top: 8px; font-size: 12px; color: #646970;"></div>
+		`;
+		resultsContainer.appendChild(progressDiv);
+		
+		const progressBar = document.getElementById('plugin-check__progress-bar');
+		const progressDetails = document.getElementById('plugin-check__progress-details');
+		
 		for ( let i = 0; i < data.checks.length; i++ ) {
+			const current = i + 1;
+			const percent = Math.round((current / totalChecks) * 100);
+			const elapsed = Math.round((Date.now() - startTime) / 1000);
+			const checkName = data.checks[i].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+			
+			// Update progress display
+			progressDiv.querySelector('strong').textContent = `Running check ${current} of ${totalChecks}...`;
+			progressDiv.querySelector('span').textContent = `${percent}%`;
+			progressBar.style.width = `${percent}%`;
+			progressDetails.innerHTML = `<strong>${checkName}</strong> • Elapsed: ${elapsed}s`;
+			
 			try {
 				const results = await runCheck( data.plugin, data.checks[ i ] );
 				const errorsLength = Object.values( results.errors ).length;
@@ -705,14 +890,20 @@
 				) {
 					isSuccessMessage = false;
 				}
+				if ( results.readiness ) {
+					aggregatedReadiness = results.readiness;
+				}
 				mergeAggregatedResults( results );
 				renderResults( results );
 			} catch ( e ) {
 				// Ignore for now.
 			}
 		}
+		
+		// Remove progress indicator
+		progressDiv.remove();
 
-		renderResultsMessage( isSuccessMessage );
+		renderResultsMessage( isSuccessMessage, aggregatedReadiness );
 	}
 
 	/**
@@ -721,18 +912,25 @@
 	 * @since 1.0.0
 	 *
 	 * @param {boolean} isSuccessMessage Whether the message is a success message.
+	 * @param {Object} readiness Readiness score data.
 	 */
-	function renderResultsMessage( isSuccessMessage ) {
+	function renderResultsMessage( isSuccessMessage, readiness ) {
 		const messageType = isSuccessMessage ? 'success' : 'error';
 		const messageText = isSuccessMessage
 			? pluginCheck.successMessage
 			: pluginCheck.errorMessage;
 
-		resultsContainer.innerHTML =
-			renderTemplate( 'plugin-check-results-complete', {
-				type: messageType,
-				message: messageText,
-			} ) + resultsContainer.innerHTML;
+		let html = renderTemplate( 'plugin-check-results-complete', {
+			type: messageType,
+			message: messageText,
+		} );
+
+		// Add readiness score display
+		if ( readiness ) {
+			html += renderReadinessScore( readiness );
+		}
+
+		resultsContainer.innerHTML = html + resultsContainer.innerHTML;
 
 		// Initialize AST with aggregated results
 		if (window.WPVerifierAST && hasAggregatedResults()) {
@@ -740,11 +938,59 @@
 			if (astTemplate) {
 				resultsContainer.innerHTML += astTemplate.innerHTML;
 				window.WPVerifierAST.init(aggregatedResults);
+				if (window.WPVerifierAST.ignoredCount > 0) {
+					resultsContainer.innerHTML += '<p style="color: #666; margin-top: 10px;"><em>' + window.WPVerifierAST.ignoredCount + ' issue(s) ignored</em></p>';
+				}
 			}
 		}
 
 		checksCompleted = true;
 		renderExportButtons();
+	}
+
+	/**
+	 * Render readiness score display.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param {Object} readiness Readiness score data.
+	 * @return {string} HTML for readiness score.
+	 */
+	function renderReadinessScore( readiness ) {
+		const statusColors = {
+			excellent: '#00a32a',
+			good: '#72aee6',
+			fair: '#dba617',
+			'needs-work': '#d63638'
+		};
+		const statusLabels = {
+			excellent: 'Excellent - Ready for Submission',
+			good: 'Good - Minor Issues',
+			fair: 'Fair - Needs Improvement',
+			'needs-work': 'Needs Work - Major Issues'
+		};
+
+		const color = statusColors[readiness.status] || '#646970';
+		const label = statusLabels[readiness.status] || readiness.status;
+
+		return `
+			<div style="margin: 20px 0; padding: 25px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,0.04);">
+				<div style="display: flex; align-items: center; gap: 30px;">
+					<div style="text-align: center; min-width: 120px;">
+						<div style="font-size: 64px; font-weight: 700; color: ${color}; line-height: 1;">${readiness.overall}</div>
+						<div style="font-size: 12px; color: #646970; margin-top: 5px;">out of 100</div>
+					</div>
+					<div style="flex: 1;">
+						<h3 style="margin: 0 0 8px 0; font-size: 20px;">Readiness Score</h3>
+						<div style="font-size: 16px; color: ${color}; font-weight: 600; margin-bottom: 10px;">${label}</div>
+						<div style="font-size: 14px; color: #646970;">
+							<strong>${readiness.errors}</strong> error${readiness.errors !== 1 ? 's' : ''} • 
+							<strong>${readiness.warnings}</strong> warning${readiness.warnings !== 1 ? 's' : ''}
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
 	}
 
 	/**

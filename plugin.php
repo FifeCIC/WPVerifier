@@ -5,7 +5,7 @@
  * Description: WP Verifier provides checks to help plugins meet the directory requirements and follow various best practices. Based on Plugin Check by WordPress Performance Team and Plugin Review Team.
  * Requires at least: 6.3
  * Requires PHP: 7.4
- * Version: 0.0.1
+ * Version: 1.9.0
  * Author: WordPress Performance Team and Plugin Review Team
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
@@ -16,7 +16,7 @@
 
 use WordPress\Plugin_Check\Plugin_Main;
 
-define( 'WP_PLUGIN_CHECK_VERSION', '1.8.0' );
+define( 'WP_PLUGIN_CHECK_VERSION', '1.9.0' );
 define( 'WP_PLUGIN_CHECK_MINIMUM_PHP', '7.4' );
 define( 'WP_PLUGIN_CHECK_MAIN_FILE', __FILE__ );
 define( 'WP_PLUGIN_CHECK_PLUGIN_DIR_PATH', plugin_dir_path( WP_PLUGIN_CHECK_MAIN_FILE ) );

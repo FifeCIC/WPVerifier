@@ -297,23 +297,46 @@ final class Admin_Page {
 
 		// Enqueue namer scripts if on namer tab
 		if ( 'namer' === $current_tab ) {
-			wp_enqueue_script(
-				'plugin-check-namer',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-namer.js',
+			wp_enqueue_style(
+				'wpv-plugin-namer',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/admin-plugin-namer.css',
 				array(),
+				WP_PLUGIN_CHECK_VERSION
+			);
+
+			wp_enqueue_script(
+				'wpv-plugin-namer',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-plugin-namer.js',
+				array( 'jquery' ),
 				WP_PLUGIN_CHECK_VERSION,
 				true
 			);
 
 			wp_localize_script(
-				'plugin-check-namer',
-				'pluginCheckNamer',
+				'wpv-plugin-namer',
+				'wpvPluginNamer',
 				array(
-					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'plugin_check_namer_ajax' ),
-					'messages' => array(
-						'missingName'  => __( 'Please enter a plugin name.', 'wp-verifier' ),
-						'genericError' => __( 'An unexpected error occurred.', 'wp-verifier' ),
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => $this->admin_ajax->get_nonce(),
+					'actions' => array(
+						'checkDomains'    => Admin_AJAX::ACTION_CHECK_DOMAINS,
+						'checkConflicts'  => Admin_AJAX::ACTION_CHECK_CONFLICTS,
+						'analyzeSeo'      => Admin_AJAX::ACTION_ANALYZE_SEO,
+						'checkTrademarks' => Admin_AJAX::ACTION_CHECK_TRADEMARKS,
+						'saveName'        => Admin_AJAX::ACTION_SAVE_NAME,
+						'getSavedNames'   => Admin_AJAX::ACTION_GET_SAVED_NAMES,
+					),
+					'enabledChecks' => $this->get_enabled_namer_checks(),
+					'i18n' => array(
+						'available'   => __( 'Available', 'wp-verifier' ),
+						'taken'       => __( 'Taken', 'wp-verifier' ),
+						'checking'    => __( 'Checking...', 'wp-verifier' ),
+						'error'       => __( 'Error', 'wp-verifier' ),
+						'noConflicts' => __( 'No conflicts found', 'wp-verifier' ),
+						'exactMatch'  => __( 'Exact match found!', 'wp-verifier' ),
+						'similar'     => __( 'Similar plugins found', 'wp-verifier' ),
+						'saved'       => __( 'Evaluation saved successfully', 'wp-verifier' ),
+						'saveFailed'  => __( 'Failed to save evaluation', 'wp-verifier' ),
 					),
 				)
 			);
@@ -355,6 +378,9 @@ final class Admin_Page {
 					'actionExportResults'             => Admin_AJAX::ACTION_EXPORT_RESULTS,
 					'actionSaveResults'               => Admin_AJAX::ACTION_SAVE_RESULTS,
 					'actionLoadResults'               => Admin_AJAX::ACTION_LOAD_RESULTS,
+					'actionListSavedResults'          => Admin_AJAX::ACTION_LIST_SAVED_RESULTS,
+					'actionAddIgnoreRule'             => Admin_AJAX::ACTION_ADD_IGNORE_RULE,
+					'actionAddIgnoreDirectory'        => Admin_AJAX::ACTION_ADD_IGNORE_DIRECTORY,
 					'successMessage'                  => __( 'No errors found.', 'wp-verifier' ),
 					'errorMessage'                    => __( 'Errors were found.', 'wp-verifier' ),
 					'strings'                         => array(
@@ -380,6 +406,13 @@ final class Admin_Page {
 		wp_add_inline_script(
 			'wp-verifier-ast',
 			'const WPVerifierLibraries = ' . json_encode( $known_libraries ) . ';',
+			'before'
+		);
+		
+		$ignore_rules = get_option( 'wpv_ignore_rules', array() );
+		wp_add_inline_script(
+			'wp-verifier-ast',
+			'const wpvIgnoreRules = ' . json_encode( $ignore_rules ) . ';',
 			'before'
 		);
 	}
@@ -489,11 +522,10 @@ final class Admin_Page {
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page.php';
 				break;
 			case 'namer':
-				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Namer_Page' ) ) {
-					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Namer_Page.php';
+				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Plugin_Namer_Tab' ) ) {
+					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Plugin_Namer_Tab.php';
 				}
-				$namer_page = new Namer_Page();
-				$namer_page->render_evaluate_tab();
+				Plugin_Namer_Tab::render();
 				break;
 			case 'settings':
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Settings_Page' ) ) {
@@ -508,10 +540,13 @@ final class Admin_Page {
 				}
 				Assets_Tab::render();
 				break;
-			case 'dashboard':
-			case 'history':
-			case 'rulesets':
-				Admin_Page_Tabs::render_coming_soon();
+			case 'ignores':
+				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Ignore_Rules_Page' ) ) {
+					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Ignore_Rules_Page.php';
+				}
+				$ignore_rules = new Ignore_Rules_Page();
+				$ignore_rules->init();
+				$ignore_rules->render_page();
 				break;
 			default:
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page.php';
@@ -670,6 +705,24 @@ final class Admin_Page {
 		$default_categories = (array) apply_filters( 'wp_plugin_check_default_categories', $default_check_categories );
 
 		return $default_categories;
+	}
+
+	/**
+	 * Gets enabled namer checks from settings.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @return array Enabled checks.
+	 */
+	private function get_enabled_namer_checks() {
+		$settings = get_option( 'plugin_check_settings', array() );
+		$checks = isset( $settings['namer_checks'] ) ? $settings['namer_checks'] : array(
+			'domains'    => true,
+			'conflicts'  => true,
+			'seo'        => true,
+			'trademarks' => true,
+		);
+		return $checks;
 	}
 
 	public function save_ai_config() {

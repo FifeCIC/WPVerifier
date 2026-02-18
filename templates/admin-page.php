@@ -7,21 +7,84 @@
 
 ?>
 
-<div class="plugin-check-content">
+<div class="plugin-check-content" style="display: flex; gap: 20px;">
 
-	<?php if ( ! empty( $available_plugins ) ) { ?>
+	<div style="flex: 0 0 250px;">
+		<h2><?php esc_html_e( 'Saved Results', 'wp-verifier' ); ?></h2>
+		<div id="plugin-check__saved-results-list" style="border: 1px solid #ddd; padding: 10px; min-height: 200px; max-height: 500px; overflow-y: auto;">
+			<p style="color: #666;"><?php esc_html_e( 'Loading...', 'wp-verifier' ); ?></p>
+		</div>
+	</div>
 
-			<form>
+	<div style="flex: 0 0 auto; display: flex; gap: 20px;">
+		<div style="flex: 1;">
+			<?php if ( ! empty( $available_plugins ) ) { ?>
+				<form>
+					<h2><?php esc_html_e( 'Rulesets', 'wp-verifier' ); ?></h2>
+					<div class="plugin-check__options">
+						<div>
+							<h4><?php esc_attr_e( 'Categories', 'wp-verifier' ); ?></h4>
+							<?php if ( ! empty( $categories ) ) : ?>
+								<table id="plugin-check__categories">
+									<?php foreach ( $categories as $category => $label ) : ?>
+										<tr>
+											<td>
+												<fieldset>
+													<legend class="screen-reader-text"><?php echo esc_html( $category ); ?></legend>
+													<label for="<?php echo esc_attr( $category ); ?>">
+														<input type="checkbox" id="<?php echo esc_attr( $category ); ?>" name="categories" value="<?php echo esc_attr( $category ); ?>" <?php checked( in_array( $category, $user_enabled_categories, true ) ); ?> />
+														<?php echo esc_html( $label ); ?>
+													</label>
+												</fieldset>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</table>
+							<?php endif; ?>
+						</div>
+						<div id="plugin-check__types-container">
+							<h4><?php esc_attr_e( 'Types', 'wp-verifier' ); ?></h4>
+							<?php if ( ! empty( $types ) ) : ?>
+								<table id="plugin-check__types">
+									<?php foreach ( $types as $type => $label ) : ?>
+										<tr>
+											<td>
+												<fieldset>
+													<legend class="screen-reader-text"><?php echo esc_html( $type ); ?></legend>
+													<label for="<?php echo esc_attr( $type ); ?>">
+														<input type="checkbox" id="<?php echo esc_attr( $type ); ?>" name="types" value="<?php echo esc_attr( $type ); ?>" checked="checked" />
+														<?php echo esc_html( $label ); ?>
+													</label>
+												</fieldset>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</table>
+							<?php endif; ?>
+						</div>
+					</div>
+					<?php if ( $has_experimental_checks ) { ?>
+						<h4><?php esc_attr_e( 'Other Options', 'wp-verifier' ); ?></h4>
+						<p>
+							<label><input type="checkbox" value="include-experimental" id="plugin-check__include-experimental" /> <?php esc_html_e( 'Include Experimental Checks', 'wp-verifier' ); ?></label>
+						</p>
+					<?php } ?>
+				</form>
+			<?php } else { ?>
+				<h2><?php esc_html_e( 'No plugins available.', 'wp-verifier' ); ?></h2>
+			<?php } ?>
+		</div>
+
+		<div style="flex: 0 0 300px;">
+			<?php if ( ! empty( $available_plugins ) ) { ?>
 				<h2>
 					<label class="title" for="plugin-check__plugins-dropdown">
-						<?php esc_html_e( 'Check the Plugin', 'wp-verifier' ); ?>
+						<?php esc_html_e( 'Select Plugin', 'wp-verifier' ); ?>
 					</label>
 				</h2>
-
 				<p id="plugin-check__description">
-					<?php esc_html_e( 'Select a plugin to check it for best practices in several categories and security issues. For more information about the checks, use the Help tab at the top of this page.', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Select a plugin to check it for best practices in several categories and security issues.', 'wp-verifier' ); ?>
 				</p>
-
 				<select id="plugin-check__plugins-dropdown" name="plugin_check_plugins" aria-describedby="plugin-check__description">
 					<?php if ( 1 !== count( $available_plugins ) ) { ?>
 						<option value=""><?php esc_html_e( 'Select Plugin', 'wp-verifier' ); ?></option>
@@ -32,68 +95,14 @@
 						</option>
 					<?php } ?>
 				</select>
-
-				<input type="submit" value="<?php esc_attr_e( 'Check it!', 'wp-verifier' ); ?>" id="plugin-check__submit" class="button button-primary" />
-				<button type="button" id="plugin-check__load" class="button button-secondary"><?php esc_html_e( 'Load Saved Results', 'wp-verifier' ); ?></button>
-				<span id="plugin-check__spinner" class="spinner" style="float: none;"></span>
-				<div class="plugin-check__options">
-					<div>
-						<h4><?php esc_attr_e( 'Categories', 'wp-verifier' ); ?></h4>
-						<?php if ( ! empty( $categories ) ) : ?>
-							<table id="plugin-check__categories">
-								<?php foreach ( $categories as $category => $label ) : ?>
-									<tr>
-										<td>
-											<fieldset>
-												<legend class="screen-reader-text"><?php echo esc_html( $category ); ?></legend>
-												<label for="<?php echo esc_attr( $category ); ?>">
-													<input type="checkbox" id="<?php echo esc_attr( $category ); ?>" name="categories" value="<?php echo esc_attr( $category ); ?>" <?php checked( in_array( $category, $user_enabled_categories, true ) ); ?> />
-													<?php echo esc_html( $label ); ?>
-												</label>
-											</fieldset>
-										</td>
-									</tr>
-								<?php endforeach; ?>
-							</table>
-						<?php endif; ?>
-					</div>
-					<div id="plugin-check__types-container">
-						<h4><?php esc_attr_e( 'Types', 'wp-verifier' ); ?></h4>
-						<?php if ( ! empty( $types ) ) : ?>
-							<table id="plugin-check__types">
-								<?php foreach ( $types as $type => $label ) : ?>
-									<tr>
-										<td>
-											<fieldset>
-												<legend class="screen-reader-text"><?php echo esc_html( $type ); ?></legend>
-												<label for="<?php echo esc_attr( $type ); ?>">
-													<input type="checkbox" id="<?php echo esc_attr( $type ); ?>" name="types" value="<?php echo esc_attr( $type ); ?>" checked="checked" />
-													<?php echo esc_html( $label ); ?>
-												</label>
-											</fieldset>
-										</td>
-									</tr>
-								<?php endforeach; ?>
-							</table>
-						<?php endif; ?>
-					</div>
-				</div>
-				<span id="plugin-check__spinner" class="spinner" style="float: none;"></span>
-
-				<?php if ( $has_experimental_checks ) { ?>
-					<h4><?php esc_attr_e( 'Other Options', 'wp-verifier' ); ?></h4>
-					<p>
-						<label><input type="checkbox" value="include-experimental" id="plugin-check__include-experimental" /> <?php esc_html_e( 'Include Experimental Checks', 'wp-verifier' ); ?></label>
-					</p>
-				<?php } ?>
-
-			</form>
-
-	<?php } else { ?>
-
-		<h2><?php esc_html_e( 'No plugins available.', 'wp-verifier' ); ?></h2>
-
-	<?php } ?>
+				<p>
+					<input type="submit" value="<?php esc_attr_e( 'Check it!', 'wp-verifier' ); ?>" id="plugin-check__submit" class="button button-primary" />
+					<button type="button" id="plugin-check__load" class="button button-secondary"><?php esc_html_e( 'Load Saved Results', 'wp-verifier' ); ?></button>
+					<span id="plugin-check__spinner" class="spinner" style="float: none;"></span>
+				</p>
+			<?php } ?>
+		</div>
+	</div>
 </div>
 
 <div id="plugin-check__export-controls" class="plugin-check__export-controls"></div>

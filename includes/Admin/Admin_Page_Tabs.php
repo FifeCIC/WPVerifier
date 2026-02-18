@@ -18,13 +18,10 @@ class Admin_Page_Tabs {
 	public static function get_tabs() {
 		return array(
 			'verify'      => __( 'Verify Plugin', 'wp-verifier' ),
-			'advanced'    => __( 'Advanced Verify', 'wp-verifier' ),
 			'namer'       => __( 'Plugin Namer', 'wp-verifier' ),
 			'settings'    => __( 'Settings', 'wp-verifier' ),
 			'assets'      => __( 'Assets', 'wp-verifier' ),
-			'dashboard'   => __( 'Dashboard', 'wp-verifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
-			'history'     => __( 'History', 'wp-verifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
-			'rulesets'    => __( 'Custom Rulesets', 'wp-verifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
+			'ignores'     => __( 'Ignore Rules', 'wp-verifier' ),
 		);
 	}
 

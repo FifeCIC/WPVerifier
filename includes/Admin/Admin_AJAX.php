@@ -88,6 +88,102 @@ final class Admin_AJAX {
 	const ACTION_LOAD_RESULTS = 'plugin_check_load_results';
 
 	/**
+	 * List saved results action name.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	const ACTION_LIST_SAVED_RESULTS = 'plugin_check_list_saved_results';
+
+	/**
+	 * Add ignore rule action name.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	const ACTION_ADD_IGNORE_RULE = 'plugin_check_add_ignore_rule';
+
+	/**
+	 * Add directory ignore rule action name.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	const ACTION_ADD_IGNORE_DIRECTORY = 'plugin_check_add_ignore_directory';
+
+	/**
+	 * Get scan history action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_GET_SCAN_HISTORY = 'plugin_check_get_scan_history';
+
+	/**
+	 * Clear scan history action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_CLEAR_SCAN_HISTORY = 'plugin_check_clear_scan_history';
+
+	/**
+	 * Generate report action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_GENERATE_REPORT = 'plugin_check_generate_report';
+
+	/**
+	 * Check domains action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_CHECK_DOMAINS = 'plugin_check_domains';
+
+	/**
+	 * Save name action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_SAVE_NAME = 'plugin_check_save_name';
+
+	/**
+	 * Get saved names action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_GET_SAVED_NAMES = 'plugin_check_get_saved_names';
+
+	/**
+	 * Check name conflicts action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_CHECK_CONFLICTS = 'plugin_check_name_conflicts';
+
+	/**
+	 * Analyze SEO action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_ANALYZE_SEO = 'plugin_check_analyze_seo';
+
+	/**
+	 * Check trademarks action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_CHECK_TRADEMARKS = 'plugin_check_check_trademarks';
+
+	/**
 	 * Registers WordPress hooks for the Admin AJAX.
 	 *
 	 * @since 1.0.0
@@ -100,6 +196,18 @@ final class Admin_AJAX {
 		add_action( 'wp_ajax_' . self::ACTION_EXPORT_RESULTS, array( $this, 'export_results' ) );
 		add_action( 'wp_ajax_' . self::ACTION_SAVE_RESULTS, array( $this, 'save_results' ) );
 		add_action( 'wp_ajax_' . self::ACTION_LOAD_RESULTS, array( $this, 'load_results' ) );
+		add_action( 'wp_ajax_' . self::ACTION_LIST_SAVED_RESULTS, array( $this, 'list_saved_results' ) );
+		add_action( 'wp_ajax_' . self::ACTION_ADD_IGNORE_RULE, array( $this, 'add_ignore_rule' ) );
+		add_action( 'wp_ajax_' . self::ACTION_ADD_IGNORE_DIRECTORY, array( $this, 'add_ignore_directory' ) );
+		add_action( 'wp_ajax_' . self::ACTION_GET_SCAN_HISTORY, array( $this, 'get_scan_history' ) );
+		add_action( 'wp_ajax_' . self::ACTION_CLEAR_SCAN_HISTORY, array( $this, 'clear_scan_history' ) );
+		add_action( 'wp_ajax_' . self::ACTION_GENERATE_REPORT, array( $this, 'generate_report' ) );
+		add_action( 'wp_ajax_' . self::ACTION_CHECK_DOMAINS, array( $this, 'check_domains' ) );
+		add_action( 'wp_ajax_' . self::ACTION_SAVE_NAME, array( $this, 'save_name' ) );
+		add_action( 'wp_ajax_' . self::ACTION_GET_SAVED_NAMES, array( $this, 'get_saved_names' ) );
+		add_action( 'wp_ajax_' . self::ACTION_CHECK_CONFLICTS, array( $this, 'check_conflicts' ) );
+		add_action( 'wp_ajax_' . self::ACTION_ANALYZE_SEO, array( $this, 'analyze_seo' ) );
+		add_action( 'wp_ajax_' . self::ACTION_CHECK_TRADEMARKS, array( $this, 'check_trademarks' ) );
 	}
 
 	/**
@@ -322,15 +430,66 @@ final class Admin_AJAX {
 			'warnings' => array(),
 		);
 
+		$errors = array();
+		$warnings = array();
+
 		if ( in_array( 'error', $types, true ) ) {
-			$response['errors'] = $results->get_errors();
+			$errors = $this->filter_ignored_results( $results->get_errors() );
+			$response['errors'] = $errors;
 		}
 
 		if ( in_array( 'warning', $types, true ) ) {
-			$response['warnings'] = $results->get_warnings();
+			$warnings = $this->filter_ignored_results( $results->get_warnings() );
+			$response['warnings'] = $warnings;
+		}
+
+		// Calculate readiness score
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Readiness_Score' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Readiness_Score.php';
+		}
+		$response['readiness'] = \WordPress\Plugin_Check\Utilities\Readiness_Score::calculate( $errors, $warnings );
+
+		// Save to history and add comparison data
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		if ( $plugin ) {
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Scan_History.php';
+			}
+
+			$last_scan = \WordPress\Plugin_Check\Utilities\Scan_History::get_last_scan( $plugin );
+			$comparison = \WordPress\Plugin_Check\Utilities\Scan_History::compare_scans( $errors, $warnings, $last_scan );
+			$response['comparison'] = $comparison;
+
+			\WordPress\Plugin_Check\Utilities\Scan_History::save_scan( $plugin, $errors, $warnings );
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Filter out ignored results based on ignore rules.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param array $results Array of results to filter.
+	 * @return array Filtered results.
+	 */
+	private function filter_ignored_results( array $results ) {
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Ignore_Rules' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Ignore_Rules.php';
+		}
+
+		$filtered = array();
+		foreach ( $results as $result ) {
+			$file = isset( $result['file'] ) ? $result['file'] : '';
+			$code = isset( $result['code'] ) ? $result['code'] : '';
+
+			if ( ! \WordPress\Plugin_Check\Utilities\Ignore_Rules::should_ignore( $file, $code ) ) {
+				$filtered[] = $result;
+			}
+		}
+
+		return $filtered;
 	}
 
 
@@ -495,17 +654,20 @@ final class Admin_AJAX {
 			$format          = $this->determine_export_format();
 			$results_payload = $this->extract_results_payload();
 			$export_metadata = $this->prepare_export_metadata();
-			$payload         = $this->build_export_payload( $results_payload, $format, $export_metadata );
 			
 			$plugin_slug = $export_metadata['slug'];
-			$plugin_name = dirname( $plugin_slug );
-			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_name;
+			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
+			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder;
 			
 			if ( ! file_exists( $verifier_dir ) ) {
 				wp_mkdir_p( $verifier_dir );
 			}
 			
-			$file_path = $verifier_dir . '/' . $payload['filename'];
+			// Fixed filename based on format
+			$filename = 'results.' . $format;
+			$file_path = $verifier_dir . '/' . $filename;
+			
+			$payload = $this->build_export_payload( $results_payload, $format, $export_metadata );
 			$result = file_put_contents( $file_path, $payload['content'] );
 			
 			if ( false === $result ) {
@@ -539,33 +701,18 @@ final class Admin_AJAX {
 				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
 			}
 			
-			$plugin_name = dirname( $plugin_slug );
-			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_name;
+			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
+			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder;
+			$json_file = $verifier_dir . '/results.json';
 			
-			if ( ! file_exists( $verifier_dir ) ) {
+			if ( ! file_exists( $json_file ) ) {
 				throw new InvalidArgumentException( __( 'No saved results found.', 'wp-verifier' ) );
 			}
 			
-			$files = glob( $verifier_dir . '/*.json' );
-			if ( empty( $files ) ) {
-				throw new InvalidArgumentException( __( 'No JSON results found.', 'wp-verifier' ) );
-			}
-			
-			$results = array();
-			foreach ( $files as $file ) {
-				$results[] = array(
-					'filename' => basename( $file ),
-					'path' => $file,
-					'modified' => filemtime( $file ),
-					'size' => filesize( $file )
-				);
-			}
-			
-			usort( $results, function( $a, $b ) {
-				return $b['modified'] - $a['modified'];
-			} );
-			
-			wp_send_json_success( array( 'files' => $results ) );
+			wp_send_json_success( array(
+				'path' => $json_file,
+				'modified' => filemtime( $json_file )
+			) );
 			
 		} catch ( InvalidArgumentException $exception ) {
 			wp_send_json_error(
@@ -574,4 +721,466 @@ final class Admin_AJAX {
 			);
 		}
 	}
+
+	/**
+	 * Handles listing all saved Plugin Check results.
+	 *
+	 * @since 1.0.0
+	 */
+	public function list_saved_results() {
+		$this->check_request_validity();
+
+		try {
+			$verifier_base_dir = WP_CONTENT_DIR . '/verifier-results';
+			
+			if ( ! file_exists( $verifier_base_dir ) ) {
+				wp_send_json_success( array( 'results' => array() ) );
+				return;
+			}
+			
+			$results = array();
+			$dirs = glob( $verifier_base_dir . '/*', GLOB_ONLYDIR );
+			
+			foreach ( $dirs as $dir ) {
+				$json_file = $dir . '/results.json';
+				if ( file_exists( $json_file ) ) {
+					$plugin_name = basename( $dir );
+					$results[] = array(
+						'plugin' => $plugin_name,
+						'path' => $json_file,
+						'modified' => filemtime( $json_file ),
+					);
+				}
+			}
+			
+			wp_send_json_success( array( 'results' => $results ) );
+			
+		} catch ( Exception $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles adding an ignore rule.
+	 *
+	 * @since 1.0.0
+	 */
+	public function add_ignore_rule() {
+		$this->check_request_validity();
+
+		try {
+			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$file = isset( $_POST['file'] ) ? sanitize_text_field( wp_unslash( $_POST['file'] ) ) : '';
+			$code = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
+			
+			if ( empty( $plugin_slug ) || empty( $file ) || empty( $code ) ) {
+				throw new InvalidArgumentException( __( 'Plugin, file, and code are required.', 'wp-verifier' ) );
+			}
+			
+			$ignore_rules = get_option( 'wpv_ignore_rules', array() );
+			
+			if ( ! isset( $ignore_rules[ $plugin_slug ] ) ) {
+				$ignore_rules[ $plugin_slug ] = array();
+			}
+			
+			$ignore_rules[ $plugin_slug ][] = array(
+				'file' => $file,
+				'code' => $code,
+				'added' => current_time( 'mysql' ),
+			);
+			
+			update_option( 'wpv_ignore_rules', $ignore_rules );
+			
+			wp_send_json_success( array(
+				'message' => __( 'Ignore rule added successfully.', 'wp-verifier' ),
+			) );
+			
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles adding a directory ignore rule.
+	 *
+	 * @since 1.0.0
+	 */
+	public function add_ignore_directory() {
+		$this->check_request_validity();
+
+		try {
+			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$directory = isset( $_POST['directory'] ) ? sanitize_text_field( wp_unslash( $_POST['directory'] ) ) : '';
+			
+			if ( empty( $plugin_slug ) || empty( $directory ) ) {
+				throw new InvalidArgumentException( __( 'Plugin and directory are required.', 'wp-verifier' ) );
+			}
+			
+			$ignore_rules = get_option( 'wpv_ignore_rules', array() );
+			
+			if ( ! isset( $ignore_rules[ $plugin_slug ] ) ) {
+				$ignore_rules[ $plugin_slug ] = array();
+			}
+			
+			$ignore_rules[ $plugin_slug ][] = array(
+				'type' => 'directory',
+				'path' => $directory,
+				'added' => current_time( 'mysql' ),
+			);
+			
+			update_option( 'wpv_ignore_rules', $ignore_rules );
+			
+			wp_send_json_success( array(
+				'message' => __( 'Directory ignore rule added successfully.', 'wp-verifier' ),
+			) );
+			
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles getting scan history for a plugin.
+	 *
+	 * @since 1.9.0
+	 */
+	public function get_scan_history() {
+		$this->check_request_validity();
+
+		try {
+			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( empty( $plugin_slug ) ) {
+				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Scan_History.php';
+			}
+
+			$history = \WordPress\Plugin_Check\Utilities\Scan_History::get_history( $plugin_slug );
+			$stats = \WordPress\Plugin_Check\Utilities\Scan_History::get_statistics( $plugin_slug );
+
+			wp_send_json_success( array(
+				'history' => $history,
+				'stats'   => $stats,
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles clearing scan history for a plugin.
+	 *
+	 * @since 1.9.0
+	 */
+	public function clear_scan_history() {
+		$this->check_request_validity();
+
+		try {
+			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( empty( $plugin_slug ) ) {
+				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Scan_History.php';
+			}
+
+			\WordPress\Plugin_Check\Utilities\Scan_History::clear_history( $plugin_slug );
+
+			wp_send_json_success( array(
+				'message' => __( 'Scan history cleared successfully.', 'wp-verifier' ),
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles generating a detailed report.
+	 *
+	 * @since 1.9.0
+	 */
+	public function generate_report() {
+		$this->check_request_validity();
+
+		try {
+			$format = filter_input( INPUT_POST, 'format', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$format = $format ? $format : 'html';
+
+			$results_payload = $this->extract_results_payload();
+			$export_metadata = $this->prepare_export_metadata();
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Report_Generator' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Report_Generator.php';
+			}
+
+			$comparison = null;
+			if ( isset( $_POST['comparison'] ) ) {
+				$comparison = json_decode( wp_unslash( $_POST['comparison'] ), true );
+			}
+
+			if ( 'html' === $format ) {
+				$content = \WordPress\Plugin_Check\Utilities\Report_Generator::generate_html_report(
+					$results_payload['errors'],
+					$results_payload['warnings'],
+					$export_metadata,
+					$comparison
+				);
+				$mime_type = 'text/html';
+				$extension = 'html';
+			} elseif ( 'pdf' === $format ) {
+				$content = \WordPress\Plugin_Check\Utilities\Report_Generator::generate_pdf_report(
+					$results_payload['errors'],
+					$results_payload['warnings'],
+					$export_metadata,
+					$comparison
+				);
+				$mime_type = 'application/pdf';
+				$extension = 'pdf';
+			} else {
+				$content = \WordPress\Plugin_Check\Utilities\Report_Generator::generate_text_report(
+					$results_payload['errors'],
+					$results_payload['warnings'],
+					$export_metadata
+				);
+				$mime_type = 'text/plain';
+				$extension = 'txt';
+			}
+
+			$filename = sanitize_file_name( $export_metadata['plugin'] ) . '-report-' . $export_metadata['timestamp'] . '.' . $extension;
+
+			wp_send_json_success( array(
+				'content'  => $content,
+				'filename' => $filename,
+				'mimeType' => $mime_type,
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles checking domain availability.
+	 *
+	 * @since 1.9.0
+	 */
+	public function check_domains() {
+		$this->check_request_validity();
+
+		try {
+			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+			if ( empty( $name ) ) {
+				throw new InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Domain_Checker' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Domain_Checker.php';
+			}
+
+			$domain_name = \WordPress\Plugin_Check\Utilities\Domain_Checker::format_domain_name( $name );
+			$cached = \WordPress\Plugin_Check\Utilities\Domain_Checker::get_cached_results( $domain_name );
+
+			if ( $cached ) {
+				wp_send_json_success( array(
+					'domains' => $cached,
+					'cached'  => true,
+				) );
+				return;
+			}
+
+			$results = \WordPress\Plugin_Check\Utilities\Domain_Checker::check_domains( $domain_name );
+			\WordPress\Plugin_Check\Utilities\Domain_Checker::cache_results( $domain_name, $results );
+
+			wp_send_json_success( array(
+				'domains' => $results,
+				'cached'  => false,
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles saving a name evaluation.
+	 *
+	 * @since 1.9.0
+	 */
+	public function save_name() {
+		$this->check_request_validity();
+
+		try {
+			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+			$evaluation = isset( $_POST['evaluation'] ) ? json_decode( wp_unslash( $_POST['evaluation'] ), true ) : array();
+			$note = isset( $_POST['note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['note'] ) ) : '';
+
+			if ( empty( $name ) ) {
+				throw new InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Saved_Names' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Saved_Names.php';
+			}
+
+			\WordPress\Plugin_Check\Utilities\Saved_Names::save_name( $name, $evaluation, $note );
+
+			wp_send_json_success( array(
+				'message' => __( 'Name saved successfully.', 'wp-verifier' ),
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles getting saved names.
+	 *
+	 * @since 1.9.0
+	 */
+	public function get_saved_names() {
+		$this->check_request_validity();
+
+		try {
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Saved_Names' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Saved_Names.php';
+			}
+
+			$saved = \WordPress\Plugin_Check\Utilities\Saved_Names::get_all();
+
+			wp_send_json_success( array(
+				'names' => $saved,
+			) );
+
+		} catch ( Exception $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles checking name conflicts.
+	 *
+	 * @since 1.9.0
+	 */
+	public function check_conflicts() {
+		$this->check_request_validity();
+
+		try {
+			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+			if ( empty( $name ) ) {
+				throw new InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Name_Conflict_Checker' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Name_Conflict_Checker.php';
+			}
+
+			$results = \WordPress\Plugin_Check\Utilities\Name_Conflict_Checker::check_wordpress_org( $name );
+
+			wp_send_json_success( $results );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles SEO analysis.
+	 *
+	 * @since 1.9.0
+	 */
+	public function analyze_seo() {
+		$this->check_request_validity();
+
+		try {
+			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+			if ( empty( $name ) ) {
+				throw new InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\SEO_Analyzer' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/SEO_Analyzer.php';
+			}
+
+			$results = \WordPress\Plugin_Check\Utilities\SEO_Analyzer::analyze( $name );
+			$total_score = $results['length']['score'] + $results['keywords']['score'] + $results['readability']['score'];
+			$results['score'] = $total_score;
+
+			wp_send_json_success( $results );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Handles trademark checking.
+	 *
+	 * @since 1.9.0
+	 */
+	public function check_trademarks() {
+		$this->check_request_validity();
+
+		try {
+			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+			if ( empty( $name ) ) {
+				throw new InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Trademark_Checker' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Trademark_Checker.php';
+			}
+
+			$results = \WordPress\Plugin_Check\Utilities\Trademark_Checker::check( $name );
+			$guidelines = \WordPress\Plugin_Check\Utilities\Trademark_Checker::get_guidelines();
+			$results['guidelines'] = $guidelines;
+
+			wp_send_json_success( $results );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
 }
+

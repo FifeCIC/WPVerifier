@@ -2,7 +2,7 @@
 
 Contributors:      wordpressdotorg
 Tested up to:      6.9
-Stable tag:        1.8.0
+Stable tag:        1.9.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 Tags:              plugin best practices, testing, accessibility, performance, security
@@ -29,6 +29,21 @@ The checks are grouped into several categories, so that you can customize which 
 Keep in mind that this plugin is not a replacement for the manual review process, but it will help you speed up the process of getting your plugin approved for the WordPress.org plugin repository, and it will also help you avoid some common mistakes.
 
 Even if you do not intend to host your plugin in the WordPress.org directory, you are encouraged to use WP Verifier so that your plugin follows the base requirements and best practices for WordPress plugins.
+
+**Ignore Rules System**
+
+WP Verifier includes a powerful Ignore Rules system to filter out third-party code and false positives from verification results. This feature is essential for working with plugins that include vendor libraries or third-party dependencies.
+
+Key features:
+
+* Ignore entire directories (e.g., vendor/, node_modules/)
+* Ignore specific files
+* Ignore specific error codes for files or directories
+* Auto-detect common vendor directories
+* Export and import ignore rules as JSON for team sharing
+* Categorize rules by reason (vendor/library or custom)
+
+Access the Ignore Rules manager via the "Ignore Rules" tab in the main WP Verifier interface.
 
 **Plugin Namer Tool**
 
@@ -82,6 +97,15 @@ To be approved in the WordPress.org plugin directory, a plugin must typically pa
 In any case, passing the checks in this tool likely helps to achieve a smooth plugin review process, but is no guarantee that a plugin will be approved in the WordPress.org plugin directory.
 
 == Changelog ==
+
+= 1.9.0 =
+
+* Added: Ignore Rules system for filtering third-party code and false positives
+* Added: Auto-detection of vendor directories (vendor/, node_modules/, libraries/, etc.)
+* Added: Export/Import ignore rules as JSON for team collaboration
+* Added: Support for directory, file, and error code-level ignore scopes
+* Improved: Consolidated all features into main plugin tabs interface
+* Fixed: Removed duplicate menu entries in Tools menu
 
 = 1.8.0 =
 

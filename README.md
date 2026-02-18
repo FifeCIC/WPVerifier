@@ -42,6 +42,9 @@ Original project: https://github.com/WordPress/plugin-check/
 - Security vulnerability detection
 - Performance best practices analysis
 - Accessibility compliance checks
+- **Custom Ruleset Management** - Create and enforce ecosystem-specific standards
+- **AI-Powered Plugin Namer** - Evaluate plugin names before submission
+- **Setup Wizard** - Guided configuration on first use
 
 ### 🔄 Coming Soon
 - **Automated CI/CD Integration** - Seamless integration with deployment pipelines

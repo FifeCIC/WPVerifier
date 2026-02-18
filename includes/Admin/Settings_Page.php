@@ -180,6 +180,12 @@ final class Settings_Page {
 					'ai_provider' => '',
 					'ai_api_key'  => '',
 					'ai_model'    => '',
+					'namer_checks' => array(
+						'domains'    => true,
+						'conflicts'  => true,
+						'seo'        => true,
+						'trademarks' => true,
+					),
 				),
 			)
 		);
@@ -222,6 +228,21 @@ final class Settings_Page {
 			array(
 				'label_for' => 'ai_model',
 			)
+		);
+
+		add_settings_section(
+			'namer_checks_section',
+			__( 'Plugin Namer Checks', 'wp-verifier' ),
+			array( $this, 'render_namer_section_description' ),
+			self::PAGE_SLUG
+		);
+
+		add_settings_field(
+			'namer_checks',
+			__( 'Enabled Checks', 'wp-verifier' ),
+			array( $this, 'render_namer_checks_field' ),
+			self::PAGE_SLUG,
+			'namer_checks_section'
 		);
 	}
 
@@ -349,6 +370,60 @@ final class Settings_Page {
 		<?php
 	}
 
+	/**
+	 * Renders the namer checks section description.
+	 *
+	 * @since 1.9.0
+	 */
+	public function render_namer_section_description() {
+		?>
+		<p>
+			<?php esc_html_e( 'Choose which checks to run when analyzing plugin names. Disabling checks will speed up analysis but provide less comprehensive results.', 'wp-verifier' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Renders the namer checks field.
+	 *
+	 * @since 1.9.0
+	 */
+	public function render_namer_checks_field() {
+		$settings = get_option( self::OPTION_NAME, array() );
+		$checks = isset( $settings['namer_checks'] ) ? $settings['namer_checks'] : array(
+			'domains'    => true,
+			'conflicts'  => true,
+			'seo'        => true,
+			'trademarks' => true,
+		);
+		?>
+		<fieldset>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][domains]' ); ?>" value="1" <?php checked( ! empty( $checks['domains'] ) ); ?> />
+				<?php esc_html_e( 'Domain Availability', 'wp-verifier' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( 'Check if domain names are available across multiple TLDs (.com, .net, .org, etc.)', 'wp-verifier' ); ?></p>
+			<br>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][conflicts]' ); ?>" value="1" <?php checked( ! empty( $checks['conflicts'] ) ); ?> />
+				<?php esc_html_e( 'WordPress.org Conflicts', 'wp-verifier' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( 'Search for existing plugins with the same or similar names on WordPress.org', 'wp-verifier' ); ?></p>
+			<br>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][seo]' ); ?>" value="1" <?php checked( ! empty( $checks['seo'] ) ); ?> />
+				<?php esc_html_e( 'SEO Analysis', 'wp-verifier' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( 'Analyze name length, keyword usage, and readability for search optimization', 'wp-verifier' ); ?></p>
+			<br>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][trademarks]' ); ?>" value="1" <?php checked( ! empty( $checks['trademarks'] ) ); ?> />
+				<?php esc_html_e( 'Trademark Check', 'wp-verifier' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( 'Check for potential trademark conflicts with known brands and terms', 'wp-verifier' ); ?></p>
+		</fieldset>
+		<?php
+	}
 
 	/**
 	 * Sanitizes settings input.
@@ -365,6 +440,7 @@ final class Settings_Page {
 		$sanitized['ai_provider'] = $this->sanitize_provider( $input, $current_settings );
 		$sanitized['ai_api_key']  = $this->sanitize_api_key( $input, $current_settings );
 		$sanitized['ai_model']    = $this->sanitize_model( $input, $current_settings );
+		$sanitized['namer_checks'] = $this->sanitize_namer_checks( $input, $current_settings );
 
 		if ( $this->should_test_connection( $sanitized, $current_settings ) ) {
 			$connection_test = $this->test_ai_connection( $sanitized['ai_provider'], $sanitized['ai_api_key'], $sanitized['ai_model'] );
@@ -436,6 +512,25 @@ final class Settings_Page {
 		}
 
 		return isset( $current_settings['ai_model'] ) ? $current_settings['ai_model'] : '';
+	}
+
+	/**
+	 * Sanitizes namer checks setting.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param array $input            Input array.
+	 * @param array $current_settings Current settings.
+	 * @return array Sanitized namer checks.
+	 */
+	protected function sanitize_namer_checks( $input, $current_settings ) {
+		$checks = array(
+			'domains'    => ! empty( $input['namer_checks']['domains'] ),
+			'conflicts'  => ! empty( $input['namer_checks']['conflicts'] ),
+			'seo'        => ! empty( $input['namer_checks']['seo'] ),
+			'trademarks' => ! empty( $input['namer_checks']['trademarks'] ),
+		);
+		return $checks;
 	}
 
 	/**
