@@ -60,6 +60,7 @@ final class Admin_Page {
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_jump_to_line_code_editor' ) );
 		add_action( 'admin_post_wp_verifier_save_ai_config', array( $this, 'save_ai_config' ) );
 		add_action( 'admin_action_wp_verifier_setup', array( $this, 'render_setup_wizard' ) );
+		add_action( 'admin_init', array( $this, 'handle_ignore_code_request' ) );
 
 		$this->admin_ajax->add_hooks();
 	}
@@ -256,6 +257,17 @@ final class Admin_Page {
 	public function enqueue_scripts() {
 		$current_tab = isset( $_GET['tab'] ) ? sanitize_title( wp_unslash( $_GET['tab'] ) ) : 'verify';
 
+		// Enqueue basic verification scripts if on basic tab
+		if ( 'basic' === $current_tab ) {
+			wp_enqueue_script(
+				'basic-verification',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/basic-verification.js',
+				array('jquery'),
+				WP_PLUGIN_CHECK_VERSION,
+				true
+			);
+		}
+
 		wp_enqueue_script(
 			'plugin-check-admin',
 			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-admin.js',
@@ -342,6 +354,49 @@ final class Admin_Page {
 			);
 		}
 
+		// Enqueue saved results scripts if on saved tab
+		if ( 'saved' === $current_tab || 'results' === $current_tab ) {
+			wp_enqueue_script(
+				'plugin-check-saved',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-saved.js',
+				array('jquery'),
+				WP_PLUGIN_CHECK_VERSION,
+				true
+			);
+		}
+
+		// Enqueue monitoring scripts if on monitoring tab
+		if ( 'monitoring' === $current_tab ) {
+			wp_enqueue_style(
+				'plugin-monitoring',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/plugin-monitoring.css',
+				array(),
+				WP_PLUGIN_CHECK_VERSION
+			);
+
+			wp_enqueue_script(
+				'plugin-monitoring',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-monitoring.js',
+				array( 'jquery' ),
+				WP_PLUGIN_CHECK_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'plugin-monitoring',
+				'PluginMonitorConfig',
+				array(
+					'nonce'              => $this->admin_ajax->get_nonce(),
+					'actionLoadResults'  => Admin_AJAX::ACTION_LOAD_RESULTS,
+					'actionStartMonitor' => Admin_AJAX::ACTION_START_MONITORING,
+					'actionStopMonitor'  => Admin_AJAX::ACTION_STOP_MONITORING,
+					'actionViewLog'      => Admin_AJAX::ACTION_GET_MONITOR_LOG,
+					'verifyTabUrl'       => admin_url( 'plugins.php?page=wp-verifier&tab=verify' ),
+					'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+				)
+			);
+		}
+
 		// Enqueue settings scripts if on settings tab
 		if ( 'settings' === $current_tab ) {
 			wp_enqueue_script(
@@ -381,6 +436,7 @@ final class Admin_Page {
 					'actionListSavedResults'          => Admin_AJAX::ACTION_LIST_SAVED_RESULTS,
 					'actionAddIgnoreRule'             => Admin_AJAX::ACTION_ADD_IGNORE_RULE,
 					'actionAddIgnoreDirectory'        => Admin_AJAX::ACTION_ADD_IGNORE_DIRECTORY,
+					'autoSaveResults'                 => $this->get_auto_save_setting(),
 					'successMessage'                  => __( 'No errors found.', 'wp-verifier' ),
 					'errorMessage'                    => __( 'Errors were found.', 'wp-verifier' ),
 					'strings'                         => array(
@@ -514,12 +570,35 @@ final class Admin_Page {
 
 		echo '<div class="wrap">';
 		echo '<h1>' . esc_html__( 'Verify Plugins', 'wp-verifier' ) . '</h1>';
+		
+		if ( isset( $_GET['ignored'] ) && '1' === $_GET['ignored'] ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Issue ignored successfully. Run a new scan to see updated results.', 'wp-verifier' ) . '</p></div>';
+		}
+		
 		Admin_Page_Tabs::render_tabs();
 
 		// Render tab content
 		switch ( $current_tab ) {
+			case 'basic':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-basic.php';
+				break;
 			case 'verify':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page.php';
+				break;
+			case 'results':
+				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
+					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Saved_Results_Handler.php';
+				}
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-saved.php';
+				break;
+			case 'monitoring':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-monitoring.php';
+				break;
+			case 'explore':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-explore.php';
+				break;
+			case 'ast':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-ast-demo.php';
 				break;
 			case 'namer':
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Plugin_Namer_Tab' ) ) {
@@ -725,6 +804,18 @@ final class Admin_Page {
 		return $checks;
 	}
 
+	/**
+	 * Gets auto-save setting.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @return bool Auto-save enabled.
+	 */
+	private function get_auto_save_setting() {
+		$settings = get_option( 'plugin_check_settings', array() );
+		return isset( $settings['auto_save_results'] ) ? (bool) $settings['auto_save_results'] : true;
+	}
+
 	public function save_ai_config() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
@@ -749,5 +840,48 @@ final class Admin_Page {
 		}
 		$wizard = new \WordPress\Plugin_Check\Admin\Setup_Wizard();
 		$wizard->render();
+	}
+
+	public function handle_ignore_code_request() {
+		if ( ! isset( $_GET['page'] ) || 'wp-verifier' !== $_GET['page'] ) {
+			return;
+		}
+		
+		if ( ! isset( $_GET['action'] ) || 'ignore_code' !== $_GET['action'] ) {
+			return;
+		}
+		
+		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], Admin_AJAX::NONCE_KEY ) ) {
+			wp_die( 'Invalid nonce' );
+		}
+		
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			wp_die( 'Insufficient permissions' );
+		}
+		
+		$plugin = isset( $_GET['plugin'] ) ? sanitize_text_field( wp_unslash( $_GET['plugin'] ) ) : '';
+		$file = isset( $_GET['file'] ) ? sanitize_text_field( wp_unslash( $_GET['file'] ) ) : '';
+		$code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+		
+		if ( empty( $plugin ) || empty( $file ) || empty( $code ) ) {
+			wp_die( 'Missing required parameters' );
+		}
+		
+		$ignore_rules = get_option( 'wpv_ignore_rules', array() );
+		
+		if ( ! isset( $ignore_rules[ $plugin ] ) ) {
+			$ignore_rules[ $plugin ] = array();
+		}
+		
+		$ignore_rules[ $plugin ][] = array(
+			'file' => $file,
+			'code' => $code,
+			'added' => current_time( 'mysql' ),
+		);
+		
+		update_option( 'wpv_ignore_rules', $ignore_rules );
+		
+		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=results&plugin=' . urlencode( $plugin ) . '&ignored=1' ) );
+		exit;
 	}
 }

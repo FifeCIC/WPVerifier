@@ -1,0 +1,103 @@
+/* Plugin Monitoring Tab Styles */
+
+.plugin-monitor-content {
+	display: flex;
+	gap: 20px;
+}
+
+.plugin-monitor-table-container {
+	flex: 1;
+}
+
+.plugin-monitor-table {
+	margin-top: 20px;
+}
+
+.plugin-monitor-table th:nth-child(1) { width: 40%; }
+.plugin-monitor-table th:nth-child(2) { width: 15%; }
+.plugin-monitor-table th:nth-child(3) { width: 15%; }
+.plugin-monitor-table th:nth-child(4) { width: 15%; }
+.plugin-monitor-table th:nth-child(5) { width: 15%; }
+
+.plugin-monitor-row {
+	cursor: pointer;
+}
+
+.plugin-monitor-row.selected {
+	background-color: #f0f6fc !important;
+	border-left: 3px solid #2271b1;
+}
+
+.plugin-monitor-row .plugin-active {
+	color: #00a32a;
+}
+
+.plugin-monitor-row .monitor-status .dashicons {
+	color: #999;
+}
+
+.plugin-monitor-sidebar-container {
+	flex: 0 0 350px;
+}
+
+#plugin-monitor-sidebar {
+	background: #f6f7f7;
+	padding: 20px;
+	border-radius: 4px;
+}
+
+#plugin-monitor-placeholder p {
+	color: #666;
+}
+
+#plugin-monitor-details h3 {
+	margin-top: 0;
+}
+
+.monitor-actions {
+	margin: 15px 0;
+}
+
+.monitor-actions h4 {
+	margin-bottom: 10px;
+}
+
+.monitor-actions .button {
+	width: 100%;
+	margin-bottom: 8px;
+}
+
+#plugin-check__monitor-status {
+	margin: 15px 0;
+}
+
+#monitor-top-issues {
+	margin-top: 20px;
+}
+
+#monitor-issues-list {
+	font-size: 13px;
+}
+
+#monitor-issues-list p {
+	color: #666;
+}
+
+#monitor-issues-list ul {
+	margin: 0;
+	padding-left: 20px;
+}
+
+#monitor-issues-list li {
+	margin-bottom: 8px;
+}
+
+#monitor-issues-list .issue-type-error {
+	color: #d63638;
+	font-weight: bold;
+}
+
+#monitor-issues-list .issue-type-warning {
+	color: #dba617;
+	font-weight: bold;
+}

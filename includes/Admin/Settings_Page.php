@@ -186,6 +186,7 @@ final class Settings_Page {
 						'seo'        => true,
 						'trademarks' => true,
 					),
+					'auto_save_results' => true,
 				),
 			)
 		);
@@ -243,6 +244,21 @@ final class Settings_Page {
 			array( $this, 'render_namer_checks_field' ),
 			self::PAGE_SLUG,
 			'namer_checks_section'
+		);
+
+		add_settings_section(
+			'general_settings_section',
+			__( 'General Settings', 'wp-verifier' ),
+			array( $this, 'render_general_section_description' ),
+			self::PAGE_SLUG
+		);
+
+		add_settings_field(
+			'auto_save_results',
+			__( 'Auto-Save Results', 'wp-verifier' ),
+			array( $this, 'render_auto_save_field' ),
+			self::PAGE_SLUG,
+			'general_settings_section'
 		);
 	}
 
@@ -371,6 +387,38 @@ final class Settings_Page {
 	}
 
 	/**
+	 * Renders the general settings section description.
+	 *
+	 * @since 1.9.0
+	 */
+	public function render_general_section_description() {
+		?>
+		<p>
+			<?php esc_html_e( 'Configure general plugin verification settings.', 'wp-verifier' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Renders the auto-save results field.
+	 *
+	 * @since 1.9.0
+	 */
+	public function render_auto_save_field() {
+		$settings = get_option( self::OPTION_NAME, array() );
+		$checked = isset( $settings['auto_save_results'] ) ? $settings['auto_save_results'] : true;
+		?>
+		<label>
+			<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[auto_save_results]' ); ?>" value="1" <?php checked( $checked ); ?> />
+			<?php esc_html_e( 'Automatically save verification results to JSON file', 'wp-verifier' ); ?>
+		</label>
+		<p class="description">
+			<?php esc_html_e( 'When enabled, verification results will be automatically saved to wp-content/verifier-results/ after each check. This allows you to load previous results and track changes over time.', 'wp-verifier' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Renders the namer checks section description.
 	 *
 	 * @since 1.9.0
@@ -441,6 +489,7 @@ final class Settings_Page {
 		$sanitized['ai_api_key']  = $this->sanitize_api_key( $input, $current_settings );
 		$sanitized['ai_model']    = $this->sanitize_model( $input, $current_settings );
 		$sanitized['namer_checks'] = $this->sanitize_namer_checks( $input, $current_settings );
+		$sanitized['auto_save_results'] = ! empty( $input['auto_save_results'] );
 
 		if ( $this->should_test_connection( $sanitized, $current_settings ) ) {
 			$connection_test = $this->test_ai_connection( $sanitized['ai_provider'], $sanitized['ai_api_key'], $sanitized['ai_model'] );

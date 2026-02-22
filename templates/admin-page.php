@@ -5,16 +5,21 @@
  * @package plugin-check
  */
 
+// Check which plugins have saved results
+$results_dir = WP_CONTENT_DIR . '/verifier-results';
+$plugins_with_results = array();
+if (is_dir($results_dir)) {
+	$plugin_dirs = glob($results_dir . '/*', GLOB_ONLYDIR);
+	foreach ($plugin_dirs as $plugin_dir) {
+		if (file_exists($plugin_dir . '/results.json')) {
+			$plugins_with_results[] = basename($plugin_dir);
+		}
+	}
+}
+
 ?>
 
 <div class="plugin-check-content" style="display: flex; gap: 20px;">
-
-	<div style="flex: 0 0 250px;">
-		<h2><?php esc_html_e( 'Saved Results', 'wp-verifier' ); ?></h2>
-		<div id="plugin-check__saved-results-list" style="border: 1px solid #ddd; padding: 10px; min-height: 200px; max-height: 500px; overflow-y: auto;">
-			<p style="color: #666;"><?php esc_html_e( 'Loading...', 'wp-verifier' ); ?></p>
-		</div>
-	</div>
 
 	<div style="flex: 0 0 auto; display: flex; gap: 20px;">
 		<div style="flex: 1;">
@@ -89,15 +94,17 @@
 					<?php if ( 1 !== count( $available_plugins ) ) { ?>
 						<option value=""><?php esc_html_e( 'Select Plugin', 'wp-verifier' ); ?></option>
 					<?php } ?>
-					<?php foreach ( $available_plugins as $plugin_basename => $available_plugin ) { ?>
+					<?php foreach ( $available_plugins as $plugin_basename => $available_plugin ) {
+						$plugin_folder = strpos($plugin_basename, '/') !== false ? dirname($plugin_basename) : $plugin_basename;
+						$has_report = in_array($plugin_folder, $plugins_with_results);
+					?>
 						<option value="<?php echo esc_attr( $plugin_basename ); ?>"<?php selected( $selected_plugin_basename, $plugin_basename ); ?>>
-							<?php echo esc_html( $available_plugin['Name'] ); ?>
+							<?php echo esc_html( $available_plugin['Name'] ); ?><?php echo $has_report ? ' ✓' : ''; ?>
 						</option>
 					<?php } ?>
 				</select>
 				<p>
 					<input type="submit" value="<?php esc_attr_e( 'Check it!', 'wp-verifier' ); ?>" id="plugin-check__submit" class="button button-primary" />
-					<button type="button" id="plugin-check__load" class="button button-secondary"><?php esc_html_e( 'Load Saved Results', 'wp-verifier' ); ?></button>
 					<span id="plugin-check__spinner" class="spinner" style="float: none;"></span>
 				</p>
 			<?php } ?>

@@ -17,7 +17,12 @@ class Admin_Page_Tabs {
 	 */
 	public static function get_tabs() {
 		return array(
-			'verify'      => __( 'Verify Plugin', 'wp-verifier' ),
+			'basic'       => __( 'Basic Verification', 'wp-verifier' ),
+			'verify'      => __( 'Advanced Verification', 'wp-verifier' ),
+			'results'     => __( 'Results', 'wp-verifier' ),
+			'monitoring'  => __( 'Plugin Monitoring', 'wp-verifier' ),
+			'explore'     => __( 'Explore Plugin', 'wp-verifier' ),
+			'ast'         => __( 'AST Demo', 'wp-verifier' ),
 			'namer'       => __( 'Plugin Namer', 'wp-verifier' ),
 			'settings'    => __( 'Settings', 'wp-verifier' ),
 			'assets'      => __( 'Assets', 'wp-verifier' ),
@@ -29,7 +34,7 @@ class Admin_Page_Tabs {
 	 * Display tabs navigation
 	 */
 	public static function render_tabs() {
-		$current_tab = isset( $_GET['tab'] ) ? sanitize_title( wp_unslash( $_GET['tab'] ) ) : 'verify';
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_title( wp_unslash( $_GET['tab'] ) ) : 'basic';
 		$tabs        = self::get_tabs();
 		?>
 		<h2 class="nav-tab-wrapper">

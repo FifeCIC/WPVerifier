@@ -1,0 +1,86 @@
+/* Explore Plugin Tab Styles */
+
+.plugin-explore-content {
+	display: flex;
+	gap: 20px;
+}
+
+.plugin-explore-main {
+	flex: 1;
+}
+
+.plugin-explore-sidebar {
+	flex: 0 0 350px;
+}
+
+#plugin-explore-sidebar-content {
+	background: #f6f7f7;
+	padding: 20px;
+	border-radius: 4px;
+	position: sticky;
+	top: 32px;
+}
+
+#plugin-explore-placeholder p {
+	color: #666;
+}
+
+#plugin-tree-container {
+	max-height: 600px;
+	overflow-y: auto;
+}
+
+.tree-item {
+	padding: 4px 0;
+	cursor: pointer;
+	user-select: none;
+}
+
+.tree-item:hover {
+	background: #f0f0f1;
+}
+
+.tree-item.selected {
+	background: #f0f6fc;
+	font-weight: 600;
+}
+
+.tree-folder {
+	color: #2271b1;
+}
+
+.tree-file {
+	color: #646970;
+}
+
+.tree-ignored {
+	color: #999;
+	text-decoration: line-through;
+}
+
+.explore-actions {
+	margin: 15px 0;
+}
+
+.explore-actions .button {
+	width: 100%;
+	margin-bottom: 8px;
+}
+
+#explore-current-rules {
+	margin-top: 20px;
+}
+
+#explore-rules-list {
+	font-size: 13px;
+}
+
+#explore-rules-list ul {
+	margin: 0;
+	padding-left: 20px;
+}
+
+#explore-rules-list li {
+	margin-bottom: 8px;
+	color: #646970;
+}

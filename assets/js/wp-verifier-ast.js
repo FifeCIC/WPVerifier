@@ -8,14 +8,19 @@
 
 	window.WPVerifierAST = {
 		knownLibraries: [],
+		rediscovered: [],
+		ignoredFolders: [],
 		
-		init: function(results) {
+		init: function(results, rediscovered) {
+			console.log('WPVerifierAST.init called with:', results);
 			this.results = results;
+			this.rediscovered = rediscovered || [];
 			this.currentPlugin = document.getElementById('plugin-check__plugins-dropdown') ? document.getElementById('plugin-check__plugins-dropdown').value : '';
 			this.loadKnownLibraries();
 			this.loadIgnoreRules();
 			this.filterIgnoredIssues();
 			this.render();
+			this.renderIgnoredFolders();
 			this.bindEvents();
 		},
 
@@ -27,10 +32,40 @@
 
 		loadIgnoreRules: function() {
 			this.ignoreRules = [];
+			this.ignoredFolders = [];
 			const allRules = window.wpvIgnoreRules || {};
 			if (this.currentPlugin && allRules[this.currentPlugin]) {
 				this.ignoreRules = allRules[this.currentPlugin];
+				this.ignoredFolders = this.extractIgnoredFolders(this.ignoreRules);
 			}
+			console.log('Ignored folders:', this.ignoredFolders);
+		},
+
+		extractIgnoredFolders: function(ignoreRules) {
+			const folders = new Set();
+			ignoreRules.forEach(rule => {
+				if (rule.code === '*' && rule.file.includes('/')) {
+					const folder = rule.file.split('/')[0];
+					folders.add(folder);
+				}
+			});
+			return Array.from(folders).sort();
+		},
+
+		renderIgnoredFolders: function() {
+			const container = $('#wpv-ast-ignored-folders');
+			const list = $('#wpv-ignored-folders-list');
+			
+			if (!this.ignoredFolders || this.ignoredFolders.length === 0) {
+				container.hide();
+				return;
+			}
+			
+			list.empty();
+			this.ignoredFolders.forEach(folder => {
+				list.append(`<li style="padding: 4px 0; color: #666;"><span class="dashicons dashicons-hidden" style="font-size: 14px; width: 14px; height: 14px;"></span> ${this.escapeHtml(folder)}</li>`);
+			});
+			container.show();
 		},
 
 		filterIgnoredIssues: function() {
@@ -136,9 +171,16 @@
 			const details = $('#wpv-ast-details');
 			const aiPrompt = `I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${issue.line}, Column: ${issue.column}\nType: ${issue.type}\nCode: ${issue.code}\nMessage: ${$('<div>').html(issue.message).text()}\n\nHow can I fix this?`;
 			const isIgnored = this.isIgnored(file, issue.code);
+			const isRediscovered = this.isRediscovered(file, issue.line, issue.code);
+			
+			// Build ignore link URL
+			const currentUrl = new URL(window.location.href);
+			const ignoreUrl = currentUrl.origin + currentUrl.pathname + '?page=wp-verifier&tab=verify&action=ignore_code&plugin=' + encodeURIComponent(this.currentPlugin) + '&file=' + encodeURIComponent(file) + '&code=' + encodeURIComponent(issue.code) + '&_wpnonce=' + (window.PLUGIN_CHECK ? window.PLUGIN_CHECK.nonce : '');
+			console.log('Ignore URL:', ignoreUrl);
 			
 			details.html(`
 				<h3>${this.escapeHtml(file)}</h3>
+				${isRediscovered ? '<div style="padding: 10px; background: #fff3cd; border-left: 3px solid #ffc107; margin-bottom: 15px;"><strong style="color: #856404;">⚠ Previously Completed</strong><br><small style="color: #856404;">This issue was marked as complete but has reappeared.</small></div>' : ''}
 				<div class="wpv-ast-detail-group">
 					<label>Type:</label>
 					<span class="wpv-ast-badge ${issue.type.toLowerCase()}">${issue.type}</span>
@@ -159,11 +201,14 @@
 					<button type="button" class="button wpv-copy-ai" data-prompt="${this.escapeHtml(aiPrompt)}">
 						<span class="dashicons dashicons-clipboard"></span> Copy for AI
 					</button>
-					${!isIgnored ? `<button type="button" class="button wpv-ignore-code" data-file="${this.escapeHtml(file)}" data-code="${this.escapeHtml(issue.code)}">
+					<button type="button" class="button button-primary wpv-mark-complete" data-file="${this.escapeHtml(file)}" data-line="${issue.line}" data-code="${this.escapeHtml(issue.code)}">
+						<span class="dashicons dashicons-yes"></span> Mark Complete
+					</button>
+					${!isIgnored ? `<a href="${ignoreUrl}" class="button">
 						<span class="dashicons dashicons-hidden"></span> Ignore Code
-					</button>` : '<span style="color: #999;">✓ Ignored</span>'}
+					</a>` : '<span style="color: #999;">✓ Ignored</span>'}
 					${issue.docs ? `<a href="${issue.docs}" target="_blank" class="button">Learn More</a>` : ''}
-					${issue.link ? `<a href="${issue.link}" target="_blank" class="button button-primary">View in Editor</a>` : ''}
+					${issue.link ? `<a href="${issue.link}" target="_blank" class="button">View in Editor</a>` : ''}
 				</div>
 			`);
 			
@@ -177,24 +222,28 @@
 				});
 			});
 			
-			$('.wpv-ignore-code').off('click').on('click', function() {
+			$('.wpv-mark-complete').off('click').on('click', function() {
 				const file = $(this).data('file');
+				const line = $(this).data('line');
 				const code = $(this).data('code');
-				WPVerifierAST.addIgnoreRule(file, code);
+				WPVerifierAST.markComplete(file, line, code);
 			});
 		},
 
-		addIgnoreRule: function(file, code) {
-			if (!window.PLUGIN_CHECK || !window.PLUGIN_CHECK.actionAddIgnoreRule) {
+
+
+		markComplete: function(file, line, code) {
+			if (!window.PLUGIN_CHECK || !window.PLUGIN_CHECK.nonce) {
 				alert('Configuration error.');
 				return;
 			}
 			
 			const payload = new FormData();
 			payload.append('nonce', window.PLUGIN_CHECK.nonce);
-			payload.append('action', window.PLUGIN_CHECK.actionAddIgnoreRule);
+			payload.append('action', 'plugin_check_mark_complete');
 			payload.append('plugin', this.currentPlugin);
 			payload.append('file', file);
+			payload.append('line', line);
 			payload.append('code', code);
 			
 			fetch(ajaxurl, {
@@ -205,43 +254,50 @@
 			.then(response => response.json())
 			.then(data => {
 				if (data.success) {
-					alert('Issue ignored. Refresh results to see changes.');
+					alert('Issue marked as complete.');
 					location.reload();
 				} else {
-					alert('Failed to add ignore rule: ' + (data.data.message || 'Unknown error'));
+					alert('Failed to mark complete: ' + (data.data?.message || 'Unknown error'));
 				}
 			})
 			.catch(error => {
 				console.error(error);
-				alert('Failed to add ignore rule.');
+				alert('Failed to mark complete.');
 			});
+		},
+
+		isRediscovered: function(file, line, code) {
+			return this.rediscovered.some(r => r.file === file && r.line == line && r.code === code);
 		},
 
 		groupByFile: function(results) {
 			const files = {};
 			
-			['errors', 'warnings'].forEach(type => {
-				if (!results[type]) return;
-				
-				Object.keys(results[type]).forEach(file => {
+			if (results.errors) {
+				Object.entries(results.errors).forEach(([file, lines]) => {
 					if (!files[file]) files[file] = [];
-					
-					const lines = results[type][file];
-					Object.keys(lines).forEach(line => {
-						const columns = lines[line];
-						Object.keys(columns).forEach(column => {
-							columns[column].forEach(issue => {
-								files[file].push({
-									type: type === 'errors' ? 'ERROR' : 'WARNING',
-									line: line,
-									column: column,
-									...issue
-								});
+					Object.entries(lines).forEach(([line, columns]) => {
+						Object.entries(columns).forEach(([column, issues]) => {
+							issues.forEach(issue => {
+								files[file].push({type: 'ERROR', line, column, ...issue});
 							});
 						});
 					});
 				});
-			});
+			}
+			
+			if (results.warnings) {
+				Object.entries(results.warnings).forEach(([file, lines]) => {
+					if (!files[file]) files[file] = [];
+					Object.entries(lines).forEach(([line, columns]) => {
+						Object.entries(columns).forEach(([column, issues]) => {
+							issues.forEach(issue => {
+								files[file].push({type: 'WARNING', line, column, ...issue});
+							});
+						});
+					});
+				});
+			}
 			
 			return files;
 		},

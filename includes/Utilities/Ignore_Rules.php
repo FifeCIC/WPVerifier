@@ -74,10 +74,20 @@ class Ignore_Rules {
 	 * @return bool True if should be ignored.
 	 */
 	public static function should_ignore( $file, $code = '' ) {
+		// Skip if file is empty
+		if ( empty( $file ) ) {
+			return false;
+		}
+
 		$rules = self::get_rules();
 		$file = wp_normalize_path( $file );
 
 		foreach ( $rules as $rule ) {
+			// Ensure rule has scope key
+			if ( ! isset( $rule['scope'] ) ) {
+				continue;
+			}
+
 			// Directory scope
 			if ( self::SCOPE_DIRECTORY === $rule['scope'] ) {
 				$pattern = wp_normalize_path( $rule['path'] );

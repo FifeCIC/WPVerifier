@@ -24,8 +24,25 @@ class Readiness_Score {
 	 * @return array Readiness score data.
 	 */
 	public static function calculate( $errors, $warnings ) {
+		error_log( '=== Readiness_Score::calculate ===' );
+		error_log( 'Input errors type: ' . gettype( $errors ) );
+		error_log( 'Input warnings type: ' . gettype( $warnings ) );
+		if ( is_array( $errors ) ) {
+			error_log( 'Errors count: ' . count( $errors ) );
+			if ( ! empty( $errors ) ) {
+				error_log( 'First error key: ' . print_r( array_key_first( $errors ), true ) );
+			}
+		}
+		if ( is_array( $warnings ) ) {
+			error_log( 'Warnings count: ' . count( $warnings ) );
+		}
+		
 		$error_count   = self::count_issues( $errors );
 		$warning_count = self::count_issues( $warnings );
+		
+		error_log( 'Counted errors: ' . $error_count );
+		error_log( 'Counted warnings: ' . $warning_count );
+		
 		$overall_score = self::calculate_score( $error_count, $warning_count );
 
 		return array(
@@ -47,11 +64,26 @@ class Readiness_Score {
 	private static function count_issues( $issues ) {
 		$count = 0;
 
-		foreach ( $issues as $file_issues ) {
-			foreach ( $file_issues as $line_issues ) {
-				foreach ( $line_issues as $column_issues ) {
-					$count += count( $column_issues );
+		// Handle both flat array and grouped array formats
+		foreach ( $issues as $file_or_issue ) {
+			if ( is_array( $file_or_issue ) ) {
+				// Grouped format: file => [line => [column => [issues]]]
+				foreach ( $file_or_issue as $line_or_issues ) {
+					if ( is_array( $line_or_issues ) ) {
+						foreach ( $line_or_issues as $column_or_issues ) {
+							if ( is_array( $column_or_issues ) ) {
+								$count += count( $column_or_issues );
+							} else {
+								$count++;
+							}
+						}
+					} else {
+						$count++;
+					}
 				}
+			} else {
+				// Flat format
+				$count++;
 			}
 		}
 

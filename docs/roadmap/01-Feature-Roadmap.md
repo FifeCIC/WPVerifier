@@ -1,5 +1,22 @@
 # Implementation Roadmap
 
+## Developer Experience System
+Potentially add additional levels to the Setup Wizard for developers only. 
+Additional checks and output with a final report. 
+
+The setup wizard itself hasn't been fully developed yet either so we will work on that at the same time: http://localhost/EcoSystem/wp-admin/admin.php?action=wp_verifier_setup 
+
+-   [ ] **System Requirements Checker**
+    -   [ ] Check PHP version, WordPress version, required extensions
+    -   [ ] Display warnings on activation if requirements not met
+    -   [ ] Graceful degradation for missing features
+-   [ ] **Plugin Conflict Detector**
+    -   [ ] Detect known incompatible plugins
+    -   [ ] Check for function/class name conflicts
+    -   [ ] Display admin notice with resolution steps
+
+
+
 ## Phase 0: File Monitoring & Integrity (Pre-MVP)
 **Goal**: Detect file changes in real-time and validate plugin structure during development.
 

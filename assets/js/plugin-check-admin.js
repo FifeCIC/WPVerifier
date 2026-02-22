@@ -1,6 +1,5 @@
 ( function ( pluginCheck ) {
 	const checkItButton = document.getElementById( 'plugin-check__submit' );
-	const loadButton = document.getElementById( 'plugin-check__load' );
 	const resultsContainer = document.getElementById( 'plugin-check__results' );
 	const exportContainer = document.getElementById(
 		'plugin-check__export-controls'
@@ -18,15 +17,13 @@
 	// Return early if the elements cannot be found on the page.
 	if (
 		! checkItButton ||
-		! loadButton ||
 		! pluginsList ||
 		! resultsContainer ||
-		! exportContainer ||
 		! spinner ||
 		! categoriesList.length ||
 		! typesList.length
 	) {
-		console.error( 'Missing form elements on page' );
+		// Elements not found - probably on a different tab
 		return;
 	}
 
@@ -51,11 +48,6 @@
 	// Run on page load to test if dropdown is auto populated.
 	canRunChecks();
 	pluginsList.addEventListener( 'change', canRunChecks );
-	pluginsList.addEventListener( 'change', checkForSavedResults );
-
-	// Check for saved results on page load
-	checkForSavedResults();
-	loadSavedResultsList();
 
 	function saveUserSettings() {
 		const selectedCategories = [];
@@ -179,15 +171,136 @@
 			} );
 	}
 
-	// When the Load button is clicked.
-	loadButton.addEventListener( 'click', ( e ) => {
-		e.preventDefault();
-		if ( '' === pluginsList.value ) {
-			alert( 'Please select a plugin first.' );
-			return;
-		}
-		showLoadDialog();
-	} );
+
+
+	// File monitoring
+	const startMonitorBtn = document.getElementById('plugin-check__start-monitor');
+	const stopMonitorBtn = document.getElementById('plugin-check__stop-monitor');
+	const viewLogBtn = document.getElementById('plugin-check__view-log');
+	const monitorStatus = document.getElementById('plugin-check__monitor-status');
+	let monitorInterval;
+
+	if (startMonitorBtn) {
+		startMonitorBtn.addEventListener('click', () => {
+			if ('' === pluginsList.value) {
+				alert('Please select a plugin first.');
+				return;
+			}
+			startMonitoring(pluginsList.value);
+		});
+	}
+
+	if (stopMonitorBtn) {
+		stopMonitorBtn.addEventListener('click', stopMonitoring);
+	}
+
+	if (viewLogBtn) {
+		viewLogBtn.addEventListener('click', showMonitorLog);
+	}
+
+	function startMonitoring(plugin) {
+		const payload = new FormData();
+		payload.append('nonce', pluginCheck.nonce);
+		payload.append('action', 'plugin_check_start_monitoring');
+		payload.append('plugin', plugin);
+
+		fetch(ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: payload
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				startMonitorBtn.style.display = 'none';
+				stopMonitorBtn.style.display = 'inline-block';
+				monitorStatus.innerHTML = '<span style="color: #46b450;">✓ Monitoring active</span>';
+				monitorInterval = setInterval(checkFileChanges, 5000);
+			} else {
+				alert('Failed to start monitoring: ' + (data.data?.message || 'Unknown error'));
+			}
+		})
+		.catch(error => {
+			console.error(error);
+			alert('Failed to start monitoring.');
+		});
+	}
+
+	function stopMonitoring() {
+		const payload = new FormData();
+		payload.append('nonce', pluginCheck.nonce);
+		payload.append('action', 'plugin_check_stop_monitoring');
+
+		fetch(ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: payload
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				startMonitorBtn.style.display = 'inline-block';
+				stopMonitorBtn.style.display = 'none';
+				monitorStatus.innerHTML = '';
+				if (monitorInterval) clearInterval(monitorInterval);
+			}
+		});
+	}
+
+	function checkFileChanges() {
+		const payload = new FormData();
+		payload.append('nonce', pluginCheck.nonce);
+		payload.append('action', 'plugin_check_file_changes');
+
+		fetch(ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: payload
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success && data.data.changed) {
+				monitorStatus.innerHTML = '<span style="color: #d63638;">⚠ Changes detected! Running checks...</span>';
+				if (window.wp && window.wp.a11y) {
+					window.wp.a11y.speak('File changes detected. Running verification checks.');
+				}
+				setTimeout(() => {
+					checkItButton.click();
+				}, 1000);
+			}
+		});
+	}
+
+	function showMonitorLog() {
+		const payload = new FormData();
+		payload.append('nonce', pluginCheck.nonce);
+		payload.append('action', 'plugin_check_monitor_log');
+
+		fetch(ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: payload
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				const log = data.data.log;
+				let html = '<h3>Monitoring Log</h3><div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9;">';
+				if (log.length === 0) {
+					html += '<p>No log entries yet.</p>';
+				} else {
+					log.forEach(entry => {
+						html += `<div style="margin-bottom: 8px; padding: 8px; background: #fff; border-left: 3px solid #2271b1;"><strong>${entry.time}</strong><br>${entry.message}</div>`;
+					});
+				}
+				html += '</div>';
+				const modal = document.createElement('div');
+				modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100000; display: flex; align-items: center; justify-content: center;';
+				modal.innerHTML = `<div style="background: #fff; padding: 20px; border-radius: 4px; max-width: 600px; width: 90%;">${html}<button type="button" class="button" style="margin-top: 15px;" onclick="this.closest('div[style*=fixed]').remove()">Close</button></div>`;
+				document.body.appendChild(modal);
+			}
+		});
+	}
 
 	/**
 	 * Reset the results container.
@@ -579,7 +692,6 @@
 
 	function checkForSavedResults() {
 		if ( '' === pluginsList.value ) {
-			loadButton.disabled = true;
 			return;
 		}
 
@@ -595,10 +707,10 @@
 		} )
 			.then( ( response ) => response.json() )
 			.then( ( responseData ) => {
-				loadButton.disabled = ! ( responseData.success && responseData.data && responseData.data.path );
+				// Results checked
 			} )
 			.catch( ( error ) => {
-				loadButton.disabled = true;
+				// Error checking
 			} );
 	}
 
@@ -674,28 +786,14 @@
 			} )
 			.then( ( data ) => {
 				resetResults();
-				// Transform loaded data to match expected format
-				if ( data.results ) {
-					aggregatedResults = { errors: {}, warnings: {} };
-					for ( const file in data.results ) {
-						for ( const issue of data.results[ file ] ) {
-							const type = issue.type === 'ERROR' ? 'errors' : 'warnings';
-							if ( ! aggregatedResults[ type ][ file ] ) {
-								aggregatedResults[ type ][ file ] = {};
-							}
-							if ( ! aggregatedResults[ type ][ file ][ issue.line ] ) {
-								aggregatedResults[ type ][ file ][ issue.line ] = {};
-							}
-							if ( ! aggregatedResults[ type ][ file ][ issue.line ][ issue.column ] ) {
-								aggregatedResults[ type ][ file ][ issue.line ][ issue.column ] = [];
-							}
-							aggregatedResults[ type ][ file ][ issue.line ][ issue.column ].push( issue );
-						}
-					}
-				} else {
-					aggregatedResults = data;
-				}
-				renderResultsMessage( false );
+				// Data now includes metadata from saved JSON
+				aggregatedResults = {
+					errors: data.errors || {},
+					warnings: data.warnings || {}
+				};
+				const readiness = data.readiness || null;
+				const rediscovered = data.rediscovered || [];
+				renderResultsMessage( false, readiness, rediscovered );
 			} )
 			.catch( ( error ) => {
 				console.error( error );
@@ -848,6 +946,8 @@
 		const totalChecks = data.checks.length;
 		const startTime = Date.now();
 		let aggregatedReadiness = null;
+		let aggregatedRediscovered = [];
+		let aggregatedCompleted = {};
 		
 		// Create progress indicator
 		const progressDiv = document.createElement('div');
@@ -893,6 +993,12 @@
 				if ( results.readiness ) {
 					aggregatedReadiness = results.readiness;
 				}
+				if ( results.rediscovered ) {
+					aggregatedRediscovered = results.rediscovered;
+				}
+				if ( results.completed ) {
+					aggregatedCompleted = results.completed;
+				}
 				mergeAggregatedResults( results );
 				renderResults( results );
 			} catch ( e ) {
@@ -903,7 +1009,86 @@
 		// Remove progress indicator
 		progressDiv.remove();
 
-		renderResultsMessage( isSuccessMessage, aggregatedReadiness );
+		renderResultsMessage( isSuccessMessage, aggregatedReadiness, aggregatedRediscovered );
+
+		// Auto-save results if enabled
+		if (pluginCheck && pluginCheck.autoSaveResults) {
+			console.log('Auto-save is enabled, preparing to save...');
+			const savePayload = new FormData();
+			savePayload.append('nonce', pluginCheck.nonce);
+			savePayload.append('action', pluginCheck.actionSaveResults);
+			savePayload.append('format', 'json');
+			if (pluginsList.value) {
+				savePayload.append('plugin', pluginsList.value);
+			}
+			savePayload.append('plugin_label', getSelectedPluginLabel());
+			
+			// Include readiness and rediscovered in results
+			const resultsWithMeta = {
+				errors: aggregatedResults.errors,
+				warnings: aggregatedResults.warnings,
+				readiness: aggregatedReadiness,
+				rediscovered: aggregatedRediscovered,
+				completed: aggregatedCompleted
+			};
+			console.log('Saving results:', resultsWithMeta);
+			savePayload.append('results', JSON.stringify(resultsWithMeta));
+			
+			showSaveStatus('Saving results to verifier-results folder...');
+			
+			fetch(ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body: savePayload
+			}).then(response => response.json()).then(data => {
+				console.log('Save response:', data);
+				if (data.success) {
+					showSaveStatus('✓ Results saved successfully', 'success');
+					checkForSavedResults();
+					loadSavedResultsList();
+				} else {
+					console.error('Save failed:', data);
+					showSaveStatus('✗ Save failed', 'error');
+				}
+			}).catch(error => {
+				console.error('Auto-save failed:', error);
+				showSaveStatus('✗ Save failed', 'error');
+			});
+		} else {
+			console.log('Auto-save is disabled. pluginCheck.autoSaveResults:', pluginCheck ? pluginCheck.autoSaveResults : 'pluginCheck undefined');
+		}
+	}
+
+	/**
+	 * Show save status message above export buttons.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param {string} message Status message.
+	 * @param {string} type Message type (success, error, or default).
+	 */
+	function showSaveStatus(message, type = 'info') {
+		const readinessDiv = resultsContainer.querySelector('div[style*="margin: 20px 0"]');
+		if (!readinessDiv) return;
+		
+		let statusDiv = readinessDiv.querySelector('#save-status');
+		if (!statusDiv) {
+			statusDiv = document.createElement('div');
+			statusDiv.id = 'save-status';
+			const buttonsDiv = readinessDiv.querySelector('div[style*="border-top"]');
+			if (buttonsDiv) {
+				readinessDiv.insertBefore(statusDiv, buttonsDiv);
+			}
+		}
+		
+		const colors = {
+			success: '#00a32a',
+			error: '#d63638',
+			info: '#2271b1'
+		};
+		
+		statusDiv.style.cssText = `margin-top: 15px; padding: 10px; background: #f0f0f1; border-left: 3px solid ${colors[type]}; color: ${colors[type]}; font-size: 13px;`;
+		statusDiv.textContent = message;
 	}
 
 	/**
@@ -913,39 +1098,46 @@
 	 *
 	 * @param {boolean} isSuccessMessage Whether the message is a success message.
 	 * @param {Object} readiness Readiness score data.
+	 * @param {Array} rediscovered Rediscovered issues.
 	 */
-	function renderResultsMessage( isSuccessMessage, readiness ) {
-		const messageType = isSuccessMessage ? 'success' : 'error';
-		const messageText = isSuccessMessage
-			? pluginCheck.successMessage
-			: pluginCheck.errorMessage;
+	function renderResultsMessage( isSuccessMessage, readiness, rediscovered ) {
+		let html = '';
 
-		let html = renderTemplate( 'plugin-check-results-complete', {
-			type: messageType,
-			message: messageText,
-		} );
+		// Show rediscovered issues warning
+		if ( rediscovered && rediscovered.length > 0 ) {
+			html += `<div style="margin: 20px 0; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+				<strong style="color: #856404;">⚠ ${rediscovered.length} Previously Completed Issue(s) Rediscovered</strong>
+				<p style="margin: 10px 0 0 0; color: #856404;">These issues were marked as complete but have reappeared. They are marked with ⚠ in the results.</p>
+			</div>`;
+		}
 
-		// Add readiness score display
-		if ( readiness ) {
+		// Add readiness score display if available
+		if ( readiness && readiness.overall ) {
 			html += renderReadinessScore( readiness );
 		}
 
-		resultsContainer.innerHTML = html + resultsContainer.innerHTML;
-
-		// Initialize AST with aggregated results
-		if (window.WPVerifierAST && hasAggregatedResults()) {
-			const astTemplate = document.getElementById('wpv-ast-template');
-			if (astTemplate) {
-				resultsContainer.innerHTML += astTemplate.innerHTML;
-				window.WPVerifierAST.init(aggregatedResults);
-				if (window.WPVerifierAST.ignoredCount > 0) {
-					resultsContainer.innerHTML += '<p style="color: #666; margin-top: 10px;"><em>' + window.WPVerifierAST.ignoredCount + ' issue(s) ignored</em></p>';
-				}
-			}
-		}
+		// Clear and set the results container
+		resultsContainer.innerHTML = html;
 
 		checksCompleted = true;
+		
+		// Render export buttons once
 		renderExportButtons();
+		
+		// Move export buttons into readiness score container if it exists
+		const readinessDiv = resultsContainer.querySelector('div[style*="margin: 20px 0"]');
+		if (readinessDiv && exportContainer.children.length > 0) {
+			const buttonsDiv = document.createElement('div');
+			buttonsDiv.style.cssText = 'margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;';
+			buttonsDiv.addEventListener('click', onExportContainerClick);
+			while (exportContainer.firstChild) {
+				const btn = exportContainer.firstChild;
+				btn.style.marginRight = '8px';
+				buttonsDiv.appendChild(btn);
+			}
+			readinessDiv.appendChild(buttonsDiv);
+			exportContainer.classList.add('is-hidden');
+		}
 	}
 
 	/**
@@ -957,6 +1149,10 @@
 	 * @return {string} HTML for readiness score.
 	 */
 	function renderReadinessScore( readiness ) {
+		if (!readiness || !readiness.overall) {
+			return '';
+		}
+		
 		const statusColors = {
 			excellent: '#00a32a',
 			good: '#72aee6',
@@ -1072,26 +1268,8 @@
 	 * @param {Object} results The results object.
 	 */
 	function renderResults( results ) {
-		// Skip rendering old tables if AST will be used
-		if ( window.WPVerifierAST ) {
-			return;
-		}
-		
-		const { errors, warnings } = results;
-		// Render errors and warnings for files.
-		for ( const file in errors ) {
-			if ( warnings[ file ] ) {
-				renderFileResults( file, errors[ file ], warnings[ file ] );
-				delete warnings[ file ];
-			} else {
-				renderFileResults( file, errors[ file ], [] );
-			}
-		}
-
-		// Render remaining files with only warnings.
-		for ( const file in warnings ) {
-			renderFileResults( file, [], warnings[ file ] );
-		}
+		// Skip - AST handles all rendering
+		return;
 	}
 
 	/**
@@ -1104,26 +1282,8 @@
 	 * @param {Object} warnings The file warnings.
 	 */
 	function renderFileResults( file, errors, warnings ) {
-		const index =
-			Date.now().toString( 36 ) +
-			Math.random().toString( 36 ).substr( 2 );
-
-		// Check if any errors or warnings have links.
-		const hasLinks =
-			hasLinksInResults( errors ) || hasLinksInResults( warnings );
-
-		// Render the file table.
-		resultsContainer.innerHTML += renderTemplate(
-			'plugin-check-results-table',
-			{ file, index, hasLinks }
-		);
-		const resultsTable = document.getElementById(
-			'plugin-check__results-body-' + index
-		);
-
-		// Render results to the table.
-		renderResultRows( 'ERROR', errors, resultsTable, hasLinks );
-		renderResultRows( 'WARNING', warnings, resultsTable, hasLinks );
+		// Skip - AST handles all rendering
+		return;
 	}
 
 	/**
@@ -1202,3 +1362,4 @@
 		return template( data );
 	}
 } )( PLUGIN_CHECK ); /* global PLUGIN_CHECK */
+
