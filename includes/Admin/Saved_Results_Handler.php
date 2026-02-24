@@ -49,25 +49,38 @@ class Saved_Results_Handler {
 	 */
 	private static function format_result_data( $plugin_dir, $json_file, $data ) {
 		$plugin_name = basename( $plugin_dir );
-		$file_count = 0;
-
-		if ( isset( $data['errors'] ) ) {
-			$file_count += count( $data['errors'] );
+		
+		// Use stored counts from JSON readiness
+		$total_issues = 0;
+		if ( isset( $data['readiness']['errors'] ) ) {
+			$total_issues += (int) $data['readiness']['errors'];
 		}
-		if ( isset( $data['warnings'] ) ) {
-			$file_count += count( array_unique( array_merge(
-				array_keys( $data['errors'] ?? array() ),
-				array_keys( $data['warnings'] ?? array() )
-			) ) );
+		if ( isset( $data['readiness']['warnings'] ) ) {
+			$total_issues += (int) $data['readiness']['warnings'];
 		}
-		if ( isset( $data['results'] ) ) {
-			$file_count = count( $data['results'] );
+		
+		$file_count = isset( $data['results'] ) && is_array( $data['results'] ) ? count( $data['results'] ) : 0;
+		
+		// Count ignored from JSON
+		$ignored_count = 0;
+		if ( isset( $data['results'] ) && is_array( $data['results'] ) ) {
+			foreach ( $data['results'] as $file_issues ) {
+				if ( is_array( $file_issues ) ) {
+					foreach ( $file_issues as $issue ) {
+						if ( isset( $issue['ignored'] ) && $issue['ignored'] === true ) {
+							$ignored_count++;
+						}
+					}
+				}
+			}
 		}
 
 		return array(
-			'plugin' => ucwords( str_replace( '-', ' ', $plugin_name ) ),
-			'path'   => $json_file,
-			'files'  => $file_count,
+			'plugin'  => ucwords( str_replace( '-', ' ', $plugin_name ) ),
+			'path'    => $json_file,
+			'files'   => $file_count,
+			'issues'  => $total_issues,
+			'ignored' => $ignored_count,
 		);
 	}
 }

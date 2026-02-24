@@ -24,33 +24,20 @@ class Readiness_Score {
 	 * @return array Readiness score data.
 	 */
 	public static function calculate( $errors, $warnings ) {
-		error_log( '=== Readiness_Score::calculate ===' );
-		error_log( 'Input errors type: ' . gettype( $errors ) );
-		error_log( 'Input warnings type: ' . gettype( $warnings ) );
-		if ( is_array( $errors ) ) {
-			error_log( 'Errors count: ' . count( $errors ) );
-			if ( ! empty( $errors ) ) {
-				error_log( 'First error key: ' . print_r( array_key_first( $errors ), true ) );
-			}
-		}
-		if ( is_array( $warnings ) ) {
-			error_log( 'Warnings count: ' . count( $warnings ) );
-		}
-		
 		$error_count   = self::count_issues( $errors );
 		$warning_count = self::count_issues( $warnings );
-		
-		error_log( 'Counted errors: ' . $error_count );
-		error_log( 'Counted warnings: ' . $warning_count );
-		
 		$overall_score = self::calculate_score( $error_count, $warning_count );
-
-		return array(
+		
+		$result = array(
 			'overall' => $overall_score,
 			'errors'  => $error_count,
 			'warnings' => $warning_count,
 			'status'  => self::get_status( $overall_score ),
 		);
+		
+		error_log( 'Readiness_Score::calculate - Errors: ' . $error_count . ', Warnings: ' . $warning_count . ', Score: ' . $overall_score );
+		
+		return $result;
 	}
 
 	/**

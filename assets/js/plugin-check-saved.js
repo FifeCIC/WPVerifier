@@ -96,6 +96,9 @@ jQuery(document).ready(function($) {
 		fetch(contentUrl)
 			.then(response => response.json())
 			.then(data => {
+				// Make data available globally for AST
+				window.wpvResultsData = data;
+				
 				// Support both old and new format
 				if (data.results) {
 					currentData = data.results;
@@ -230,7 +233,11 @@ jQuery(document).ready(function($) {
 			const ignoreUrl = currentUrl.origin + currentUrl.pathname + '?page=wp-verifier&tab=results&action=ignore_code&plugin=' + encodeURIComponent(pluginSlug) + '&file=' + encodeURIComponent(file) + '&code=' + encodeURIComponent(item.code) + '&_wpnonce=' + (typeof PLUGIN_CHECK !== 'undefined' ? PLUGIN_CHECK.nonce : '');
 			
 			$('#saved-results-details').html(`
-				<h4 style="margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #ddd;">Issue Details</h4>
+					<h4 style="margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #ddd;">Selected Issue Details</h4>
+				<div class="wpv-ast-detail-group">
+					<label>Issue ID:</label>
+					<p><code>${item.issue_id || 'N/A'}</code></p>
+				</div>
 				<div class="wpv-ast-detail-group">
 					<label>Filename:</label>
 					<span><strong>${file.split(/[\\\\/]/).pop()}</strong></span>

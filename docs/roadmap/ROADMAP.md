@@ -1,109 +1,161 @@
 # WP Verifier Development Roadmap
+This roadmap consolidates all planned features and tracks implementation progress. Most features will be supported by existing folders, systems and standard approaches so check for existing implementation before creating new files, functions or classes.
 
-This roadmap consolidates all planned features and tracks implementation progress.
+### Phase 7: Preparation Tab - Vendor/Library Detection
+- [x] **Step 1**: Create centralized vendor folder pattern list
+  - [x] Create `includes/Utilities/Vendor_Patterns.php` class
+  - [x] Define static array with patterns: `vendor`, `vendors`, `library`, `libraries`
+  - [x] Add method to get patterns for reuse across plugin
 
-## Completed ✅
+- [x] **Step 2**: Create Preparation tab template and structure
+  - [x] Create `templates/admin-page-preparation.php` template file
+  - [x] Add tab registration in main admin page
+  - [x] Create basic layout: plugin selector + vendor detection results area
+  - [x] Add CSS for vendor list display
 
-### Phase 1: Foundation & Rebranding
-- [x] Fork and adapt Plugin Check codebase
-- [x] Rebrand to WP Verifier
-- [x] Update all text domains and namespaces
-- [x] Create README.md with project overview
-- [x] Setup Wizard implementation (4-step process)
-- [x] AI Provider configuration (OpenAI/Anthropic)
-- [x] Plugin Namer tool integration
-- [x] Asset Management tracking
-- [x] Settings page with AI configuration
+- [x] **Step 3**: Implement vendor folder detection
+  - [x] Create `includes/Admin/Vendor_Detector.php` class
+  - [x] Add method to scan plugin directory for vendor patterns
+  - [x] Add method to list subdirectories (individual vendors) in matched folders
+  - [x] Return structured array: `[folder => [vendor1, vendor2, ...]]`
 
-### Phase 2: Custom Ruleset Development
-- [x] Create custom ruleset configuration interface
-- [x] Define ecosystem-specific coding standards
-- [x] Implement custom check categories
-- [x] Add ruleset import/export functionality
-- [x] Document custom ruleset creation process
+- [x] **Step 4**: Create AJAX handler for vendor detection
+  - [x] Add `detect_vendors` AJAX action in `Admin_AJAX.php`
+  - [x] Accept plugin slug parameter
+  - [x] Call Vendor_Detector and return JSON response
+  - [x] Handle errors gracefully
 
-### Phase 3: Ignore Rules & Library Management
-- [x] Implement flexible ignore rules system
-- [x] Add "Ignore Code" button in issue details
-- [x] Store ignore rules in WordPress options
-- [x] Support directory, file, and code-level ignores
-- [x] Create Vendor Directory Manager UI
-- [x] Auto-detect vendor/node_modules directories
-- [x] Rule management screen (view/edit/delete)
-- [x] Export/Import ignore rules as JSON
-- [x] Apply rules during scan filtering
+- [x] **Step 5**: Build frontend JavaScript for Preparation tab
+  - [x] Create `assets/js/plugin-check-preparation.js`
+  - [x] Auto-detect vendors on page load for selected plugin
+  - [x] Display vendor folders with checkboxes (checked by default)
+  - [x] Add "Confirm Ignore" button to save selections
 
-### Phase 4: Enhanced Reporting & History
-- [x] Historical scan comparison (diff mode)
-- [x] Implement detailed verification reports
-- [x] Add export functionality (PDF, JSON, CSV)
+- [x] **Step 6**: Extend JSON structure for ignored paths
+  - [x] Add `ignored_paths` array to results.json structure
+  - [x] Store in format: `[{"path": "vendor/name", "reason": "vendor", "added_by": "user"}]`
+  - [x] Update `save_results()` in `Admin_AJAX.php` to preserve ignored_paths
 
-### Phase 5: Plugin Namer Enhancements
-- [x] Multi-TLD domain checking (.com, .net, .org, .io)
-- [x] Saved names & side-by-side comparison
-- [x] Name conflict detection (WordPress.org)
-- [x] SEO analysis (length, keywords, readability)
-- [x] Trademark checking with guidelines
+- [x] **Step 7**: Implement JSON merge logic
+  - [x] Create method to load existing JSON before saving new results
+  - [x] Merge `ignored_paths` from existing JSON into new results
+  - [x] Ensure ignored_paths persist across verification runs
+  - [x] Add timestamp to track when paths were ignored
 
-### Phase 6: Transparency & User Visibility
-- [x] Real-time check progress indicators
-- [x] Readiness score with category breakdown
-- [x] Pre-check summary before verification
-- [x] Settings validation with real-time feedback
+- [x] **Step 8**: Update Advanced Verification to respect ignored paths
+  - [x] Modify `wp-verifier-ast.js` to load ignored_paths from JSON
+  - [x] Filter out issues from ignored paths before rendering
+  - [x] Update ignored folder display to show paths from JSON
+  - [x] Add visual indicator that paths are from Preparation tab
 
-### Phase 7: File Monitoring System
-- [ ] Plugin selection for active monitoring
-- [ ] File change detection (timestamp-based)
-- [ ] Background check execution on file changes
-- [ ] Monitoring activity logger
-- [ ] Admin notification system for new issues
+- [x] **Step 9**: Update existing vendor detection to use centralized patterns
+  - [x] Refactor `detect_folders()` in `Admin_AJAX.php`
+  - [x] Use Vendor_Patterns class instead of hardcoded array
+  - [x] Ensure consistency across all vendor detection points
+
+- [ ] **Step 10**: Testing and polish
+  - [ ] Test with plugins containing vendor folders
+  - [ ] Test JSON persistence across multiple verification runs
+  - [ ] Test ignored paths filtering in Advanced Verification
+  - [ ] Add user feedback messages and loading states
 
 ## Future Phases 🔮
 
-### Phase 8: CI/CD Integration
-- [ ] GitHub Actions integration
-- [ ] GitLab CI support
-- [ ] Webhook support for automated checks
-- [ ] API endpoints for external tools
-- [ ] Command-line enhancements
+### File Monitoring System
+- [x] Plugin selection for active monitoring
+- [x] File change detection (timestamp-based)
+- [x] Background check execution on file changes
+- [x] Monitoring activity logger
+- [x] Admin notification system for new issues
+- [x] **File Watcher**: Monitor selected plugin directory for file timestamp changes.
+- [ ] **Delayed Validation**: Wait 2-5 seconds after file save before running checks (assume developer is still working).
+- [x] **Change Detection**: Alert developer when file modifications are detected with validation results.
+- [x] **Structure Validation**: Check for required files and folders:
+  - [x] Language folder (`/languages` or `/lang`)
+  - [x] Language files (`.pot`, `.po`, `.mo`)
+  - [x] License file (`LICENSE`, `LICENSE.txt`, `LICENSE.md`)
+  - [x] README file (`README.md`, `readme.txt`)
+  - [x] Plugin header file (main plugin file with proper headers)
+- [ ] **File Creation Wizard**: Offer to auto-generate missing files with templates.
+- [x] **Real-time Dashboard**: Show file status, last modified times, and validation results.
 
-## Progress Tracking
+## Plugin Namer Tool Features
 
-**Phases Completed**: 6/8  
-**Current Phase**: 7 (File Monitoring System)  
-**Overall Progress**: ~75%
+**Goal**: Make plugin naming tool more comprehensive and user-friendly.
 
-## Implementation Notes
+### Priority 1: Visual Dashboard (High Priority - Quick Win)
+- [ ] **Unified Status Dashboard**: Create at-a-glance availability status at top of results.
+  - [ ] WordPress.org status indicator (✓ Available / ✗ Taken)
+  - [ ] Domain availability indicators for multiple TLDs
+  - [ ] Trademark status (✓ Clear / ⚠ Review / ✗ Conflict)
+  - [ ] Overall viability score (0-100)
+  - [ ] Color-coded visual indicators throughout
+- [ ] **Collapsible Result Sections**: Organize detailed results into expandable sections.
+- [ ] **Quick Action Buttons**: Add Save Name, Check Alternatives, Export buttons.
 
-### Current Focus: Ignore Rules System
-The ignore rules system is critical for making WP Verifier practical in real-world scenarios where plugins include third-party libraries. This feature will:
+### Priority 2: Multi-TLD Domain Checking (High Priority)
+- [ ] **Simultaneous TLD Checks**: Check .com, .net, .org, .io at once.
+- [ ] **Compact Table Display**: Show all TLD results in organized table format.
+- [ ] **Domain Price Integration**: Display registration costs from popular registrars.
+- [ ] **WHOIS Information**: Show domain registration details if taken.
+- [ ] **Expiration Tracking**: Track when taken domains expire for monitoring.
 
-1. **Reduce Noise**: Filter out issues from vendor code
-2. **Improve Accuracy**: Focus on actual plugin code
-3. **Save Time**: Bulk ignore common library patterns
-4. **Enable Sharing**: Export/import rules between projects
+### Priority 3: Name Alternatives Generator (Medium Priority)
+- [ ] **AI-Powered Suggestions**: Generate 3-5 available alternatives when name is taken.
+- [ ] **Brand Intent Preservation**: Maintain original naming intent in suggestions.
+- [ ] **Instant Availability Check**: Show availability status for each suggestion.
+- [ ] **One-Click Evaluation**: Allow quick evaluation of suggested alternatives.
 
-### Architecture Decisions
-- Store rules in WordPress options for efficient single-query retrieval
-- Support three ignore scopes: directory, file, and code
-- Categorize by reason (vendor/library vs other)
-- Apply filtering before display, not during scan
+### Priority 4: Confidence Scoring System (Medium Priority)
+- [ ] **Numerical Viability Score**: Replace simple verdict with 0-100 score.
+- [ ] **Category Breakdown**: 
+  - [ ] Availability Score (40%): WordPress.org + Domain status
+  - [ ] Trademark Score (30%): Conflict risk assessment
+  - [ ] SEO Score (15%): Search optimization potential
+  - [ ] Memorability Score (15%): Ease of recall and pronunciation
+- [ ] **Visual Progress Bars**: Display score breakdown with progress indicators.
+- [ ] **Score Explanation**: Provide reasoning for each category score.
 
-### Related Documentation
-- See `01-Feature-Roadmap.md` for detailed feature specifications
-- See `02-Implementation-Roadmap.md` for technical implementation details
-- See `04-File-Monitoring-System.md` for file watcher specifications
+### Priority 5: Saved Names & Comparison (Medium Priority)
+- [ ] **Save Evaluated Names**: Store names with full analysis results.
+- [ ] **Side-by-Side Comparison**: Compare up to 4 saved names simultaneously.
+- [ ] **Comparison Matrix**: Show all metrics in unified comparison table.
+- [ ] **Notes & Tags**: Add custom notes and categorize saved names.
+- [ ] **Re-check Availability**: Bulk re-check all saved names for status changes.
+- [ ] **Export Options**: Export comparison as PDF/CSV/JSON.
+- [ ] **Favorite/Star System**: Mark preferred names for quick access.
 
-## Progress Tracking
+### Priority 6: Enhanced Results Layout (Low Priority)
+- [ ] **Tabbed Results View**: Organize results into logical tabs.
+- [ ] **Expandable Details**: Collapsible sections for each check type.
+- [ ] **Visual Status Indicators**: Consistent color-coding throughout interface.
+- [ ] **Result Summary Cards**: Card-based layout for key findings.
+- [ ] **Print-Friendly View**: Optimized layout for printing/PDF export.
 
-**Phases Completed**: 5/10  
-**Current Phase**: 6 (Transparency & User Visibility)  
-**Overall Progress**: ~50%
+### Priority 7: Social Media Integration (Low Priority)
+- [ ] **Handle Availability Checks**: Twitter, Instagram, Facebook, LinkedIn.
+- [ ] **Unified Dashboard Display**: Include social status in main dashboard.
+- [ ] **Direct Registration Links**: Link to social platform registration pages.
+- [ ] **Handle Variations**: Check common variations (@name, @nameofficial, etc.).
 
-## Notes
+### Advanced Name Evaluation
+- [ ] **Trademark Search**: Check USPTO and international trademark databases.
+- [ ] **Similar Name Detection**: Find existing plugins with similar names (fuzzy matching).
+- [ ] **SEO Analysis**: Evaluate name for search engine optimization potential.
+- [ ] **Length Analysis**: Optimal character count for readability.
+- [ ] **Pronunciation Guide**: Suggest phonetic spelling for complex names.
+- [ ] **Cultural Sensitivity Check**: Flag potentially problematic names in different languages/cultures.
+- [ ] **Keyword Relevance**: Analyze if name reflects plugin functionality.
+- [ ] **Market Positioning**: Compare name against competitors.
 
-- Each phase builds upon previous work
-- Features can be developed in parallel where dependencies allow
-- User feedback will influence priority adjustments
-- Maintain backward compatibility with Plugin Check core
-- Focus on practical, high-impact features first
+### AI-Powered Features
+- [ ] **AI Name Generation**: Generate plugin names based on description/features.
+- [ ] **Bulk Name Check**: Upload list of names for batch checking.
+- [ ] **Smart Suggestions**: Context-aware alternative name recommendations.
+- [ ] **Trend Analysis**: Identify naming trends in plugin ecosystem.
+
+### Integration & Automation
+- [ ] **API Integration**: Connect to domain registrars for direct purchase.
+- [ ] **Notification System**: Alert when monitored domain becomes available.
+- [ ] **Webhook Support**: Trigger external actions on name availability changes.
+- [ ] **CLI Tool**: Command-line interface for batch name checking.

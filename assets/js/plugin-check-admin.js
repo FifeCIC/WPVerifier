@@ -48,6 +48,7 @@
 	// Run on page load to test if dropdown is auto populated.
 	canRunChecks();
 	pluginsList.addEventListener( 'change', canRunChecks );
+	pluginsList.addEventListener( 'change', checkForExcludeFolders );
 
 	function saveUserSettings() {
 		const selectedCategories = [];
@@ -72,9 +73,59 @@
 		checkbox.addEventListener( 'change', saveUserSettings );
 	} );
 
+	/**
+	 * Check for vendor/libraries/library folders when plugin is selected.
+	 *
+	 * @since 1.9.0
+	 */
+	function checkForExcludeFolders() {
+		const excludeContainer = document.getElementById('plugin-check__exclude-folders');
+		if (!excludeContainer || !pluginsList.value) {
+			if (excludeContainer) excludeContainer.style.display = 'none';
+			return;
+		}
+
+		const payload = new FormData();
+		payload.append('action', 'plugin_check_detect_folders');
+		payload.append('plugin', pluginsList.value);
+		payload.append('nonce', pluginCheck.nonce);
+
+		fetch(ajaxurl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: payload
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success && data.data.folders && data.data.folders.length > 0) {
+				let html = '<h4 style="margin: 10px 0 5px 0;">Exclude Folders</h4>';
+				data.data.folders.forEach(folder => {
+					html += `<label style="display: block; margin: 5px 0;"><input type="checkbox" name="exclude_folders" value="${folder}" checked> ${folder}/</label>`;
+				});
+				excludeContainer.innerHTML = html;
+				excludeContainer.style.display = 'block';
+			} else {
+				excludeContainer.style.display = 'none';
+			}
+		})
+		.catch(error => {
+			console.error('Error detecting folders:', error);
+			excludeContainer.style.display = 'none';
+		});
+	}
+
 	// When the Check it button is clicked.
 	checkItButton.addEventListener( 'click', ( e ) => {
 		e.preventDefault();
+
+		// Save last selected plugin
+		if ( pluginsList.value ) {
+			const payload = new FormData();
+			payload.append( 'action', 'save_user_meta' );
+			payload.append( 'meta_key', 'wpv_last_selected_plugin' );
+			payload.append( 'meta_value', pluginsList.value );
+			fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: payload } );
+		}
 
 		// Show pre-check summary
 		showPreCheckSummary();
@@ -89,6 +140,7 @@
 		const selectedPlugin = pluginsList.options[pluginsList.selectedIndex]?.text || 'Unknown';
 		const selectedCategories = [];
 		const selectedTypes = [];
+		const excludedFolders = [];
 
 		categoriesList.forEach( ( checkbox ) => {
 			if ( checkbox.checked ) {
@@ -101,6 +153,9 @@
 				selectedTypes.push( checkbox.nextSibling.textContent.trim() );
 			}
 		} );
+
+		const excludeCheckboxes = document.querySelectorAll('input[name="exclude_folders"]:checked');
+		excludeCheckboxes.forEach(cb => excludedFolders.push(cb.value));
 
 		const includeExp = includeExperimental && includeExperimental.checked;
 
@@ -120,6 +175,7 @@
 					<strong>Result Types:</strong><br>
 					${selectedTypes.join(', ')}
 				</div>
+				${excludedFolders.length ? `<div style="margin-bottom: 20px; color: #2271b1;"><strong>📁 Excluded Folders:</strong><br>${excludedFolders.join(', ')}</div>` : ''}
 				${includeExp ? '<div style="margin-bottom: 20px; color: #dba617;"><strong>⚠ Experimental checks included</strong></div>' : ''}
 				<div style="display: flex; gap: 10px; justify-content: flex-end;">
 					<button type="button" class="button button-secondary" id="precheck-cancel">Cancel</button>
@@ -982,8 +1038,10 @@
 			
 			try {
 				const results = await runCheck( data.plugin, data.checks[ i ] );
-				const errorsLength = Object.values( results.errors ).length;
-				const warningsLength = Object.values( results.warnings ).length;
+				
+				const errorsLength = Object.keys( results.errors || {} ).length;
+				const warningsLength = Object.keys( results.warnings || {} ).length;
+				
 				if (
 					isSuccessMessage &&
 					( errorsLength > 0 || warningsLength > 0 )
@@ -1000,20 +1058,17 @@
 					aggregatedCompleted = results.completed;
 				}
 				mergeAggregatedResults( results );
-				renderResults( results );
+				renderResults( results, aggregatedRediscovered );
 			} catch ( e ) {
-				// Ignore for now.
+				console.error(`Check ${data.checks[i]} failed:`, e);
 			}
 		}
 		
 		// Remove progress indicator
 		progressDiv.remove();
 
-		renderResultsMessage( isSuccessMessage, aggregatedReadiness, aggregatedRediscovered );
-
 		// Auto-save results if enabled
 		if (pluginCheck && pluginCheck.autoSaveResults) {
-			console.log('Auto-save is enabled, preparing to save...');
 			const savePayload = new FormData();
 			savePayload.append('nonce', pluginCheck.nonce);
 			savePayload.append('action', pluginCheck.actionSaveResults);
@@ -1023,7 +1078,6 @@
 			}
 			savePayload.append('plugin_label', getSelectedPluginLabel());
 			
-			// Include readiness and rediscovered in results
 			const resultsWithMeta = {
 				errors: aggregatedResults.errors,
 				warnings: aggregatedResults.warnings,
@@ -1031,31 +1085,51 @@
 				rediscovered: aggregatedRediscovered,
 				completed: aggregatedCompleted
 			};
-			console.log('Saving results:', resultsWithMeta);
 			savePayload.append('results', JSON.stringify(resultsWithMeta));
 			
-			showSaveStatus('Saving results to verifier-results folder...');
+			showSaveStatus('Saving results and calculating readiness score...');
 			
 			fetch(ajaxurl, {
 				method: 'POST',
 				credentials: 'same-origin',
 				body: savePayload
-			}).then(response => response.json()).then(data => {
-				console.log('Save response:', data);
-				if (data.success) {
-					showSaveStatus('✓ Results saved successfully', 'success');
-					checkForSavedResults();
-					loadSavedResultsList();
+			}).then(response => {
+				return response.json();
+			}).then(data => {
+				if (data.success && data.data && data.data.path) {
+					const normalizedPath = data.data.path.replace( /\\/g, '/' );
+					const contentPath = normalizedPath.split( '/wp-content/' )[1];
+					if (contentPath) {
+						const currentUrl = window.location.href;
+						const wpContentBase = currentUrl.substring( 0, currentUrl.indexOf( '/wp-admin/' ) ) + '/wp-content/';
+						const contentUrl = wpContentBase + contentPath;
+						fetch(contentUrl)
+							.then(r => r.json())
+							.then(jsonData => {
+								console.log('About to call renderResultsMessage from auto-save success');
+								renderResultsMessage( false, jsonData.readiness || null, aggregatedRediscovered );
+								showSaveStatus('✓ Results saved successfully', 'success');
+								checkForSavedResults();
+								loadSavedResultsList();
+							})
+							.catch(err => {
+								console.error('Failed to load saved JSON:', err);
+								renderResultsMessage( false, aggregatedReadiness, aggregatedRediscovered );
+								showSaveStatus('✓ Results saved', 'success');
+							});
+					}
 				} else {
 					console.error('Save failed:', data);
+					renderResultsMessage( false, aggregatedReadiness, aggregatedRediscovered );
 					showSaveStatus('✗ Save failed', 'error');
 				}
 			}).catch(error => {
-				console.error('Auto-save failed:', error);
+				console.error('Auto-save error:', error);
+				renderResultsMessage( false, aggregatedReadiness, aggregatedRediscovered );
 				showSaveStatus('✗ Save failed', 'error');
 			});
 		} else {
-			console.log('Auto-save is disabled. pluginCheck.autoSaveResults:', pluginCheck ? pluginCheck.autoSaveResults : 'pluginCheck undefined');
+			renderResultsMessage( false, aggregatedReadiness, aggregatedRediscovered );
 		}
 	}
 
@@ -1101,6 +1175,7 @@
 	 * @param {Array} rediscovered Rediscovered issues.
 	 */
 	function renderResultsMessage( isSuccessMessage, readiness, rediscovered ) {
+		console.log('renderResultsMessage called with readiness:', readiness);
 		let html = '';
 
 		// Show rediscovered issues warning
@@ -1112,7 +1187,7 @@
 		}
 
 		// Add readiness score display if available
-		if ( readiness && readiness.overall ) {
+		if ( readiness && readiness.overall !== undefined ) {
 			html += renderReadinessScore( readiness );
 		}
 
@@ -1121,24 +1196,91 @@
 
 		checksCompleted = true;
 		
-		// Render export buttons once
+		// Render export buttons directly into placeholder
 		renderExportButtons();
-		
-		// Move export buttons into readiness score container if it exists
-		const readinessDiv = resultsContainer.querySelector('div[style*="margin: 20px 0"]');
-		if (readinessDiv && exportContainer.children.length > 0) {
-			const buttonsDiv = document.createElement('div');
-			buttonsDiv.style.cssText = 'margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;';
-			buttonsDiv.addEventListener('click', onExportContainerClick);
+		const placeholder = document.getElementById('export-buttons-placeholder');
+		if (placeholder && exportContainer.children.length > 0) {
+			placeholder.addEventListener('click', onExportContainerClick);
 			while (exportContainer.firstChild) {
 				const btn = exportContainer.firstChild;
 				btn.style.marginRight = '8px';
-				buttonsDiv.appendChild(btn);
+				placeholder.appendChild(btn);
 			}
-			readinessDiv.appendChild(buttonsDiv);
 			exportContainer.classList.add('is-hidden');
 		}
+
+		// Add structure validation after readiness score and export buttons
+		if (pluginsList && pluginsList.value) {
+			const payload = new FormData();
+			payload.append('nonce', pluginCheck.nonce);
+			payload.append('action', 'plugin_check_validate_structure');
+			payload.append('plugin', pluginsList.value);
+			
+			fetch(ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body: payload
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success && data.data.validation) {
+					const validation = data.data.validation;
+					const checks = [
+						{key: 'readme_file', label: 'README File', data: validation.readme_file},
+						{key: 'license_file', label: 'LICENSE File', data: validation.license_file},
+						{key: 'language_folder', label: 'Language Folder', data: validation.language_folder},
+						{key: 'language_files', label: 'Language Files (.pot)', data: validation.language_files}
+					];
+					
+					const allPass = checks.every(c => c.data.status === 'pass');
+					const statusColor = allPass ? '#00a32a' : '#dba617';
+					const statusText = allPass ? 'All Required Files Present' : 'Some Files Missing or Incomplete';
+					
+					let structureHtml = `
+						<div id="structure-validation-results" style="margin: 25px 0; padding: 20px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px;">
+							<h3 style="margin: 0 0 15px 0; font-size: 16px; color: ${statusColor};">${statusText}</h3>
+							<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+					`;
+					
+					checks.forEach(check => {
+						const icon = check.data.status === 'pass' ? '✓' : (check.data.status === 'warning' ? '⚠' : '✗');
+						const color = check.data.status === 'pass' ? '#00a32a' : (check.data.status === 'warning' ? '#dba617' : '#d63638');
+						const detail = check.data.file || check.data.path || check.data.message || '';
+						const escapedDetail = document.createElement('div');
+						escapedDetail.textContent = detail;
+						
+						structureHtml += `
+							<div style="padding: 8px; border-left: 3px solid ${color}; background: #f9f9f9;">
+								<div style="font-weight: 600; color: ${color};">${icon} ${check.label}</div>
+								<div style="font-size: 12px; color: #666; margin-top: 4px;">${escapedDetail.innerHTML}</div>
+							</div>
+						`;
+					});
+					
+					structureHtml += `
+							</div>
+						</div>
+					`;
+					
+					const readinessContainer = document.getElementById('readiness-score-container');
+					if (readinessContainer) {
+						const tempDiv = document.createElement('div');
+						tempDiv.innerHTML = structureHtml;
+						const structureElement = tempDiv.querySelector('#structure-validation-results');
+						if (structureElement) {
+							readinessContainer.insertAdjacentElement('afterend', structureElement);
+							console.log('Structure validation inserted after readiness container');
+						}
+					} else {
+						console.error('Readiness container not found!');
+					}
+				}
+			})
+			.catch(error => console.error('Structure validation error:', error));
+		}
 	}
+
+
 
 	/**
 	 * Render readiness score display.
@@ -1149,9 +1291,12 @@
 	 * @return {string} HTML for readiness score.
 	 */
 	function renderReadinessScore( readiness ) {
-		if (!readiness || !readiness.overall) {
+		if (!readiness || readiness.overall === undefined) {
+			console.log('No readiness data, returning empty');
 			return '';
 		}
+		
+		console.log('Rendering readiness score:', readiness);
 		
 		const statusColors = {
 			excellent: '#00a32a',
@@ -1170,14 +1315,14 @@
 		const label = statusLabels[readiness.status] || readiness.status;
 
 		return `
-			<div style="margin: 20px 0; padding: 25px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,0.04);">
+			<div id="readiness-score-container" style="margin: 20px 0; padding: 25px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,0.04);">
 				<div style="display: flex; align-items: center; gap: 30px;">
 					<div style="text-align: center; min-width: 120px;">
 						<div style="font-size: 64px; font-weight: 700; color: ${color}; line-height: 1;">${readiness.overall}</div>
 						<div style="font-size: 12px; color: #646970; margin-top: 5px;">out of 100</div>
 					</div>
 					<div style="flex: 1;">
-						<h3 style="margin: 0 0 8px 0; font-size: 20px;">Readiness Score</h3>
+						<h3 style="margin: 0 0 8px 0; font-size: 20px;">Readiness Score: ${getSelectedPluginLabel()}</h3>
 						<div style="font-size: 16px; color: ${color}; font-weight: 600; margin-bottom: 10px;">${label}</div>
 						<div style="font-size: 14px; color: #646970;">
 							<strong>${readiness.errors}</strong> error${readiness.errors !== 1 ? 's' : ''} • 
@@ -1185,6 +1330,7 @@
 						</div>
 					</div>
 				</div>
+				<div id="export-buttons-placeholder" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;"></div>
 			</div>
 		`;
 	}
@@ -1266,9 +1412,10 @@
 	 * @since 1.0.0
 	 *
 	 * @param {Object} results The results object.
+	 * @param {Array} rediscovered Rediscovered issues array.
 	 */
-	function renderResults( results ) {
-		// Skip - AST handles all rendering
+	function renderResults( results, rediscovered ) {
+		// Skip rendering individual check results - only show summary
 		return;
 	}
 

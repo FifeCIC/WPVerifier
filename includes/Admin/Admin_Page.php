@@ -268,6 +268,17 @@ final class Admin_Page {
 			);
 		}
 
+		// Enqueue preparation scripts if on preparation tab
+		if ( 'preparation' === $current_tab ) {
+			wp_enqueue_script(
+				'plugin-check-preparation',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-preparation.js',
+				array('jquery'),
+				WP_PLUGIN_CHECK_VERSION,
+				true
+			);
+		}
+
 		wp_enqueue_script(
 			'plugin-check-admin',
 			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-admin.js',
@@ -532,6 +543,30 @@ final class Admin_Page {
 	}
 
 	/**
+	 * Get last selected plugin from user meta.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @return array|null Plugin data or null.
+	 */
+	private function get_last_selected_plugin() {
+		$plugin_slug = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
+		if ( ! $plugin_slug ) {
+			return null;
+		}
+		
+		$plugins = get_plugins();
+		if ( ! isset( $plugins[ $plugin_slug ] ) ) {
+			return null;
+		}
+		
+		return array(
+			'slug' => $plugin_slug,
+			'name' => $plugins[ $plugin_slug ]['Name'],
+		);
+	}
+
+	/**
 	 * Renders the "Plugin Check" page.
 	 *
 	 * @since 1.0.0
@@ -569,7 +604,14 @@ final class Admin_Page {
 		}
 
 		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'Verify Plugins', 'wp-verifier' ) . '</h1>';
+		
+		$page_title = __( 'Verify Plugins', 'wp-verifier' );
+		$last_plugin = $this->get_last_selected_plugin();
+		if ( $last_plugin ) {
+			$page_title .= ': ' . esc_html( $last_plugin['name'] );
+		}
+		
+		echo '<h1>' . $page_title . '</h1>';
 		
 		if ( isset( $_GET['ignored'] ) && '1' === $_GET['ignored'] ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Issue ignored successfully. Run a new scan to see updated results.', 'wp-verifier' ) . '</p></div>';
@@ -579,6 +621,9 @@ final class Admin_Page {
 
 		// Render tab content
 		switch ( $current_tab ) {
+			case 'preparation':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-preparation.php';
+				break;
 			case 'basic':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-basic.php';
 				break;

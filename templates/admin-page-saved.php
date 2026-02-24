@@ -12,16 +12,31 @@ $saved_results = Saved_Results_Handler::get_saved_results();
 
 <div style="margin-bottom: 20px;">
 	<h3><?php esc_html_e( 'Saved Results', 'wp-verifier' ); ?></h3>
-	<div style="display: flex; gap: 10px; overflow-x: auto; padding: 10px 0;">
+	<div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px 0;">
 		<?php foreach ( $saved_results as $result ) : ?>
-			<div class="result-box" data-path="<?php echo esc_attr( $result['path'] ); ?>" style="min-width: 200px; max-width: 200px; padding: 15px; border: 2px solid #ddd; border-radius: 4px; background: #fff; display: flex; flex-direction: column; gap: 10px;">
+			<div class="result-box" data-path="<?php echo esc_attr( $result['path'] ); ?>" style="width: 200px; height: 200px; padding: 15px; border: 2px solid #ddd; border-radius: 4px; background: #fff; display: flex; flex-direction: column; justify-content: space-between;">
 				<div>
-					<strong><?php echo esc_html( $result['plugin'] ); ?></strong><br>
-					<small><?php echo esc_html( $result['files'] ); ?> <?php esc_html_e( 'files', 'wp-verifier' ); ?></small>
+					<strong style="display: block; margin-bottom: 10px; font-size: 14px;"><?php echo esc_html( $result['plugin'] ); ?></strong>
+					<div style="font-size: 13px; color: #646970; line-height: 1.6;">
+						<div style="margin-bottom: 5px;">
+							<span style="font-weight: 600;"><?php echo esc_html( $result['issues'] ); ?></span> 
+							<?php esc_html_e( 'issues', 'wp-verifier' ); ?>
+						</div>
+						<div style="margin-bottom: 5px;">
+							<span style="font-weight: 600;"><?php echo esc_html( $result['files'] ); ?></span> 
+							<?php esc_html_e( 'files', 'wp-verifier' ); ?>
+						</div>
+						<?php if ( $result['ignored'] > 0 ) : ?>
+							<div style="color: #dba617;">
+								<span style="font-weight: 600;"><?php echo esc_html( $result['ignored'] ); ?></span> 
+								<?php esc_html_e( 'ignored', 'wp-verifier' ); ?>
+							</div>
+						<?php endif; ?>
+					</div>
 				</div>
 				<div style="display: flex; gap: 5px;">
-					<button class="button button-primary load-result" style="flex: 1;"><?php esc_html_e( 'Load', 'wp-verifier' ); ?></button>
-					<button class="button delete-result" style="flex: 1;"><?php esc_html_e( 'Delete', 'wp-verifier' ); ?></button>
+					<button class="button button-primary load-result" style="flex: 1; font-size: 12px; padding: 4px 8px;"><?php esc_html_e( 'Load', 'wp-verifier' ); ?></button>
+					<button class="button delete-result" style="flex: 1; font-size: 12px; padding: 4px 8px;"><?php esc_html_e( 'Delete', 'wp-verifier' ); ?></button>
 				</div>
 			</div>
 		<?php endforeach; ?>
@@ -40,7 +55,7 @@ $saved_results = Saved_Results_Handler::get_saved_results();
 		</div>
 		
 		<div class="wpv-ast-sidebar">
-			<h3><?php esc_html_e( 'Issue Details', 'wp-verifier' ); ?></h3>
+			<h3><?php esc_html_e( 'Selected Issue Details', 'wp-verifier' ); ?></h3>
 			<div id="saved-results-ignored-count" style="display: none;"></div>
 			<div id="saved-results-actions-container" style="padding: 12px; background: #f9f9f9; border: 1px solid #ddd; margin-bottom: 15px;">
 				<h4 style="margin: 0 0 10px 0;"><?php esc_html_e( 'Actions', 'wp-verifier' ); ?></h4>

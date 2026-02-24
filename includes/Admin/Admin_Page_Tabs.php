@@ -17,6 +17,7 @@ class Admin_Page_Tabs {
 	 */
 	public static function get_tabs() {
 		return array(
+			'preparation' => __( 'Preparation', 'wp-verifier' ),
 			'basic'       => __( 'Basic Verification', 'wp-verifier' ),
 			'verify'      => __( 'Advanced Verification', 'wp-verifier' ),
 			'results'     => __( 'Results', 'wp-verifier' ),

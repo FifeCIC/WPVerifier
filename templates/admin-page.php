@@ -103,6 +103,7 @@ if (is_dir($results_dir)) {
 						</option>
 					<?php } ?>
 				</select>
+				<div id="plugin-check__exclude-folders" style="margin-top: 15px; display: none;"></div>
 				<p>
 					<input type="submit" value="<?php esc_attr_e( 'Check it!', 'wp-verifier' ); ?>" id="plugin-check__submit" class="button button-primary" />
 					<span id="plugin-check__spinner" class="spinner" style="float: none;"></span>

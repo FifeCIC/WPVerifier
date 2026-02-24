@@ -232,12 +232,36 @@ final class Admin_AJAX {
 	const ACTION_MARK_COMPLETE = 'plugin_check_mark_complete';
 
 	/**
+	 * Detect vendors action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_DETECT_VENDORS = 'plugin_check_detect_vendors';
+
+	/**
+	 * Save ignored paths action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_SAVE_IGNORED_PATHS = 'plugin_check_save_ignored_paths';
+
+	/**
 	 * Basic check action name.
 	 *
 	 * @since 1.9.0
 	 * @var string
 	 */
 	const ACTION_BASIC_CHECK = 'plugin_check_basic_check';
+
+	/**
+	 * Validate structure action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_VALIDATE_STRUCTURE = 'plugin_check_validate_structure';
 
 	/**
 	 * Registers WordPress hooks for the Admin AJAX.
@@ -271,6 +295,11 @@ final class Admin_AJAX {
 		add_action( 'wp_ajax_' . self::ACTION_MARK_COMPLETE, array( $this, 'mark_complete' ) );
 		add_action( 'wp_ajax_' . self::ACTION_DELETE_RESULTS, array( $this, 'delete_results' ) );
 		add_action( 'wp_ajax_' . self::ACTION_BASIC_CHECK, array( $this, 'basic_check' ) );
+		add_action( 'wp_ajax_' . self::ACTION_DETECT_VENDORS, array( $this, 'detect_vendors' ) );
+		add_action( 'wp_ajax_' . self::ACTION_SAVE_IGNORED_PATHS, array( $this, 'save_ignored_paths' ) );
+		add_action( 'wp_ajax_save_user_meta', array( $this, 'save_user_meta' ) );
+		add_action( 'wp_ajax_plugin_check_detect_folders', array( $this, 'detect_folders' ) );
+		add_action( 'wp_ajax_' . self::ACTION_VALIDATE_STRUCTURE, array( $this, 'validate_structure' ) );
 	}
 
 	/**
@@ -487,9 +516,6 @@ final class Admin_AJAX {
 	 * @return array The prepared response data.
 	 */
 	private function prepare_results_response( $results, array $types ) {
-		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		error_log( '=== PREPARE_RESULTS for plugin: ' . $plugin . ' ===' );
-		
 		$response = array(
 			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
 			'errors'   => array(),
@@ -500,41 +526,17 @@ final class Admin_AJAX {
 		$warnings = array();
 
 		if ( in_array( 'error', $types, true ) ) {
-			$raw_errors = $results->get_errors();
-			error_log( '=== RAW ERRORS from checker ===' );
-			error_log( 'Raw errors count: ' . count( $raw_errors ) );
-			error_log( 'Raw errors structure: ' . print_r( array_keys( $raw_errors ), true ) );
-			$errors = $raw_errors; // Don't filter, already grouped
-			error_log( '=== PREPARE_RESULTS: After filter_ignored_results ===' );
-			error_log( 'Errors count: ' . count( $errors ) );
-			if ( ! empty( $errors ) ) {
-				$first_key = array_key_first( $errors );
-				error_log( 'First error file: ' . $first_key );
-			}
-			$response['errors'] = $errors; // Already grouped by file
+			$errors = $results->get_errors();
+			$response['errors'] = $errors;
 		}
 
 		if ( in_array( 'warning', $types, true ) ) {
-			$raw_warnings = $results->get_warnings();
-			error_log( '=== RAW WARNINGS from checker ===' );
-			error_log( 'Raw warnings count: ' . count( $raw_warnings ) );
-			$warnings = $raw_warnings; // Don't filter, already grouped
-			error_log( 'Warnings count: ' . count( $warnings ) );
-			if ( ! empty( $warnings ) ) {
-				$first_key = array_key_first( $warnings );
-				error_log( 'First warning file: ' . $first_key );
-			}
-			$response['warnings'] = $warnings; // Already grouped by file
+			$warnings = $results->get_warnings();
+			$response['warnings'] = $warnings;
 		}
 
-		// Calculate readiness score
-		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Readiness_Score' ) ) {
-			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Readiness_Score.php';
-		}
-		error_log( '=== BEFORE Readiness_Score::calculate ===' );
-		error_log( 'Errors for score (grouped): ' . count( $response['errors'] ) );
-		error_log( 'Warnings for score (grouped): ' . count( $response['warnings'] ) );
-		$response['readiness'] = \WordPress\Plugin_Check\Utilities\Readiness_Score::calculate( $response['errors'], $response['warnings'] );
+		// DO NOT calculate readiness here - it will be wrong for individual checks
+		// Readiness is calculated once in save_results() after all checks complete
 
 		// Check for rediscovered issues
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -810,23 +812,6 @@ final class Admin_AJAX {
 		try {
 			$results_payload = $this->extract_results_payload();
 			
-			// DIAGNOSTIC: Log what we received
-			error_log( '=== SAVE RESULTS DIAGNOSTIC ===' );
-			error_log( 'Errors keys: ' . print_r( array_keys( $results_payload['errors'] ), true ) );
-			if ( ! empty( $results_payload['errors'] ) ) {
-				$first_error_file = array_key_first( $results_payload['errors'] );
-				error_log( 'First error file key: "' . $first_error_file . '" (length: ' . strlen( $first_error_file ) . ')' );
-				if ( isset( $results_payload['errors'][ $first_error_file ] ) ) {
-					$first_line = array_key_first( $results_payload['errors'][ $first_error_file ] );
-					if ( isset( $results_payload['errors'][ $first_error_file ][ $first_line ] ) ) {
-						$first_col = array_key_first( $results_payload['errors'][ $first_error_file ][ $first_line ] );
-						if ( isset( $results_payload['errors'][ $first_error_file ][ $first_line ][ $first_col ][0] ) ) {
-							error_log( 'First issue data: ' . print_r( $results_payload['errors'][ $first_error_file ][ $first_line ][ $first_col ][0], true ) );
-						}
-					}
-				}
-			}
-			
 			$export_metadata = $this->prepare_export_metadata();
 			
 			$plugin_slug = $export_metadata['slug'];
@@ -838,6 +823,9 @@ final class Admin_AJAX {
 			}
 			
 			$file_path = $verifier_dir . '/results.json';
+			
+			// Load existing JSON to preserve ignored_paths
+			$existing_ignored_paths = $this->load_existing_ignored_paths( $file_path );
 			
 			// Convert grouped format to flat format
 			$errors_flat = array();
@@ -900,11 +888,7 @@ final class Admin_AJAX {
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Readiness_Score' ) ) {
 				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Readiness_Score.php';
 			}
-			error_log( '=== CALCULATING READINESS SCORE ===' );
-			error_log( 'Errors flat count: ' . count( $errors_flat ) );
-			error_log( 'Warnings flat count: ' . count( $warnings_flat ) );
 			$readiness = \WordPress\Plugin_Check\Utilities\Readiness_Score::calculate( $errors_flat, $warnings_flat );
-			error_log( 'Readiness result: ' . print_r( $readiness, true ) );
 			
 			// Group by file in simple format
 			$results_by_file = array();
@@ -917,7 +901,10 @@ final class Admin_AJAX {
 				if ( ! isset( $results_by_file[ $file ] ) ) {
 					$results_by_file[ $file ] = array();
 				}
+				// Generate unique issue ID
+				$issue_id = 'E-' . substr( md5( basename( $file ) . '-' . $error['line'] ), 0, 8 );
 				$results_by_file[ $file ][] = array(
+					'issue_id' => $issue_id,
 					'message' => $error['message'],
 					'code' => $error['code'],
 					'link' => $error['link'],
@@ -926,6 +913,10 @@ final class Admin_AJAX {
 					'type' => 'ERROR',
 					'line' => $error['line'],
 					'column' => $error['column'],
+					'ignored' => false,
+					'ignored_by' => null,
+					'resolved' => false,
+					'resolved_by' => null,
 				);
 			}
 			foreach ( $warnings_flat as $warning ) {
@@ -937,7 +928,10 @@ final class Admin_AJAX {
 				if ( ! isset( $results_by_file[ $file ] ) ) {
 					$results_by_file[ $file ] = array();
 				}
+				// Generate unique issue ID
+				$issue_id = 'W-' . substr( md5( basename( $file ) . '-' . $warning['line'] ), 0, 8 );
 				$results_by_file[ $file ][] = array(
+					'issue_id' => $issue_id,
 					'message' => $warning['message'],
 					'code' => $warning['code'],
 					'link' => $warning['link'],
@@ -946,23 +940,25 @@ final class Admin_AJAX {
 					'type' => 'WARNING',
 					'line' => $warning['line'],
 					'column' => $warning['column'],
+					'ignored' => false,
+					'ignored_by' => null,
+					'resolved' => false,
+					'resolved_by' => null,
 				);
 			}
 			
-			// Build final structure - ensure results is an object even when empty
+			// Build final structure with merged ignored_paths
 			$final_results = array(
 				'generated_at' => $export_metadata['timestamp_human'],
 				'plugin' => $export_metadata['plugin'],
 				'readiness' => $readiness,
+				'ignored_paths' => $existing_ignored_paths,
 				'results' => empty( $results_by_file ) ? new \stdClass() : $results_by_file,
 			);
-			error_log( '=== FINAL RESULTS STRUCTURE ===' );
-			error_log( 'Has readiness key: ' . ( isset( $final_results['readiness'] ) ? 'YES' : 'NO' ) );
-			if ( isset( $final_results['readiness'] ) ) {
-				error_log( 'Readiness in final: ' . print_r( $final_results['readiness'], true ) );
-			}
 			
 			$result = file_put_contents( $file_path, wp_json_encode( $final_results, JSON_PRETTY_PRINT ) );
+			
+			error_log( 'JSON saved to: ' . $file_path . ' - Readiness: ' . $readiness['overall'] . ' (Errors: ' . $readiness['errors'] . ', Warnings: ' . $readiness['warnings'] . ')' );
 			
 			if ( false === $result ) {
 				throw new InvalidArgumentException( __( 'Failed to save file.', 'wp-verifier' ) );
@@ -979,6 +975,27 @@ final class Admin_AJAX {
 				400
 			);
 		}
+	}
+
+	/**
+	 * Load existing ignored_paths from JSON file.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param string $file_path Path to JSON file.
+	 * @return array Existing ignored paths or empty array.
+	 */
+	private function load_existing_ignored_paths( $file_path ) {
+		if ( ! file_exists( $file_path ) ) {
+			return array();
+		}
+
+		$existing_data = json_decode( file_get_contents( $file_path ), true );
+		if ( ! $existing_data || ! isset( $existing_data['ignored_paths'] ) ) {
+			return array();
+		}
+
+		return is_array( $existing_data['ignored_paths'] ) ? $existing_data['ignored_paths'] : array();
 	}
 
 	/**
@@ -1068,28 +1085,48 @@ final class Admin_AJAX {
 		try {
 			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			$file = isset( $_POST['file'] ) ? sanitize_text_field( wp_unslash( $_POST['file'] ) ) : '';
+			$line = filter_input( INPUT_POST, 'line', FILTER_VALIDATE_INT );
 			$code = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
+			$ignored_by = isset( $_POST['ignored_by'] ) ? sanitize_text_field( wp_unslash( $_POST['ignored_by'] ) ) : wp_get_current_user()->user_login;
 			
 			if ( empty( $plugin_slug ) || empty( $file ) || empty( $code ) ) {
-				throw new InvalidArgumentException( __( 'Plugin, file, and code are required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin, file, line, and code are required.', 'wp-verifier' ) );
 			}
 			
-			$ignore_rules = get_option( 'wpv_ignore_rules', array() );
+			// Load JSON file
+			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
+			$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
 			
-			if ( ! isset( $ignore_rules[ $plugin_slug ] ) ) {
-				$ignore_rules[ $plugin_slug ] = array();
+			if ( ! file_exists( $json_file ) ) {
+				throw new InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
 			}
 			
-			$ignore_rules[ $plugin_slug ][] = array(
-				'file' => $file,
-				'code' => $code,
-				'added' => current_time( 'mysql' ),
-			);
+			$data = json_decode( file_get_contents( $json_file ), true );
+			if ( ! $data || ! isset( $data['results'] ) ) {
+				throw new InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+			}
 			
-			update_option( 'wpv_ignore_rules', $ignore_rules );
+			// Find and update the issue
+			$updated = false;
+			if ( isset( $data['results'][ $file ] ) ) {
+				foreach ( $data['results'][ $file ] as &$issue ) {
+					if ( $issue['line'] == $line && $issue['code'] === $code ) {
+						$issue['ignored'] = true;
+						$issue['ignored_by'] = $ignored_by;
+						$updated = true;
+					}
+				}
+			}
+			
+			if ( ! $updated ) {
+				throw new InvalidArgumentException( __( 'Issue not found in results.', 'wp-verifier' ) );
+			}
+			
+			// Save updated JSON
+			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
 			
 			wp_send_json_success( array(
-				'message' => __( 'Ignore rule added successfully.', 'wp-verifier' ),
+				'message' => __( 'Issue marked as ignored.', 'wp-verifier' ),
 			) );
 			
 		} catch ( InvalidArgumentException $exception ) {
@@ -1726,6 +1763,177 @@ final class Admin_AJAX {
 		}
 
 		wp_send_json_success( $response );
+	}
+
+	/**
+	 * Save user meta.
+	 *
+	 * @since 1.9.0
+	 */
+	public function save_user_meta() {
+		$meta_key = isset( $_POST['meta_key'] ) ? sanitize_text_field( wp_unslash( $_POST['meta_key'] ) ) : '';
+		$meta_value = isset( $_POST['meta_value'] ) ? sanitize_text_field( wp_unslash( $_POST['meta_value'] ) ) : '';
+		
+		if ( $meta_key && 'wpv_last_selected_plugin' === $meta_key ) {
+			update_user_meta( get_current_user_id(), $meta_key, $meta_value );
+			wp_send_json_success();
+		}
+		
+		wp_send_json_error();
+	}
+
+	/**
+	 * Detect vendor folders in plugin.
+	 *
+	 * @since 1.9.0
+	 */
+	public function detect_vendors() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( empty( $plugin ) ) {
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Vendor_Detector' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Vendor_Detector.php';
+			}
+
+			$vendors = Vendor_Detector::detect_vendors( $plugin );
+
+			wp_send_json_success( array(
+				'vendors' => $vendors,
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Save ignored paths to JSON.
+	 *
+	 * @since 1.9.0
+	 */
+	public function save_ignored_paths() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$paths = isset( $_POST['paths'] ) ? json_decode( wp_unslash( $_POST['paths'] ), true ) : array();
+
+			if ( empty( $plugin ) || empty( $paths ) ) {
+				throw new InvalidArgumentException( __( 'Plugin and paths are required.', 'wp-verifier' ) );
+			}
+
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+
+			$data = array();
+			if ( file_exists( $json_file ) ) {
+				$data = json_decode( file_get_contents( $json_file ), true );
+				if ( ! $data ) {
+					$data = array();
+				}
+			}
+
+			$ignored_paths = array();
+			foreach ( $paths as $path ) {
+				$ignored_paths[] = array(
+					'path' => $path,
+					'reason' => 'vendor',
+					'added_by' => wp_get_current_user()->user_login,
+					'added_at' => current_time( 'mysql' ),
+				);
+			}
+
+			$data['ignored_paths'] = $ignored_paths;
+
+			if ( ! file_exists( dirname( $json_file ) ) ) {
+				wp_mkdir_p( dirname( $json_file ) );
+			}
+
+			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
+
+			wp_send_json_success( array(
+				'message' => __( 'Ignored paths saved successfully.', 'wp-verifier' ),
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Detect vendor/libraries/library folders in plugin.
+	 *
+	 * @since 1.9.0
+	 */
+	public function detect_folders() {
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		if ( ! $plugin ) {
+			wp_send_json_error();
+		}
+
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Vendor_Patterns' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Vendor_Patterns.php';
+		}
+
+		$plugin_dir = WP_PLUGIN_DIR . '/' . dirname( $plugin );
+		$folders = array();
+		$patterns = \WordPress\Plugin_Check\Utilities\Vendor_Patterns::get_patterns();
+		$check_paths = array();
+
+		// Build check paths from centralized patterns
+		foreach ( $patterns as $pattern ) {
+			$check_paths[] = $pattern;
+			$check_paths[] = 'includes/' . $pattern;
+		}
+
+		foreach ( $check_paths as $path ) {
+			if ( is_dir( $plugin_dir . '/' . $path ) ) {
+				$folders[] = $path;
+			}
+		}
+
+		wp_send_json_success( array( 'folders' => $folders ) );
+	}
+
+	/**
+	 * Validate plugin structure.
+	 *
+	 * @since 1.9.0
+	 */
+	public function validate_structure() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( empty( $plugin ) ) {
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Structure_Validator' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Structure_Validator.php';
+			}
+
+			$results = \WordPress\Plugin_Check\Utilities\Structure_Validator::validate( $plugin );
+
+			wp_send_json_success( array( 'validation' => $results ) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
 	}
 }
 

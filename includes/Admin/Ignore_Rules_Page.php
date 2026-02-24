@@ -30,6 +30,7 @@ class Ignore_Rules_Page {
 	 */
 	public function render_page() {
 		$rules = Ignore_Rules::get_rules();
+		$plugins = get_plugins();
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Ignore Rules', 'wp-verifier' ); ?></h1>
@@ -59,8 +60,29 @@ class Ignore_Rules_Page {
 							</td>
 						</tr>
 						<tr>
+							<th><label for="plugin"><?php esc_html_e( 'Plugin', 'wp-verifier' ); ?></label></th>
+							<td>
+								<select name="plugin" id="plugin" style="width: 300px;">
+									<option value=""><?php esc_html_e( 'Select plugin...', 'wp-verifier' ); ?></option>
+									<?php 
+									$last_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
+									$last_plugin_dir = $last_plugin ? dirname( $last_plugin ) : '';
+									foreach ( $plugins as $plugin_file => $plugin_data ) : 
+										$plugin_dir = dirname( $plugin_file );
+										$selected = ( $last_plugin_dir && $plugin_dir === $last_plugin_dir ) ? ' selected' : '';
+									?>
+										<option value="<?php echo esc_attr( $plugin_dir ); ?>"<?php echo $selected; ?>><?php echo esc_html( $plugin_data['Name'] ); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php esc_html_e( 'Optional: Select a plugin to auto-fill the base path', 'wp-verifier' ); ?></p>
+							</td>
+						</tr>
+						<tr>
 							<th><label for="path"><?php esc_html_e( 'Path', 'wp-verifier' ); ?></label></th>
-							<td><input type="text" name="path" id="path" class="regular-text" required placeholder="vendor/" /></td>
+							<td>
+								<input type="text" name="path" id="path" class="regular-text" required placeholder="includes/libraries/vendor/" />
+								<p class="description"><?php esc_html_e( 'Relative path from plugin root (e.g., includes/libraries/vendor/ or vendor/)', 'wp-verifier' ); ?></p>
+							</td>
 						</tr>
 						<tr>
 							<th><label for="code"><?php esc_html_e( 'Error Code', 'wp-verifier' ); ?></label></th>
@@ -138,11 +160,11 @@ class Ignore_Rules_Page {
 					<?php else : ?>
 						<?php foreach ( $rules as $id => $rule ) : ?>
 							<tr>
-								<td><?php echo esc_html( ucfirst( $rule['scope'] ) ); ?></td>
-								<td><code><?php echo esc_html( $rule['path'] ); ?></code></td>
-								<td><?php echo esc_html( $rule['code'] ); ?></td>
-								<td><?php echo esc_html( ucfirst( $rule['reason'] ) ); ?></td>
-								<td><?php echo esc_html( $rule['note'] ); ?></td>
+								<td><?php echo esc_html( ucfirst( $rule['scope'] ?? '' ) ); ?></td>
+								<td><code><?php echo esc_html( $rule['path'] ?? '' ); ?></code></td>
+								<td><?php echo esc_html( $rule['code'] ?? '' ); ?></td>
+								<td><?php echo esc_html( ucfirst( $rule['reason'] ?? '' ) ); ?></td>
+								<td><?php echo esc_html( $rule['note'] ?? '' ); ?></td>
 								<td>
 									<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wpv_remove_ignore_rule&rule_id=' . $id ), 'wpv_remove_rule_' . $id ) ); ?>" 
 									   onclick="return confirm('<?php esc_attr_e( 'Remove this rule?', 'wp-verifier' ); ?>');">
@@ -155,6 +177,19 @@ class Ignore_Rules_Page {
 				</tbody>
 			</table>
 		</div>
+		<script>
+		jQuery(document).ready(function($) {
+			$('#plugin').on('change', function() {
+				var plugin = $(this).val();
+				if (plugin) {
+					var currentPath = $('#path').val();
+					if (!currentPath || currentPath === 'includes/libraries/vendor/' || currentPath === 'vendor/') {
+						$('#path').val(plugin + '/');
+					}
+				}
+			});
+		});
+		</script>
 		<?php
 	}
 
