@@ -48,7 +48,6 @@
 	// Run on page load to test if dropdown is auto populated.
 	canRunChecks();
 	pluginsList.addEventListener( 'change', canRunChecks );
-	pluginsList.addEventListener( 'change', checkForExcludeFolders );
 
 	function saveUserSettings() {
 		const selectedCategories = [];
@@ -73,46 +72,7 @@
 		checkbox.addEventListener( 'change', saveUserSettings );
 	} );
 
-	/**
-	 * Check for vendor/libraries/library folders when plugin is selected.
-	 *
-	 * @since 1.9.0
-	 */
-	function checkForExcludeFolders() {
-		const excludeContainer = document.getElementById('plugin-check__exclude-folders');
-		if (!excludeContainer || !pluginsList.value) {
-			if (excludeContainer) excludeContainer.style.display = 'none';
-			return;
-		}
 
-		const payload = new FormData();
-		payload.append('action', 'plugin_check_detect_folders');
-		payload.append('plugin', pluginsList.value);
-		payload.append('nonce', pluginCheck.nonce);
-
-		fetch(ajaxurl, {
-			method: 'POST',
-			credentials: 'same-origin',
-			body: payload
-		})
-		.then(response => response.json())
-		.then(data => {
-			if (data.success && data.data.folders && data.data.folders.length > 0) {
-				let html = '<h4 style="margin: 10px 0 5px 0;">Exclude Folders</h4>';
-				data.data.folders.forEach(folder => {
-					html += `<label style="display: block; margin: 5px 0;"><input type="checkbox" name="exclude_folders" value="${folder}" checked> ${folder}/</label>`;
-				});
-				excludeContainer.innerHTML = html;
-				excludeContainer.style.display = 'block';
-			} else {
-				excludeContainer.style.display = 'none';
-			}
-		})
-		.catch(error => {
-			console.error('Error detecting folders:', error);
-			excludeContainer.style.display = 'none';
-		});
-	}
 
 	// When the Check it button is clicked.
 	checkItButton.addEventListener( 'click', ( e ) => {
@@ -140,7 +100,6 @@
 		const selectedPlugin = pluginsList.options[pluginsList.selectedIndex]?.text || 'Unknown';
 		const selectedCategories = [];
 		const selectedTypes = [];
-		const excludedFolders = [];
 
 		categoriesList.forEach( ( checkbox ) => {
 			if ( checkbox.checked ) {
@@ -153,9 +112,6 @@
 				selectedTypes.push( checkbox.nextSibling.textContent.trim() );
 			}
 		} );
-
-		const excludeCheckboxes = document.querySelectorAll('input[name="exclude_folders"]:checked');
-		excludeCheckboxes.forEach(cb => excludedFolders.push(cb.value));
 
 		const includeExp = includeExperimental && includeExperimental.checked;
 
@@ -175,7 +131,6 @@
 					<strong>Result Types:</strong><br>
 					${selectedTypes.join(', ')}
 				</div>
-				${excludedFolders.length ? `<div style="margin-bottom: 20px; color: #2271b1;"><strong>📁 Excluded Folders:</strong><br>${excludedFolders.join(', ')}</div>` : ''}
 				${includeExp ? '<div style="margin-bottom: 20px; color: #dba617;"><strong>⚠ Experimental checks included</strong></div>' : ''}
 				<div style="display: flex; gap: 10px; justify-content: flex-end;">
 					<button type="button" class="button button-secondary" id="precheck-cancel">Cancel</button>

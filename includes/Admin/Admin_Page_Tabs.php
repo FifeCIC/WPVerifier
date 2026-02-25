@@ -23,11 +23,9 @@ class Admin_Page_Tabs {
 			'results'     => __( 'Results', 'wp-verifier' ),
 			'monitoring'  => __( 'Plugin Monitoring', 'wp-verifier' ),
 			'explore'     => __( 'Explore Plugin', 'wp-verifier' ),
-			'ast'         => __( 'AST Demo', 'wp-verifier' ),
 			'namer'       => __( 'Plugin Namer', 'wp-verifier' ),
 			'settings'    => __( 'Settings', 'wp-verifier' ),
 			'assets'      => __( 'Assets', 'wp-verifier' ),
-			'ignores'     => __( 'Ignore Rules', 'wp-verifier' ),
 		);
 	}
 

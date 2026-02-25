@@ -300,6 +300,7 @@ final class Admin_AJAX {
 		add_action( 'wp_ajax_save_user_meta', array( $this, 'save_user_meta' ) );
 		add_action( 'wp_ajax_plugin_check_detect_folders', array( $this, 'detect_folders' ) );
 		add_action( 'wp_ajax_' . self::ACTION_VALIDATE_STRUCTURE, array( $this, 'validate_structure' ) );
+		add_action( 'wp_ajax_wpv_get_mark_fixed_nonce', array( $this, 'get_mark_fixed_nonce' ) );
 	}
 
 	/**
@@ -492,7 +493,11 @@ final class Admin_AJAX {
 		$types = is_null( $types ) ? array() : $types;
 
 		try {
-			$this->configure_runner( $runner );
+			$config = $this->configure_runner( $runner );
+			
+			// Apply ignored_paths from JSON for Advanced Verification
+			$this->apply_ignored_paths_filter( $config['plugin'] );
+			
 			$results = $runner->run();
 		} catch ( Exception $error ) {
 			wp_send_json_error(
@@ -996,6 +1001,47 @@ final class Admin_AJAX {
 		}
 
 		return is_array( $existing_data['ignored_paths'] ) ? $existing_data['ignored_paths'] : array();
+	}
+
+	/**
+	 * Apply ignored_paths from JSON to directory filter for Advanced Verification.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param string $plugin_slug Plugin slug.
+	 */
+	private function apply_ignored_paths_filter( $plugin_slug ) {
+		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
+		$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+		
+		if ( ! file_exists( $json_file ) ) {
+			return;
+		}
+		
+		$ignored_paths = $this->load_existing_ignored_paths( $json_file );
+		if ( empty( $ignored_paths ) ) {
+			return;
+		}
+		
+		// Extract just the path values
+		$paths_to_ignore = array();
+		foreach ( $ignored_paths as $item ) {
+			if ( isset( $item['path'] ) ) {
+				$paths_to_ignore[] = $item['path'];
+			}
+		}
+		
+		if ( empty( $paths_to_ignore ) ) {
+			return;
+		}
+		
+		// Apply filter to add ignored paths to directory exclusion list
+		add_filter(
+			'wp_plugin_check_ignore_directories',
+			static function ( $dirs ) use ( $paths_to_ignore ) {
+				return array_unique( array_merge( $dirs, $paths_to_ignore ) );
+			}
+		);
 	}
 
 	/**
@@ -1934,6 +1980,17 @@ final class Admin_AJAX {
 				400
 			);
 		}
+	}
+
+	/**
+	 * Get nonce for mark_fixed action.
+	 *
+	 * @since 1.9.0
+	 */
+	public function get_mark_fixed_nonce() {
+		wp_send_json_success( array(
+			'nonce' => wp_create_nonce( 'wpv_mark_fixed' )
+		) );
 	}
 }
 

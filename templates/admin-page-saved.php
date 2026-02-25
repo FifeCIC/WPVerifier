@@ -57,9 +57,6 @@ $saved_results = Saved_Results_Handler::get_saved_results();
 		<div class="wpv-ast-sidebar">
 			<h3><?php esc_html_e( 'Selected Issue Details', 'wp-verifier' ); ?></h3>
 			<div id="saved-results-ignored-count" style="display: none;"></div>
-			<div id="saved-results-actions-container" style="padding: 12px; background: #f9f9f9; border: 1px solid #ddd; margin-bottom: 15px;">
-				<h4 style="margin: 0 0 10px 0;"><?php esc_html_e( 'Actions', 'wp-verifier' ); ?></h4>
-			</div>
 			<div class="wpv-ast-details" id="saved-results-details">
 				<div class="wpv-ast-placeholder">
 					<p><?php esc_html_e( 'Select a result above', 'wp-verifier' ); ?></p>

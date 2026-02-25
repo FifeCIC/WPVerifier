@@ -141,3 +141,26 @@
 	color: #646970;
 	font-size: 0.9em;
 }
+
+/* Toast notification */
+.wpv-toast {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	background: #46b450;
+	color: #fff;
+	padding: 12px 20px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+	z-index: 999999;
+	font-size: 14px;
+	font-weight: 500;
+	opacity: 0;
+	transform: translateX(100px);
+	transition: all 0.3s ease;
+}
+
+.wpv-toast.show {
+	opacity: 1;
+	transform: translateX(0);
+}

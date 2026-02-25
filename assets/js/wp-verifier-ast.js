@@ -220,7 +220,7 @@
 		showDetails: function(file, issue) {
 			console.log('Issue data:', issue);
 			const details = $('#wpv-ast-details');
-			const aiPrompt = `I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${issue.line}, Column: ${issue.column}\nType: ${issue.type}\nCode: ${issue.code}\nMessage: ${$('<div>').html(issue.message).text()}\n\nHow can I fix this?`;
+			const aiPrompt = `I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${issue.line}, Column: ${issue.column}\nType: ${issue.type}\nCode: ${issue.code}\nMessage: ${$('<div>').html(issue.message).text()}\n\nFix this now, please.`;
 			const isIgnored = this.isIgnored(file, issue.code);
 			const isRediscovered = this.isRediscovered(file, issue.line, issue.code);
 			

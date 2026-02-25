@@ -1,63 +1,6 @@
 # WP Verifier Development Roadmap
 This roadmap consolidates all planned features and tracks implementation progress. Most features will be supported by existing folders, systems and standard approaches so check for existing implementation before creating new files, functions or classes.
 
-### Phase 7: Preparation Tab - Vendor/Library Detection
-- [x] **Step 1**: Create centralized vendor folder pattern list
-  - [x] Create `includes/Utilities/Vendor_Patterns.php` class
-  - [x] Define static array with patterns: `vendor`, `vendors`, `library`, `libraries`
-  - [x] Add method to get patterns for reuse across plugin
-
-- [x] **Step 2**: Create Preparation tab template and structure
-  - [x] Create `templates/admin-page-preparation.php` template file
-  - [x] Add tab registration in main admin page
-  - [x] Create basic layout: plugin selector + vendor detection results area
-  - [x] Add CSS for vendor list display
-
-- [x] **Step 3**: Implement vendor folder detection
-  - [x] Create `includes/Admin/Vendor_Detector.php` class
-  - [x] Add method to scan plugin directory for vendor patterns
-  - [x] Add method to list subdirectories (individual vendors) in matched folders
-  - [x] Return structured array: `[folder => [vendor1, vendor2, ...]]`
-
-- [x] **Step 4**: Create AJAX handler for vendor detection
-  - [x] Add `detect_vendors` AJAX action in `Admin_AJAX.php`
-  - [x] Accept plugin slug parameter
-  - [x] Call Vendor_Detector and return JSON response
-  - [x] Handle errors gracefully
-
-- [x] **Step 5**: Build frontend JavaScript for Preparation tab
-  - [x] Create `assets/js/plugin-check-preparation.js`
-  - [x] Auto-detect vendors on page load for selected plugin
-  - [x] Display vendor folders with checkboxes (checked by default)
-  - [x] Add "Confirm Ignore" button to save selections
-
-- [x] **Step 6**: Extend JSON structure for ignored paths
-  - [x] Add `ignored_paths` array to results.json structure
-  - [x] Store in format: `[{"path": "vendor/name", "reason": "vendor", "added_by": "user"}]`
-  - [x] Update `save_results()` in `Admin_AJAX.php` to preserve ignored_paths
-
-- [x] **Step 7**: Implement JSON merge logic
-  - [x] Create method to load existing JSON before saving new results
-  - [x] Merge `ignored_paths` from existing JSON into new results
-  - [x] Ensure ignored_paths persist across verification runs
-  - [x] Add timestamp to track when paths were ignored
-
-- [x] **Step 8**: Update Advanced Verification to respect ignored paths
-  - [x] Modify `wp-verifier-ast.js` to load ignored_paths from JSON
-  - [x] Filter out issues from ignored paths before rendering
-  - [x] Update ignored folder display to show paths from JSON
-  - [x] Add visual indicator that paths are from Preparation tab
-
-- [x] **Step 9**: Update existing vendor detection to use centralized patterns
-  - [x] Refactor `detect_folders()` in `Admin_AJAX.php`
-  - [x] Use Vendor_Patterns class instead of hardcoded array
-  - [x] Ensure consistency across all vendor detection points
-
-- [ ] **Step 10**: Testing and polish
-  - [ ] Test with plugins containing vendor folders
-  - [ ] Test JSON persistence across multiple verification runs
-  - [ ] Test ignored paths filtering in Advanced Verification
-  - [ ] Add user feedback messages and loading states
 
 ## Future Phases 🔮
 

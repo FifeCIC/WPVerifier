@@ -232,8 +232,37 @@ jQuery(document).ready(function($) {
 			const currentUrl = new URL(window.location.href);
 			const ignoreUrl = currentUrl.origin + currentUrl.pathname + '?page=wp-verifier&tab=results&action=ignore_code&plugin=' + encodeURIComponent(pluginSlug) + '&file=' + encodeURIComponent(file) + '&code=' + encodeURIComponent(item.code) + '&_wpnonce=' + (typeof PLUGIN_CHECK !== 'undefined' ? PLUGIN_CHECK.nonce : '');
 			
+			// Generate proper nonce URL using AJAX
+			const adminPath = currentUrl.pathname.substring(0, currentUrl.pathname.indexOf('/plugins.php'));
+			let fixedUrl = adminPath + '/admin-post.php?action=wpv_mark_fixed&plugin=' + encodeURIComponent(pluginSlug) + '&issue_id=' + encodeURIComponent(item.issue_id);
+			
+			// Get nonce via AJAX
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				async: false,
+				data: {
+					action: 'wpv_get_mark_fixed_nonce'
+				},
+				success: function(response) {
+					if (response.success && response.data.nonce) {
+						fixedUrl += '&_wpnonce=' + response.data.nonce;
+					}
+				}
+			});
+			
+			const aiPrompt = `I have a WordPress plugin verification error:\n\nIssue ID: ${item.issue_id || 'N/A'}\nFile: ${file}\nLine: ${item.line}, Column: ${item.column}\nType: ${item.type}\nCode: ${item.code}\nMessage: ${$('<div>').text(item.message).text()}\n\nFix this issue for me.`;
+			navigator.clipboard.writeText(aiPrompt).then(() => {
+				const toast = $('<div class="wpv-toast">✓ Copied to clipboard</div>');
+				$('body').append(toast);
+				setTimeout(() => toast.addClass('show'), 10);
+				setTimeout(() => {
+					toast.removeClass('show');
+					setTimeout(() => toast.remove(), 300);
+				}, 3000);
+			});
+			
 			$('#saved-results-details').html(`
-					<h4 style="margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #ddd;">Selected Issue Details</h4>
 				<div class="wpv-ast-detail-group">
 					<label>Issue ID:</label>
 					<p><code>${item.issue_id || 'N/A'}</code></p>
@@ -263,9 +292,12 @@ jQuery(document).ready(function($) {
 					<p>${$('<div>').text(item.message).html()}</p>
 				</div>
 				<div class="wpv-ast-detail-actions">
-					<button type="button" class="button wpv-copy-ai" data-prompt="I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${item.line}, Column: ${item.column}\nType: ${item.type}\nCode: ${item.code}\nMessage: ${$('<div>').text(item.message).text()}\n\nHow can I fix this?">
+					<button type="button" class="button wpv-copy-ai" data-prompt="I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${item.line}, Column: ${item.column}\nType: ${item.type}\nCode: ${item.code}\nMessage: ${$('<div>').text(item.message).text()}\n\nFix this issue for me.">
 						<span class="dashicons dashicons-clipboard"></span> Copy for AI
 					</button>
+					<a href="${fixedUrl}" class="button button-primary">
+						<span class="dashicons dashicons-yes"></span> Fixed
+					</a>
 					<a href="${ignoreUrl}" class="button">
 						<span class="dashicons dashicons-hidden"></span> Ignore Code
 					</a>
