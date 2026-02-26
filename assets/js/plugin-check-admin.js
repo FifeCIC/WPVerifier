@@ -632,6 +632,12 @@
 		}
 		payload.append( 'plugin_label', getSelectedPluginLabel() );
 		
+		const limitResults = document.getElementById('plugin-check__limit-results');
+		if (limitResults && limitResults.checked) {
+			payload.append('check_mode', 'limit_10');
+			payload.append('limit_results', '10');
+		}
+		
 		// Add checked categories
 		const checkedCategories = [];
 		for ( let i = 0; i < categoriesList.length; i++ ) {
@@ -641,11 +647,18 @@
 		}
 		payload.append( 'categories', JSON.stringify( checkedCategories ) );
 		
+		// Add WordPress.org Preparation setting
+		const wporgPrep = document.getElementById('plugin-check__wporg-prep');
+		if (wporgPrep) {
+			payload.append('wporg_preparation', wporgPrep.checked ? '1' : '0');
+		}
+		
 		// Add metadata to results
 		const resultsWithMeta = {
 			...aggregatedResults,
 			meta: {
 				checked_categories: checkedCategories,
+				wporg_preparation: wporgPrep ? wporgPrep.checked : true,
 				timestamp: new Date().toISOString()
 			}
 		};
@@ -1309,6 +1322,19 @@
 			'include-experimental',
 			includeExperimental && includeExperimental.checked ? 1 : 0
 		);
+
+		// Check mode: limit_10 or single_file
+		const limitResults = document.getElementById('plugin-check__limit-results');
+		if (limitResults && limitResults.checked) {
+			pluginCheckData.append('check_mode', 'limit_10');
+			pluginCheckData.append('limit_results', '10');
+		}
+
+		// WordPress.org Preparation mode
+		const wporgPrep = document.getElementById('plugin-check__wporg-prep');
+		if (wporgPrep) {
+			pluginCheckData.append('wporg_preparation', wporgPrep.checked ? '1' : '0');
+		}
 
 		for ( let i = 0; i < typesList.length; i++ ) {
 			if ( typesList[ i ].checked ) {

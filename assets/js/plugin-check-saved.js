@@ -251,7 +251,16 @@ jQuery(document).ready(function($) {
 				}
 			});
 			
-			const aiPrompt = `I have a WordPress plugin verification error:\n\nIssue ID: ${item.issue_id || 'N/A'}\nFile: ${file}\nLine: ${item.line}, Column: ${item.column}\nType: ${item.type}\nCode: ${item.code}\nMessage: ${$('<div>').text(item.message).text()}\n\nFix this issue for me.`;
+			const aiPrompt = `I have a WordPress plugin verification error:
+
+File: ${file}
+Filename: ${file.split(/[\\\\/]/).pop()}
+Line: ${item.line}, Column: ${item.column}
+Type: ${item.type}
+Code: ${item.code}
+Message: ${$('<div>').text(item.message).text()}
+
+Please fix this issue in the file from my workspace. The file is already in the workspace context.`;
 			navigator.clipboard.writeText(aiPrompt).then(() => {
 				const toast = $('<div class="wpv-toast">✓ Copied to clipboard</div>');
 				$('body').append(toast);
@@ -295,6 +304,12 @@ jQuery(document).ready(function($) {
 					<button type="button" class="button wpv-copy-ai" data-prompt="I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${item.line}, Column: ${item.column}\nType: ${item.type}\nCode: ${item.code}\nMessage: ${$('<div>').text(item.message).text()}\n\nFix this issue for me.">
 						<span class="dashicons dashicons-clipboard"></span> Copy for AI
 					</button>
+					<a href="vscode://file/${file}:${item.line}:${item.column}" class="button">
+						<span class="dashicons dashicons-editor-code"></span> VSCode
+					</a>
+					<button type="button" class="button wpv-recheck-file" data-file="${file}" data-plugin="${pluginSlug}">
+						<span class="dashicons dashicons-update"></span> Recheck File
+					</button>
 					<a href="${fixedUrl}" class="button button-primary">
 						<span class="dashicons dashicons-yes"></span> Fixed
 					</a>
@@ -312,6 +327,40 @@ jQuery(document).ready(function($) {
 					const originalText = $btn.html();
 					$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
 					setTimeout(() => $btn.html(originalText), 2000);
+				});
+			});
+			
+			$('.wpv-recheck-file').off('click').on('click', function() {
+				const $btn = $(this);
+				const file = $btn.data('file');
+				const plugin = $btn.data('plugin');
+				const originalHtml = $btn.html();
+				
+				$btn.prop('disabled', true).html('<span class="dashicons dashicons-update" style="animation: rotation 1s infinite linear;"></span> Rechecking...');
+				
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'wpv_recheck_file',
+						nonce: typeof PLUGIN_CHECK !== 'undefined' ? PLUGIN_CHECK.nonce : '',
+						plugin: plugin,
+						file: file
+					},
+					success: function(response) {
+						if (response.success) {
+							alert('File rechecked successfully. Reload the results to see updates.');
+							$('.load-result').first().click();
+						} else {
+							alert('Error: ' + (response.data?.message || 'Unknown error'));
+						}
+					},
+					error: function() {
+						alert('Failed to recheck file.');
+					},
+					complete: function() {
+						$btn.prop('disabled', false).html(originalHtml);
+					}
 				});
 			});
 		});

@@ -73,7 +73,15 @@ if (is_dir($results_dir)) {
 						<p>
 							<label><input type="checkbox" value="include-experimental" id="plugin-check__include-experimental" /> <?php esc_html_e( 'Include Experimental Checks', 'wp-verifier' ); ?></label>
 						</p>
+					<?php } else { ?>
+						<h4><?php esc_attr_e( 'Other Options', 'wp-verifier' ); ?></h4>
 					<?php } ?>
+					<p>
+						<label><input type="checkbox" value="wporg-prep" id="plugin-check__wporg-prep" checked /> <?php esc_html_e( 'WordPress.org Preparation', 'wp-verifier' ); ?></label>
+					</p>
+					<p>
+						<label><input type="checkbox" value="limit-results" id="plugin-check__limit-results" /> <?php esc_html_e( 'Limit to 10 issues (testing)', 'wp-verifier' ); ?></label>
+					</p>
 				</form>
 			<?php } else { ?>
 				<h2><?php esc_html_e( 'No plugins available.', 'wp-verifier' ); ?></h2>

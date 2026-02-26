@@ -264,6 +264,14 @@ final class Admin_AJAX {
 	const ACTION_VALIDATE_STRUCTURE = 'plugin_check_validate_structure';
 
 	/**
+	 * Recheck single file action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_RECHECK_FILE = 'wpv_recheck_file';
+
+	/**
 	 * Registers WordPress hooks for the Admin AJAX.
 	 *
 	 * @since 1.0.0
@@ -301,6 +309,7 @@ final class Admin_AJAX {
 		add_action( 'wp_ajax_plugin_check_detect_folders', array( $this, 'detect_folders' ) );
 		add_action( 'wp_ajax_' . self::ACTION_VALIDATE_STRUCTURE, array( $this, 'validate_structure' ) );
 		add_action( 'wp_ajax_wpv_get_mark_fixed_nonce', array( $this, 'get_mark_fixed_nonce' ) );
+		add_action( 'wp_ajax_' . self::ACTION_RECHECK_FILE, array( $this, 'recheck_file' ) );
 	}
 
 	/**
@@ -567,6 +576,29 @@ final class Admin_AJAX {
 		}
 
 		return $response;
+	}
+
+	private function limit_results_tree( array $tree, $limit ) {
+		$count = 0;
+		$limited = array();
+		foreach ( $tree as $file => $lines ) {
+			if ( $count >= $limit ) break;
+			$limited[ $file ] = array();
+			foreach ( $lines as $line => $columns ) {
+				if ( $count >= $limit ) break;
+				$limited[ $file ][ $line ] = array();
+				foreach ( $columns as $column => $issues ) {
+					if ( $count >= $limit ) break;
+					$limited[ $file ][ $line ][ $column ] = array();
+					foreach ( $issues as $issue ) {
+						if ( $count >= $limit ) break;
+						$limited[ $file ][ $line ][ $column ][] = $issue;
+						$count++;
+					}
+				}
+			}
+		}
+		return $limited;
 	}
 
 	/**
@@ -889,6 +921,14 @@ final class Admin_AJAX {
 				}
 			}
 			
+			// Apply limit if requested (for testing)
+			$check_mode = isset( $_POST['check_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['check_mode'] ) ) : 'full';
+			$limit = isset( $_POST['limit_results'] ) ? (int) $_POST['limit_results'] : 0;
+			if ( $limit > 0 && $check_mode === 'limit_10' ) {
+				$errors_flat = array_slice( $errors_flat, 0, $limit );
+				$warnings_flat = array_slice( $warnings_flat, 0, $limit );
+			}
+			
 			// Calculate readiness score
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Readiness_Score' ) ) {
 				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Readiness_Score.php';
@@ -1023,7 +1063,6 @@ final class Admin_AJAX {
 			return;
 		}
 		
-		// Extract just the path values
 		$paths_to_ignore = array();
 		foreach ( $ignored_paths as $item ) {
 			if ( isset( $item['path'] ) ) {
@@ -1035,12 +1074,14 @@ final class Admin_AJAX {
 			return;
 		}
 		
-		// Apply filter to add ignored paths to directory exclusion list
+		error_log( 'WPVerifier: Applying ignored paths filter for ' . $plugin_slug . ': ' . implode( ', ', $paths_to_ignore ) );
+		
 		add_filter(
 			'wp_plugin_check_ignore_directories',
 			static function ( $dirs ) use ( $paths_to_ignore ) {
 				return array_unique( array_merge( $dirs, $paths_to_ignore ) );
-			}
+			},
+			10
 		);
 	}
 
@@ -1991,6 +2032,254 @@ final class Admin_AJAX {
 		wp_send_json_success( array(
 			'nonce' => wp_create_nonce( 'wpv_mark_fixed' )
 		) );
+	}
+
+	/**
+	 * Check if logging is enabled.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @return bool True if logging is enabled.
+	 */
+	private function is_logging_enabled() {
+		$settings = get_option( 'plugin_check_settings', array() );
+		return ! empty( $settings['enable_logging'] );
+	}
+
+	/**
+	 * Recheck a single file using PHP_CodeSniffer directly.
+	 *
+	 * @since 1.9.0
+	 */
+	public function recheck_file() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$file = isset( $_POST['file'] ) ? sanitize_text_field( wp_unslash( $_POST['file'] ) ) : '';
+
+			if ( empty( $plugin ) || empty( $file ) ) {
+				throw new InvalidArgumentException( __( 'Plugin and file are required.', 'wp-verifier' ) );
+			}
+
+			if ( ! file_exists( $file ) ) {
+				throw new InvalidArgumentException( __( 'File does not exist.', 'wp-verifier' ) );
+			}
+
+			if ( $this->is_logging_enabled() ) {
+				error_log( 'WPVerifier: Recheck single file - ' . $file );
+			}
+
+			// Run PHPCS directly on single file
+			$results = $this->run_phpcs_on_file( $file );
+
+			if ( $this->is_logging_enabled() ) {
+				$error_count = isset( $results['errors'][ $file ] ) ? count( $results['errors'][ $file ], COUNT_RECURSIVE ) : 0;
+				$warning_count = isset( $results['warnings'][ $file ] ) ? count( $results['warnings'][ $file ], COUNT_RECURSIVE ) : 0;
+				error_log( 'WPVerifier: Single file check complete - Errors: ' . $error_count . ', Warnings: ' . $warning_count );
+			}
+
+			// Update saved results
+			$this->update_file_results( $plugin, $file, $results['errors'], $results['warnings'] );
+
+			wp_send_json_success( array(
+				'message' => __( 'File rechecked successfully.', 'wp-verifier' ),
+				'errors' => $results['errors'],
+				'warnings' => $results['warnings'],
+			) );
+
+		} catch ( Exception $exception ) {
+			if ( $this->is_logging_enabled() ) {
+				error_log( 'WPVerifier: Recheck error - ' . $exception->getMessage() );
+			}
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Run PHP_CodeSniffer on a single file.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param string $file File path.
+	 * @return array Results with errors and warnings.
+	 */
+	private function run_phpcs_on_file( $file ) {
+		if ( ! class_exists( 'PHP_CodeSniffer\\Runner' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'vendor/squizlabs/php_codesniffer/autoload.php';
+		}
+
+		// Set required PHPCS constants
+		if ( ! defined( 'PHP_CODESNIFFER_VERBOSITY' ) ) {
+			define( 'PHP_CODESNIFFER_VERBOSITY', 0 );
+		}
+		if ( ! defined( 'PHP_CODESNIFFER_CBF' ) ) {
+			define( 'PHP_CODESNIFFER_CBF', false );
+		}
+		if ( ! isset( $_SERVER['argv'] ) ) {
+			$_SERVER['argv'] = array();
+		}
+
+		$runner = new \PHP_CodeSniffer\Runner();
+		$runner->config = new \PHP_CodeSniffer\Config( array( $file, '--standard=WordPress', '--report=json' ) );
+		$runner->ruleset = new \PHP_CodeSniffer\Ruleset( $runner->config );
+
+		ob_start();
+		$runner->runPHPCS();
+		$output = ob_get_clean();
+
+		$json_data = json_decode( $output, true );
+		$errors = array();
+		$warnings = array();
+
+		if ( isset( $json_data['files'][ $file ]['messages'] ) ) {
+			foreach ( $json_data['files'][ $file ]['messages'] as $message ) {
+				$line = $message['line'];
+				$column = $message['column'];
+				$issue = array(
+					'message' => $message['message'],
+					'code' => $message['source'],
+					'severity' => $message['severity'],
+					'link' => null,
+					'docs' => '',
+				);
+
+				if ( 'ERROR' === $message['type'] ) {
+					if ( ! isset( $errors[ $file ] ) ) {
+						$errors[ $file ] = array();
+					}
+					if ( ! isset( $errors[ $file ][ $line ] ) ) {
+						$errors[ $file ][ $line ] = array();
+					}
+					if ( ! isset( $errors[ $file ][ $line ][ $column ] ) ) {
+						$errors[ $file ][ $line ][ $column ] = array();
+					}
+					$errors[ $file ][ $line ][ $column ][] = $issue;
+				} else {
+					if ( ! isset( $warnings[ $file ] ) ) {
+						$warnings[ $file ] = array();
+					}
+					if ( ! isset( $warnings[ $file ][ $line ] ) ) {
+						$warnings[ $file ][ $line ] = array();
+					}
+					if ( ! isset( $warnings[ $file ][ $line ][ $column ] ) ) {
+						$warnings[ $file ][ $line ][ $column ] = array();
+					}
+					$warnings[ $file ][ $line ][ $column ][] = $issue;
+				}
+			}
+		}
+
+		return array(
+			'errors' => $errors,
+			'warnings' => $warnings,
+		);
+	}
+
+	/**
+	 * Update saved results for a specific file.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param string $plugin Plugin slug.
+	 * @param string $file File path.
+	 * @param array $errors New errors.
+	 * @param array $warnings New warnings.
+	 */
+	private function update_file_results( $plugin, $file, $errors, $warnings ) {
+		$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+		$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+
+		if ( ! file_exists( $json_file ) ) {
+			return;
+		}
+
+		$data = json_decode( file_get_contents( $json_file ), true );
+		if ( ! $data || ! isset( $data['results'] ) ) {
+			return;
+		}
+
+		// Remove old results for this file
+		unset( $data['results'][ $file ] );
+
+		// Add new results
+		$file_issues = array();
+		if ( isset( $errors[ $file ] ) ) {
+			foreach ( $errors[ $file ] as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						$issue_id = 'E-' . substr( md5( basename( $file ) . '-' . $line ), 0, 8 );
+						$file_issues[] = array(
+							'issue_id' => $issue_id,
+							'message' => $issue['message'],
+							'code' => $issue['code'],
+							'link' => $issue['link'] ?? null,
+							'docs' => $issue['docs'] ?? '',
+							'severity' => $issue['severity'] ?? 5,
+							'type' => 'ERROR',
+							'line' => (int) $line,
+							'column' => (int) $column,
+							'ignored' => false,
+							'ignored_by' => null,
+							'resolved' => false,
+							'resolved_by' => null,
+						);
+					}
+				}
+			}
+		}
+		if ( isset( $warnings[ $file ] ) ) {
+			foreach ( $warnings[ $file ] as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						$issue_id = 'W-' . substr( md5( basename( $file ) . '-' . $line ), 0, 8 );
+						$file_issues[] = array(
+							'issue_id' => $issue_id,
+							'message' => $issue['message'],
+							'code' => $issue['code'],
+							'link' => $issue['link'] ?? null,
+							'docs' => $issue['docs'] ?? '',
+							'severity' => $issue['severity'] ?? 5,
+							'type' => 'WARNING',
+							'line' => (int) $line,
+							'column' => (int) $column,
+							'ignored' => false,
+							'ignored_by' => null,
+							'resolved' => false,
+							'resolved_by' => null,
+						);
+					}
+				}
+			}
+		}
+
+		if ( ! empty( $file_issues ) ) {
+			$data['results'][ $file ] = $file_issues;
+		}
+
+		// Recalculate readiness
+		$all_errors = array();
+		$all_warnings = array();
+		foreach ( $data['results'] as $f => $issues ) {
+			foreach ( $issues as $issue ) {
+				if ( $issue['type'] === 'ERROR' ) {
+					$all_errors[] = $issue;
+				} else {
+					$all_warnings[] = $issue;
+				}
+			}
+		}
+
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Readiness_Score' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Readiness_Score.php';
+		}
+		$data['readiness'] = \WordPress\Plugin_Check\Utilities\Readiness_Score::calculate( $all_errors, $all_warnings );
+
+		// Save updated JSON
+		file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
 	}
 }
 

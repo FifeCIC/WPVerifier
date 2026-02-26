@@ -164,3 +164,13 @@
 	opacity: 1;
 	transform: translateX(0);
 }
+
+/* Rotation animation for recheck button */
+@keyframes rotation {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(359deg);
+	}
+}

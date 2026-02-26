@@ -187,6 +187,7 @@ final class Settings_Page {
 						'trademarks' => true,
 					),
 					'auto_save_results' => true,
+					'enable_logging' => false,
 				),
 			)
 		);
@@ -257,6 +258,14 @@ final class Settings_Page {
 			'auto_save_results',
 			__( 'Auto-Save Results', 'wp-verifier' ),
 			array( $this, 'render_auto_save_field' ),
+			self::PAGE_SLUG,
+			'general_settings_section'
+		);
+
+		add_settings_field(
+			'enable_logging',
+			__( 'Enable Logging', 'wp-verifier' ),
+			array( $this, 'render_logging_field' ),
 			self::PAGE_SLUG,
 			'general_settings_section'
 		);
@@ -419,6 +428,25 @@ final class Settings_Page {
 	}
 
 	/**
+	 * Renders the logging field.
+	 *
+	 * @since 1.9.0
+	 */
+	public function render_logging_field() {
+		$settings = get_option( self::OPTION_NAME, array() );
+		$checked = isset( $settings['enable_logging'] ) ? $settings['enable_logging'] : false;
+		?>
+		<label>
+			<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[enable_logging]' ); ?>" value="1" <?php checked( $checked ); ?> />
+			<?php esc_html_e( 'Enable debug logging for verification operations', 'wp-verifier' ); ?>
+		</label>
+		<p class="description">
+			<?php esc_html_e( 'When enabled, detailed logs will be written to help troubleshoot issues. Logs are written using error_log() and can be viewed in your debug.log file.', 'wp-verifier' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Renders the namer checks section description.
 	 *
 	 * @since 1.9.0
@@ -490,6 +518,7 @@ final class Settings_Page {
 		$sanitized['ai_model']    = $this->sanitize_model( $input, $current_settings );
 		$sanitized['namer_checks'] = $this->sanitize_namer_checks( $input, $current_settings );
 		$sanitized['auto_save_results'] = ! empty( $input['auto_save_results'] );
+		$sanitized['enable_logging'] = ! empty( $input['enable_logging'] );
 
 		if ( $this->should_test_connection( $sanitized, $current_settings ) ) {
 			$connection_test = $this->test_ai_connection( $sanitized['ai_provider'], $sanitized['ai_api_key'], $sanitized['ai_model'] );
