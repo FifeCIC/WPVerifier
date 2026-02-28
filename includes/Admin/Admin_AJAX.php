@@ -272,6 +272,14 @@ final class Admin_AJAX {
 	const ACTION_RECHECK_FILE = 'wpv_recheck_file';
 
 	/**
+	 * Update configuration action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_UPDATE_CONFIG = 'plugin_check_update_config';
+
+	/**
 	 * Registers WordPress hooks for the Admin AJAX.
 	 *
 	 * @since 1.0.0
@@ -310,6 +318,7 @@ final class Admin_AJAX {
 		add_action( 'wp_ajax_' . self::ACTION_VALIDATE_STRUCTURE, array( $this, 'validate_structure' ) );
 		add_action( 'wp_ajax_wpv_get_mark_fixed_nonce', array( $this, 'get_mark_fixed_nonce' ) );
 		add_action( 'wp_ajax_' . self::ACTION_RECHECK_FILE, array( $this, 'recheck_file' ) );
+		add_action( 'wp_ajax_' . self::ACTION_UPDATE_CONFIG, array( $this, 'update_config' ) );
 	}
 
 	/**
@@ -504,10 +513,19 @@ final class Admin_AJAX {
 		try {
 			$config = $this->configure_runner( $runner );
 			
-			// Apply ignored_paths from JSON for Advanced Verification
-			$this->apply_ignored_paths_filter( $config['plugin'] );
+		// Apply ignored_paths from JSON for Advanced Verification
+		$this->apply_ignored_paths_filter( $config['plugin'] );
 			
 			$results = $runner->run();
+			
+			// Filter WordPress.org specific rules if not preparing for WordPress.org
+			$wporg_prep = filter_input( INPUT_POST, 'wporg_preparation', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( '0' === $wporg_prep ) {
+				if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\WPOrg_Rules' ) ) {
+					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/WPOrg_Rules.php';
+				}
+				$results = $this->filter_wporg_results( $results );
+			}
 		} catch ( Exception $error ) {
 			wp_send_json_error(
 				new WP_Error( 'invalid-request', $error->getMessage() ),
@@ -518,6 +536,72 @@ final class Admin_AJAX {
 		$response_data = $this->prepare_results_response( $results, $types );
 
 		wp_send_json_success( $response_data );
+	}
+
+	/**
+	 * Filter WordPress.org specific results.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param object $results The check results object.
+	 * @return object Filtered results.
+	 */
+	private function filter_wporg_results( $results ) {
+		$errors = $results->get_errors();
+		$warnings = $results->get_warnings();
+		
+		$filtered_errors = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $errors );
+		$filtered_warnings = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $warnings );
+		
+		// Create new result object with filtered data
+		$filtered_results = new \WordPress\Plugin_Check\Checker\Check_Result( $results->plugin() );
+		
+		// Re-add filtered errors and warnings
+		foreach ( $filtered_errors as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						$filtered_results->add_message(
+							true,
+							$issue['message'],
+							array(
+								'code' => $issue['code'],
+								'file' => $file,
+								'line' => $line,
+								'column' => $column,
+								'severity' => $issue['severity'] ?? 5,
+								'link' => $issue['link'] ?? null,
+								'docs' => $issue['docs'] ?? '',
+							)
+						);
+					}
+				}
+			}
+		}
+		
+		foreach ( $filtered_warnings as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						$filtered_results->add_message(
+							false,
+							$issue['message'],
+							array(
+								'code' => $issue['code'],
+								'file' => $file,
+								'line' => $line,
+								'column' => $column,
+								'severity' => $issue['severity'] ?? 5,
+								'link' => $issue['link'] ?? null,
+								'docs' => $issue['docs'] ?? '',
+							)
+						);
+					}
+				}
+			}
+		}
+		
+		return $filtered_results;
 	}
 
 	/**
@@ -861,8 +945,8 @@ final class Admin_AJAX {
 			
 			$file_path = $verifier_dir . '/results.json';
 			
-			// Load existing JSON to preserve ignored_paths
-			$existing_ignored_paths = $this->load_existing_ignored_paths( $file_path );
+			// Load existing JSON to preserve ignored_paths and configuration
+			$existing_data = $this->load_existing_data( $file_path );
 			
 			// Convert grouped format to flat format
 			$errors_flat = array();
@@ -992,12 +1076,30 @@ final class Admin_AJAX {
 				);
 			}
 			
-			// Build final structure with merged ignored_paths
+			// Get WordPress.org preparation setting from existing config or POST
+			$existing_config = $existing_data['configuration'] ?? array();
+			$wporg_prep = isset( $_POST['wporg_preparation'] ) ? sanitize_text_field( wp_unslash( $_POST['wporg_preparation'] ) ) : ( $existing_config['wporg_preparation'] ?? '1' );
+			$wporg_enabled = '1' === $wporg_prep;
+			
+			// Get list of skipped rules from existing config or generate new
+			$skipped_rules = $existing_config['skipped_rules'] ?? array();
+			if ( ! $wporg_enabled && empty( $skipped_rules ) ) {
+				if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\WPOrg_Rules' ) ) {
+					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/WPOrg_Rules.php';
+				}
+				$skipped_rules = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::get_wporg_codes();
+			}
+			
+			// Build final structure with merged ignored_paths and configuration
 			$final_results = array(
 				'generated_at' => $export_metadata['timestamp_human'],
 				'plugin' => $export_metadata['plugin'],
 				'readiness' => $readiness,
-				'ignored_paths' => $existing_ignored_paths,
+				'configuration' => array(
+					'wporg_preparation' => $wporg_enabled,
+					'skipped_rules' => $skipped_rules,
+				),
+				'ignored_paths' => $existing_data['ignored_paths'] ?? array(),
 				'results' => empty( $results_by_file ) ? new \stdClass() : $results_by_file,
 			);
 			
@@ -1020,6 +1122,23 @@ final class Admin_AJAX {
 				400
 			);
 		}
+	}
+
+	/**
+	 * Load existing data from JSON file.
+	 *
+	 * @since 1.9.0
+	 *
+	 * @param string $file_path Path to JSON file.
+	 * @return array Existing data or empty array.
+	 */
+	private function load_existing_data( $file_path ) {
+		if ( ! file_exists( $file_path ) ) {
+			return array();
+		}
+
+		$existing_data = json_decode( file_get_contents( $file_path ), true );
+		return is_array( $existing_data ) ? $existing_data : array();
 	}
 
 	/**
@@ -1073,8 +1192,6 @@ final class Admin_AJAX {
 		if ( empty( $paths_to_ignore ) ) {
 			return;
 		}
-		
-		error_log( 'WPVerifier: Applying ignored paths filter for ' . $plugin_slug . ': ' . implode( ', ', $paths_to_ignore ) );
 		
 		add_filter(
 			'wp_plugin_check_ignore_directories',
@@ -2180,106 +2297,45 @@ final class Admin_AJAX {
 	}
 
 	/**
-	 * Update saved results for a specific file.
+	 * Update plugin configuration.
 	 *
 	 * @since 1.9.0
-	 *
-	 * @param string $plugin Plugin slug.
-	 * @param string $file File path.
-	 * @param array $errors New errors.
-	 * @param array $warnings New warnings.
 	 */
-	private function update_file_results( $plugin, $file, $errors, $warnings ) {
-		$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-		$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+	public function update_config() {
+		$this->check_request_validity();
 
-		if ( ! file_exists( $json_file ) ) {
-			return;
-		}
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$config_json = isset( $_POST['config'] ) ? wp_unslash( $_POST['config'] ) : '';
 
-		$data = json_decode( file_get_contents( $json_file ), true );
-		if ( ! $data || ! isset( $data['results'] ) ) {
-			return;
-		}
-
-		// Remove old results for this file
-		unset( $data['results'][ $file ] );
-
-		// Add new results
-		$file_issues = array();
-		if ( isset( $errors[ $file ] ) ) {
-			foreach ( $errors[ $file ] as $line => $columns ) {
-				foreach ( $columns as $column => $issues ) {
-					foreach ( $issues as $issue ) {
-						$issue_id = 'E-' . substr( md5( basename( $file ) . '-' . $line ), 0, 8 );
-						$file_issues[] = array(
-							'issue_id' => $issue_id,
-							'message' => $issue['message'],
-							'code' => $issue['code'],
-							'link' => $issue['link'] ?? null,
-							'docs' => $issue['docs'] ?? '',
-							'severity' => $issue['severity'] ?? 5,
-							'type' => 'ERROR',
-							'line' => (int) $line,
-							'column' => (int) $column,
-							'ignored' => false,
-							'ignored_by' => null,
-							'resolved' => false,
-							'resolved_by' => null,
-						);
-					}
-				}
+			if ( empty( $plugin ) || empty( $config_json ) ) {
+				throw new InvalidArgumentException( __( 'Plugin and config are required.', 'wp-verifier' ) );
 			}
-		}
-		if ( isset( $warnings[ $file ] ) ) {
-			foreach ( $warnings[ $file ] as $line => $columns ) {
-				foreach ( $columns as $column => $issues ) {
-					foreach ( $issues as $issue ) {
-						$issue_id = 'W-' . substr( md5( basename( $file ) . '-' . $line ), 0, 8 );
-						$file_issues[] = array(
-							'issue_id' => $issue_id,
-							'message' => $issue['message'],
-							'code' => $issue['code'],
-							'link' => $issue['link'] ?? null,
-							'docs' => $issue['docs'] ?? '',
-							'severity' => $issue['severity'] ?? 5,
-							'type' => 'WARNING',
-							'line' => (int) $line,
-							'column' => (int) $column,
-							'ignored' => false,
-							'ignored_by' => null,
-							'resolved' => false,
-							'resolved_by' => null,
-						);
-					}
-				}
+
+			$config = json_decode( $config_json, true );
+			if ( ! $config ) {
+				throw new InvalidArgumentException( __( 'Invalid config data.', 'wp-verifier' ) );
 			}
-		}
 
-		if ( ! empty( $file_issues ) ) {
-			$data['results'][ $file ] = $file_issues;
-		}
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
 
-		// Recalculate readiness
-		$all_errors = array();
-		$all_warnings = array();
-		foreach ( $data['results'] as $f => $issues ) {
-			foreach ( $issues as $issue ) {
-				if ( $issue['type'] === 'ERROR' ) {
-					$all_errors[] = $issue;
-				} else {
-					$all_warnings[] = $issue;
-				}
+			if ( ! file_exists( dirname( $json_file ) ) ) {
+				wp_mkdir_p( dirname( $json_file ) );
 			}
-		}
 
-		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Readiness_Score' ) ) {
-			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Readiness_Score.php';
-		}
-		$data['readiness'] = \WordPress\Plugin_Check\Utilities\Readiness_Score::calculate( $all_errors, $all_warnings );
+			file_put_contents( $json_file, wp_json_encode( $config, JSON_PRETTY_PRINT ) );
 
-		// Save updated JSON
-		file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
+			wp_send_json_success( array(
+				'message' => __( 'Configuration updated successfully.', 'wp-verifier' ),
+			) );
+
+		} catch ( Exception $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
 	}
 }
 

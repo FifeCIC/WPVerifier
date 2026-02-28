@@ -77,9 +77,6 @@ if (is_dir($results_dir)) {
 						<h4><?php esc_attr_e( 'Other Options', 'wp-verifier' ); ?></h4>
 					<?php } ?>
 					<p>
-						<label><input type="checkbox" value="wporg-prep" id="plugin-check__wporg-prep" checked /> <?php esc_html_e( 'WordPress.org Preparation', 'wp-verifier' ); ?></label>
-					</p>
-					<p>
 						<label><input type="checkbox" value="limit-results" id="plugin-check__limit-results" /> <?php esc_html_e( 'Limit to 10 issues (testing)', 'wp-verifier' ); ?></label>
 					</p>
 				</form>
@@ -122,3 +119,17 @@ if (is_dir($results_dir)) {
 
 <div id="plugin-check__export-controls" class="plugin-check__export-controls"></div>
 <div id="plugin-check__results"></div>
+
+<!-- AST Results Container -->
+<div class="wpv-ast-container" style="margin-top: 20px; display: none;" id="wpv-ast-container">
+	<div class="wpv-ast-layout">
+		<div class="wpv-ast-table-container">
+			<div class="wpv-ast-table" id="wpv-ast-results"></div>
+			<div id="wpv-ast-details" style="margin-top: 20px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; display: none;"></div>
+		</div>
+	</div>
+	<div id="wpv-ast-ignored-folders" style="margin-top: 15px; display: none;">
+		<h4>Ignored Folders</h4>
+		<ul id="wpv-ignored-folders-list" style="list-style: none; margin: 0; padding: 0;"></ul>
+	</div>
+</div>

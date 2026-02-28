@@ -1,0 +1,177 @@
+{
+  "WordPress.Security.NonceVerification.Missing": {
+    "icon": "shield-alt",
+    "color": "#dc3232",
+    "category": "Security",
+    "severity": "high",
+    "description": "Critical security issue requiring immediate attention"
+  },
+  "WordPress.Security.NonceVerification.Recommended": {
+    "icon": "shield",
+    "color": "#ffb900",
+    "category": "Security",
+    "severity": "medium",
+    "description": "Security recommendation for best practices"
+  },
+  "WordPress.Security.EscapeOutput.OutputNotEscaped": {
+    "icon": "visibility",
+    "color": "#dc3232",
+    "category": "Security",
+    "severity": "high",
+    "description": "Output not properly escaped - XSS vulnerability"
+  },
+  "WordPress.Security.ValidatedSanitizedInput.InputNotSanitized": {
+    "icon": "filter",
+    "color": "#dc3232",
+    "category": "Security",
+    "severity": "high",
+    "description": "User input not sanitized - injection vulnerability"
+  },
+  "WordPress.Security.ValidatedSanitizedInput.MissingUnslash": {
+    "icon": "editor-removeformatting",
+    "color": "#ffb900",
+    "category": "Security",
+    "severity": "medium",
+    "description": "Missing wp_unslash() for user input"
+  },
+  "WordPress.DB.DirectDatabaseQuery.DirectQuery": {
+    "icon": "database",
+    "color": "#ffb900",
+    "category": "Database",
+    "severity": "medium",
+    "description": "Direct database query - use WP functions instead"
+  },
+  "WordPress.DB.DirectDatabaseQuery.NoCaching": {
+    "icon": "performance",
+    "color": "#ffb900",
+    "category": "Performance",
+    "severity": "medium",
+    "description": "Database query without caching consideration"
+  },
+  "WordPress.DB.PreparedSQL.NotPrepared": {
+    "icon": "database-add",
+    "color": "#dc3232",
+    "category": "Security",
+    "severity": "high",
+    "description": "SQL query not properly prepared - SQL injection risk"
+  },
+  "WordPress.WP.GlobalVariablesOverride.Prohibited": {
+    "icon": "warning",
+    "color": "#dc3232",
+    "category": "Compatibility",
+    "severity": "high",
+    "description": "Overriding WordPress global variables"
+  },
+  "WordPress.WP.DiscouragedConstants.Deprecated": {
+    "icon": "clock",
+    "color": "#ffb900",
+    "category": "Deprecated",
+    "severity": "medium",
+    "description": "Using deprecated WordPress constants"
+  },
+  "WordPress.WP.DiscouragedFunctions.Deprecated": {
+    "icon": "clock",
+    "color": "#ffb900",
+    "category": "Deprecated",
+    "severity": "medium",
+    "description": "Using deprecated WordPress functions"
+  },
+  "WordPress.PHP.DiscouragedPHPFunctions.Discouraged": {
+    "icon": "no",
+    "color": "#ffb900",
+    "category": "Best Practice",
+    "severity": "medium",
+    "description": "Using discouraged PHP functions"
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log": {
+    "icon": "bug",
+    "color": "#ffb900",
+    "category": "Development",
+    "severity": "medium",
+    "description": "Development function left in production code"
+  },
+  "WordPress.CodeAnalysis.AssignmentInCondition.Found": {
+    "icon": "editor-code",
+    "color": "#72aee6",
+    "category": "Code Quality",
+    "severity": "low",
+    "description": "Assignment found in conditional statement"
+  },
+  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound": {
+    "icon": "tag",
+    "color": "#ffb900",
+    "category": "Naming",
+    "severity": "medium",
+    "description": "Global constant without proper prefix"
+  },
+  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound": {
+    "icon": "tag",
+    "color": "#ffb900",
+    "category": "Naming",
+    "severity": "medium",
+    "description": "Global function without proper prefix"
+  },
+  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound": {
+    "icon": "tag",
+    "color": "#ffb900",
+    "category": "Naming",
+    "severity": "medium",
+    "description": "Global variable without proper prefix"
+  },
+  "WordPress.Files.FileName.InvalidClassFileName": {
+    "icon": "media-document",
+    "color": "#72aee6",
+    "category": "File Structure",
+    "severity": "low",
+    "description": "Class file name doesn't follow WordPress conventions"
+  },
+  "WordPress.WP.EnqueuedResources.NonEnqueuedScript": {
+    "icon": "media-code",
+    "color": "#ffb900",
+    "category": "Resources",
+    "severity": "medium",
+    "description": "Script not properly enqueued through WordPress"
+  },
+  "WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet": {
+    "icon": "admin-appearance",
+    "color": "#ffb900",
+    "category": "Resources",
+    "severity": "medium",
+    "description": "Stylesheet not properly enqueued through WordPress"
+  },
+  "WordPress.WP.I18n.MissingTranslatorsComment": {
+    "icon": "translation",
+    "color": "#72aee6",
+    "category": "Internationalization",
+    "severity": "low",
+    "description": "Missing translator comment for context"
+  },
+  "WordPress.WP.I18n.NonSingularStringLiteralText": {
+    "icon": "translation",
+    "color": "#72aee6",
+    "category": "Internationalization",
+    "severity": "low",
+    "description": "Translation string should be literal text"
+  },
+  "WordPress.WP.AlternativeFunctions.file_get_contents": {
+    "icon": "download",
+    "color": "#ffb900",
+    "category": "Best Practice",
+    "severity": "medium",
+    "description": "Use wp_remote_get() instead of file_get_contents()"
+  },
+  "WordPress.WP.AlternativeFunctions.curl": {
+    "icon": "download",
+    "color": "#ffb900",
+    "category": "Best Practice",
+    "severity": "medium",
+    "description": "Use wp_remote_* functions instead of cURL"
+  },
+  "WordPress.WP.CapitalPDangit.Misspelled": {
+    "icon": "wordpress-alt",
+    "color": "#72aee6",
+    "category": "Branding",
+    "severity": "low",
+    "description": "WordPress should be capitalized correctly"
+  }
+}

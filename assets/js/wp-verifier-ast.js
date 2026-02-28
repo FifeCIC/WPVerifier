@@ -10,33 +10,52 @@
 		knownLibraries: [],
 		rediscovered: [],
 		ignoredFolders: [],
+		debugMode: window.wpvDebugMode || false, // Set to true for verbose logging or add ?wpv_debug=1 to URL
+		
+		log: function(message, ...args) {
+			if (this.debugMode || new URLSearchParams(window.location.search).get('wpv_debug') === '1') {
+				console.log(message, ...args);
+			}
+		},
+		
+		error: function(message, ...args) {
+			console.error(message, ...args);
+		},
 		
 		init: function(results, rediscovered) {
-			console.log('=== WPVerifierAST.init called ===');
-			console.log('Results received:', results);
-			console.log('Rediscovered:', rediscovered);
-			console.log('Container #wpv-ast-results exists:', $('#wpv-ast-results').length);
+			this.log('=== WPVerifierAST.init called ===');
+			this.log('Results received:', results);
+			this.log('Rediscovered:', rediscovered);
+			this.log('Container #wpv-ast-results exists:', $('#wpv-ast-results').length);
+			this.log('Error metadata loaded:', typeof window.wpvErrorMetadata, window.wpvErrorMetadata);
+			
+			// Wait for container if not found
+			if ($('#wpv-ast-results').length === 0) {
+				this.error('Container #wpv-ast-results not found, waiting...');
+				setTimeout(() => this.init(results, rediscovered), 100);
+				return;
+			}
 			
 			this.results = results;
 			this.rediscovered = rediscovered || [];
 			this.currentPlugin = document.getElementById('plugin-check__plugins-dropdown') ? document.getElementById('plugin-check__plugins-dropdown').value : '';
 			
-			console.log('Current plugin:', this.currentPlugin);
+			this.log('Current plugin:', this.currentPlugin);
 			
 			this.loadKnownLibraries();
 			this.loadIgnoreRules();
 			this.loadIgnoredPaths();
 			this.filterIgnoredIssues();
 			
-			console.log('About to call render()...');
+			this.log('About to call render()...');
 			this.render();
-			console.log('render() completed');
+			this.log('render() completed');
 			
 			this.renderIgnoredFolders();
 			this.validateStructure();
 			this.bindEvents();
 			
-			console.log('=== WPVerifierAST.init completed ===');
+			this.log('=== WPVerifierAST.init completed ===');
 		},
 
 		loadKnownLibraries: function() {
@@ -131,27 +150,35 @@
 		},
 
 		render: function() {
-			console.log('=== render() called ===');
+			this.log('=== render() called ===');
 			const container = $('#wpv-ast-results');
-			console.log('Container found:', container.length);
-			console.log('Container HTML before clear:', container.html());
+			const astContainer = $('#wpv-ast-container');
+			this.log('Container found:', container.length);
 			
-			container.empty();
+			// Show AST container and render results
+			if (container.length > 0) {
+				astContainer.show();
+				this.log('Container HTML before clear:', container.html());
+				container.empty();
+			} else {
+				this.log('Container not available for rendering');
+				return;
+			}
 
 			const files = this.groupByFile(this.results);
-			console.log('Files grouped:', Object.keys(files).length, 'files');
-			console.log('Files:', Object.keys(files));
+			this.log('Files grouped:', Object.keys(files).length, 'files');
+			this.log('Files:', Object.keys(files));
 			
 			if (Object.keys(files).length === 0) {
-				console.warn('No files to render!');
+				this.error('No files to render!');
 				container.html('<p style="padding: 20px; color: #666;">No issues found in verification results.</p>');
 				return;
 			}
 			
 			Object.keys(files).forEach(file => {
-				console.log('Rendering file:', file);
+				this.log('Rendering file:', file);
 				const issues = files[file];
-				console.log('  Issues count:', issues.length);
+				this.log('  Issues count:', issues.length);
 				const errorCount = issues.filter(i => i.type === 'ERROR').length;
 				const warningCount = issues.filter(i => i.type === 'WARNING').length;
 				const isLibrary = this.isLibraryFile(file);
@@ -178,6 +205,7 @@
 					const messageText = $('<div>').html(issue.message).text();
 					issueList.append(`
 						<li class="wpv-ast-issue-item" data-issue-id="${idx}">
+							${issue.icon}
 							<span class="wpv-ast-badge ${issue.type.toLowerCase()}">${issue.type}</span>
 							Line ${issue.line}: ${this.escapeHtml(messageText)}
 							${issue.docs ? `<a href="${issue.docs}" target="_blank" class="wpv-issue-docs">↗</a>` : ''}
@@ -188,8 +216,9 @@
 				container.append(row);
 			});
 			
-			console.log('Container HTML after render:', container.html().substring(0, 200));
-			console.log('=== render() completed ===');
+			const html = container.html();
+			this.log('Container HTML after render:', html ? html.substring(0, 200) : 'empty');
+			this.log('=== render() completed ===');
 		},
 
 		bindEvents: function() {
@@ -218,7 +247,7 @@
 		},
 
 		showDetails: function(file, issue) {
-			console.log('Issue data:', issue);
+			this.log('Issue data:', issue);
 			const details = $('#wpv-ast-details');
 			const aiPrompt = `I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${issue.line}, Column: ${issue.column}\nType: ${issue.type}\nCode: ${issue.code}\nMessage: ${$('<div>').html(issue.message).text()}\n\nFix this now, please.`;
 			const isIgnored = this.isIgnored(file, issue.code);
@@ -329,28 +358,40 @@
 		groupByFile: function(results) {
 			const files = {};
 			
-			if (results.errors) {
+			// Check which types are selected
+			const includeErrors = document.querySelector('input[name="types"][value="error"]')?.checked !== false;
+			const includeWarnings = document.querySelector('input[name="types"][value="warning"]')?.checked !== false;
+			
+			if (includeErrors && results.errors) {
 				Object.entries(results.errors).forEach(([file, lines]) => {
 					if (!files[file]) files[file] = [];
 					Object.entries(lines).forEach(([lineNum, columns]) => {
 						Object.entries(columns).forEach(([colNum, issues]) => {
 							issues.forEach(issue => {
 								const issueId = 'E-' + this.generateIssueHash(file, lineNum);
-								files[file].push({type: 'ERROR', line: parseInt(lineNum), column: parseInt(colNum), issue_id: issueId, ...issue});
+								const metadata = window.wpvErrorMetadata && window.wpvErrorMetadata[issue.code];
+								const icon = metadata ? 
+									`<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>` :
+									`<span class="dashicons dashicons-warning" style="color: #666; margin-right: 5px;"></span>`;
+								files[file].push({type: 'ERROR', line: parseInt(lineNum), column: parseInt(colNum), issue_id: issueId, icon: icon, ...issue});
 							});
 						});
 					});
 				});
 			}
 			
-			if (results.warnings) {
+			if (includeWarnings && results.warnings) {
 				Object.entries(results.warnings).forEach(([file, lines]) => {
 					if (!files[file]) files[file] = [];
 					Object.entries(lines).forEach(([lineNum, columns]) => {
 						Object.entries(columns).forEach(([colNum, issues]) => {
 							issues.forEach(issue => {
 								const issueId = 'W-' + this.generateIssueHash(file, lineNum);
-								files[file].push({type: 'WARNING', line: parseInt(lineNum), column: parseInt(colNum), issue_id: issueId, ...issue});
+								const metadata = window.wpvErrorMetadata && window.wpvErrorMetadata[issue.code];
+								const icon = metadata ? 
+									`<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>` :
+									`<span class="dashicons dashicons-warning" style="color: #666; margin-right: 5px;"></span>`;
+								files[file].push({type: 'WARNING', line: parseInt(lineNum), column: parseInt(colNum), issue_id: issueId, icon: icon, ...issue});
 							});
 						});
 					});
@@ -378,12 +419,47 @@
 			return div.innerHTML;
 		},
 
+		getErrorIcon: function(code) {
+			const metadata = window.wpvErrorMetadata && window.wpvErrorMetadata[code];
+			if (metadata) {
+				return `<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>`;
+			}
+			return `<span class="dashicons dashicons-warning" style="color: #666; margin-right: 5px;"></span>`;
+		},
+
+		addIcons: function() {
+			if (!window.wpvErrorMetadata) {
+				this.log('No error metadata available');
+				return;
+			}
+			
+			$('.wpv-ast-issue-item').each(function() {
+				const $item = $(this);
+				if ($item.find('.dashicons').length > 0) return; // Already has icon
+				
+				const text = $item.text();
+				const codeMatch = text.match(/WordPress\.[\w\.]+/);
+				if (codeMatch) {
+					const code = codeMatch[0];
+					const metadata = window.wpvErrorMetadata[code];
+					if (metadata) {
+						const icon = `<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>`;
+						$item.prepend(icon);
+					}
+				}
+			});
+		},
+
 		validateStructure: function() {
-			console.log('=== validateStructure called ===');
-			console.log('this.currentPlugin:', this.currentPlugin);
-			console.log('window.PLUGIN_CHECK:', window.PLUGIN_CHECK);
-			if (!this.currentPlugin || !window.PLUGIN_CHECK) {
-				console.log('ABORT: Missing plugin or PLUGIN_CHECK');
+			this.log('=== validateStructure called ===');
+			this.log('this.currentPlugin:', this.currentPlugin);
+			this.log('window.PLUGIN_CHECK:', window.PLUGIN_CHECK);
+			if (!this.currentPlugin) {
+				this.log('ABORT: Missing plugin');
+				return;
+			}
+			if (!window.PLUGIN_CHECK || !window.PLUGIN_CHECK.nonce) {
+				this.log('ABORT: Missing PLUGIN_CHECK or nonce');
 				return;
 			}
 			
@@ -391,7 +467,7 @@
 			payload.append('nonce', window.PLUGIN_CHECK.nonce);
 			payload.append('action', 'plugin_check_validate_structure');
 			payload.append('plugin', this.currentPlugin);
-			console.log('Sending structure validation for:', this.currentPlugin);
+			this.log('Sending structure validation for:', this.currentPlugin);
 			
 			fetch(ajaxurl, {
 				method: 'POST',
@@ -400,20 +476,20 @@
 			})
 			.then(response => response.json())
 			.then(data => {
-				console.log('Structure validation response:', data);
+				this.log('Structure validation response:', data);
 				if (data.success && data.data.validation) {
 					this.renderStructureValidation(data.data.validation);
 				}
 			})
-			.catch(error => console.error('Structure validation error:', error));
+			.catch(error => this.error('Structure validation error:', error));
 		},
 
 		renderStructureValidation: function(validation) {
-			console.log('renderStructureValidation called with:', validation);
+			this.log('renderStructureValidation called with:', validation);
 			const container = $('#plugin-check__results');
-			console.log('Container found:', container.length);
+			this.log('Container found:', container.length);
 			const readinessDiv = container.find('div[style*="margin: 20px 0"]').first();
-			console.log('Readiness div found:', readinessDiv.length);
+			this.log('Readiness div found:', readinessDiv.length);
 			
 			if (!readinessDiv.length) return;
 			

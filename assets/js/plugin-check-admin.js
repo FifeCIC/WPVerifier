@@ -115,6 +115,27 @@
 
 		const includeExp = includeExperimental && includeExperimental.checked;
 
+		// Load configuration
+		const pluginFolder = pluginsList.value.indexOf('/') !== -1 ? pluginsList.value.split('/')[0] : pluginsList.value;
+		const currentUrl = window.location.href;
+		const wpContentBase = currentUrl.substring(0, currentUrl.indexOf('/wp-admin/')) + '/wp-content/';
+		const jsonUrl = wpContentBase + 'verifier-results/' + pluginFolder + '/results.json';
+
+		fetch(jsonUrl)
+			.then(r => r.json())
+			.then(data => {
+				showPreCheckModal(selectedPlugin, selectedCategories, selectedTypes, includeExp, data.configuration);
+			})
+			.catch(() => {
+				showPreCheckModal(selectedPlugin, selectedCategories, selectedTypes, includeExp, null);
+			});
+	}
+
+	function showPreCheckModal(selectedPlugin, selectedCategories, selectedTypes, includeExp, config) {
+		const wporgPrep = config && config.wporg_preparation !== undefined ? config.wporg_preparation : true;
+		const distType = wporgPrep ? 'WordPress.org' : 'GitHub/Other';
+		const skippedCount = config && config.skipped_rules ? config.skipped_rules.length : 0;
+
 		const modal = document.createElement( 'div' );
 		modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100000; display: flex; align-items: center; justify-content: center;';
 		modal.innerHTML = `
@@ -122,6 +143,9 @@
 				<h2 style="margin: 0 0 20px 0;">Pre-Check Summary</h2>
 				<div style="margin-bottom: 20px;">
 					<strong>Plugin:</strong> ${selectedPlugin}
+				</div>
+				<div style="margin-bottom: 20px;">
+					<strong>Distribution:</strong> ${distType}${skippedCount > 0 ? ' <span style="color: #666;">(skipping ' + skippedCount + ' WordPress.org rules)</span>' : ''}
 				</div>
 				<div style="margin-bottom: 20px;">
 					<strong>Categories (${selectedCategories.length}):</strong><br>
@@ -647,18 +671,11 @@
 		}
 		payload.append( 'categories', JSON.stringify( checkedCategories ) );
 		
-		// Add WordPress.org Preparation setting
-		const wporgPrep = document.getElementById('plugin-check__wporg-prep');
-		if (wporgPrep) {
-			payload.append('wporg_preparation', wporgPrep.checked ? '1' : '0');
-		}
-		
 		// Add metadata to results
 		const resultsWithMeta = {
 			...aggregatedResults,
 			meta: {
 				checked_categories: checkedCategories,
-				wporg_preparation: wporgPrep ? wporgPrep.checked : true,
 				timestamp: new Date().toISOString()
 			}
 		};
@@ -1312,7 +1329,7 @@
 	 * @param {string} check  The check to run.
 	 * @return {Object} The check results.
 	 */
-	function runCheck( plugin, check ) {
+	async function runCheck( plugin, check ) {
 		const pluginCheckData = new FormData();
 		pluginCheckData.append( 'nonce', pluginCheck.nonce );
 		pluginCheckData.append( 'plugin', plugin );
@@ -1330,11 +1347,26 @@
 			pluginCheckData.append('limit_results', '10');
 		}
 
-		// WordPress.org Preparation mode
-		const wporgPrep = document.getElementById('plugin-check__wporg-prep');
-		if (wporgPrep) {
-			pluginCheckData.append('wporg_preparation', wporgPrep.checked ? '1' : '0');
+		// WordPress.org Preparation mode - read from saved config
+		const pluginFolder = plugin.indexOf('/') !== -1 ? plugin.split('/')[0] : plugin;
+		const currentUrl = window.location.href;
+		const wpContentBase = currentUrl.substring(0, currentUrl.indexOf('/wp-admin/')) + '/wp-content/';
+		const jsonUrl = wpContentBase + 'verifier-results/' + pluginFolder + '/results.json';
+		
+		// Try to read config, default to enabled if not found
+		let wporgPrep = true;
+		try {
+			const configResponse = await fetch(jsonUrl);
+			if (configResponse.ok) {
+				const data = await configResponse.json();
+				if (data.configuration && data.configuration.wporg_preparation !== undefined) {
+					wporgPrep = data.configuration.wporg_preparation;
+				}
+			}
+		} catch (e) {
+			// Use default
 		}
+		pluginCheckData.append('wporg_preparation', wporgPrep ? '1' : '0');
 
 		for ( let i = 0; i < typesList.length; i++ ) {
 			if ( typesList[ i ].checked ) {
@@ -1396,8 +1428,8 @@
 	 * @param {Array} rediscovered Rediscovered issues array.
 	 */
 	function renderResults( results, rediscovered ) {
-		// Skip rendering individual check results - only show summary
-		return;
+		// Don't initialize AST during individual check processing
+		// AST will be initialized when verification is complete
 	}
 
 	/**

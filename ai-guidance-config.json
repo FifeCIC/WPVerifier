@@ -1,0 +1,10 @@
+{
+  "WordPress.Security.NonceVerification.Missing": {
+    "message": "Processing form data without nonce verification.",
+    "ai_guidance": "Before adding nonce verification, check if the calling function already performs nonce verification. Avoid duplicate nonce checks in nested functions. Use @security phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function to exempt when already handled."
+  },
+  "WordPress.Security.NonceVerification.Recommended": {
+    "message": "Processing form data without nonce verification.",
+    "ai_guidance": "Consider if nonce verification is needed for this GET/REQUEST usage. Check calling context before adding verification. Use @phpcs phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe GET parameter usage to exempt when appropriate."
+  }
+}

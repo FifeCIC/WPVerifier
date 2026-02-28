@@ -19,8 +19,8 @@ $rules = Ignore_Rules::get_rules();
 ?>
 
 <div class="wrap">
-	<h2><?php esc_html_e( 'Preparation - Vendor Detection', 'wp-verifier' ); ?></h2>
-	<p><?php esc_html_e( 'Detect and exclude vendor/library folders before running verification.', 'wp-verifier' ); ?></p>
+	<h2><?php esc_html_e( 'Preparation - Configuration & Vendor Detection', 'wp-verifier' ); ?></h2>
+	<p><?php esc_html_e( 'Configure plugin-specific settings and detect vendor/library folders before running verification.', 'wp-verifier' ); ?></p>
 
 	<?php if ( ! empty( $available_plugins ) ) : ?>
 		<div style="max-width: 800px;">
@@ -40,15 +40,9 @@ $rules = Ignore_Rules::get_rules();
 				</tr>
 			</table>
 
-			<div id="vendor-detection-results" style="display: none; margin-top: 20px;">
-				<h3><?php esc_html_e( 'Detected Vendor Folders', 'wp-verifier' ); ?></h3>
-				<div id="vendor-list"></div>
-				<p>
-					<button type="button" id="confirm-ignore-vendors" class="button button-primary">
-						<?php esc_html_e( 'Confirm Ignore', 'wp-verifier' ); ?>
-					</button>
-					<span id="prep-spinner" class="spinner" style="float: none;"></span>
-				</p>
+			<div id="plugin-configuration" style="display: none; margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+				<h3><?php esc_html_e( 'Plugin Configuration', 'wp-verifier' ); ?></h3>
+				<div id="config-content"></div>
 			</div>
 		</div>
 	<?php else : ?>

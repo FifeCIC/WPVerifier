@@ -24,6 +24,7 @@ class Admin_Page_Tabs {
 			'monitoring'  => __( 'Plugin Monitoring', 'wp-verifier' ),
 			'explore'     => __( 'Explore Plugin', 'wp-verifier' ),
 			'namer'       => __( 'Plugin Namer', 'wp-verifier' ),
+			'ai-guidance' => __( 'AI Guidance', 'wp-verifier' ),
 			'settings'    => __( 'Settings', 'wp-verifier' ),
 			'assets'      => __( 'Assets', 'wp-verifier' ),
 		);

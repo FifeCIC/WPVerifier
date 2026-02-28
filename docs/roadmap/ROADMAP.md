@@ -1,6 +1,47 @@
 # WP Verifier Development Roadmap
 This roadmap consolidates all planned features and tracks implementation progress. Most features will be supported by existing folders, systems and standard approaches so check for existing implementation before creating new files, functions or classes.
 
+## Visual Error Icons System 🎨
+
+**Goal**: Display colored icons in Results tab to visually categorize different types of PHPCS errors and warnings.
+
+**Status**: Partially implemented - AI Guidance tab shows icons correctly, but Results tab icons not displaying.
+
+### Completed Components
+- [x] **Error Metadata Configuration**: `error-metadata-config.json` with 25+ error codes
+  - [x] Icon mappings (shield, database, clock, etc.)
+  - [x] Color coding by severity (red=high, yellow=medium, blue=low)
+  - [x] Category classification (Security, Database, Performance, etc.)
+  - [x] Descriptive tooltips for each error type
+- [x] **PHP Helper Classes**:
+  - [x] `Error_Metadata.php` - Loads and manages metadata
+  - [x] `AI_Guidance.php` - Enhanced with metadata integration
+- [x] **Admin Interface**: AI Guidance tab displays icons correctly
+- [x] **JavaScript Integration**: Metadata passed to frontend via inline scripts
+
+### Issues to Resolve
+- [ ] **Results Tab Icon Display**: Icons not appearing in accordion-style results
+  - [ ] Debug AST system initialization
+  - [ ] Verify metadata loading in Results context
+  - [ ] Check icon HTML generation in `groupByFile()` function
+  - [ ] Ensure `renderResults()` properly calls AST system
+- [ ] **Template Integration**: Verify icon placeholder in `results-row.php`
+- [ ] **JavaScript Timing**: Resolve potential race conditions in icon injection
+
+### Implementation Notes
+- **Current Architecture**: Icons generated during data processing in `groupByFile()`
+- **Fallback System**: Default warning icon for unconfigured error codes
+- **Performance**: Icons pre-merged into issue data (no post-processing)
+- **Extensibility**: Easy to add new error codes and metadata
+
+### Next Steps
+1. Debug why AST system isn't displaying merged icon data
+2. Add console logging to trace icon generation process
+3. Verify JavaScript execution order and dependencies
+4. Consider alternative icon injection methods if current approach fails
+
+---
+
 ## External Ignore System 🚫
 
 **Goal**: Implement hash-based external ignore file system to keep code files clean while maintaining intelligent ignore rules that invalidate when code changes.

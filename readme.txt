@@ -1,11 +1,13 @@
 === WP Verifier ===
-
+Contributors: Ryan Bayne
+Donate link: https://ryanbayne.uk
 Contributors:      wordpressdotorg
 Tested up to:      6.9
 Stable tag:        1.9.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 Tags:              plugin best practices, testing, accessibility, performance, security
+Requires PHP: 7.4
 
 WP Verifier is a tool which provides checks to help plugins meet the directory requirements and follow various best practices. Based on WordPress.org Plugin Check.
 

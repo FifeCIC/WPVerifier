@@ -282,6 +282,16 @@ final class Admin_Page {
 				WP_PLUGIN_CHECK_VERSION,
 				true
 			);
+			
+			wp_add_inline_script(
+				'plugin-check-preparation',
+				'const PLUGIN_CHECK = ' . json_encode(
+					array(
+						'nonce' => $this->admin_ajax->get_nonce(),
+					)
+				),
+				'before'
+			);
 		}
 
 		wp_enqueue_script(
@@ -297,6 +307,15 @@ final class Admin_Page {
 		wp_enqueue_script(
 			'wp-verifier-ast',
 			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/wp-verifier-ast.js',
+			array('jquery'),
+			WP_PLUGIN_CHECK_VERSION,
+			true
+		);
+
+		// Enqueue AI Guidance script
+		wp_enqueue_script(
+			'wp-verifier-ai-guidance',
+			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/ai-guidance.js',
 			array('jquery'),
 			WP_PLUGIN_CHECK_VERSION,
 			true
@@ -470,7 +489,7 @@ final class Admin_Page {
 						'noResults'        => __( 'There are no results to export yet.', 'wp-verifier' ),
 					),
 				)
-			),
+			) . '; function getErrorIcon(code) { const meta = wpvErrorMetadata[code]; return meta ? `<span class="dashicons dashicons-${meta.icon}" style="color: ${meta.color};" title="${meta.description}"></span>` : `<span class="dashicons dashicons-warning" style="color: #666;"></span>`; }',
 			'before'
 		);
 
@@ -485,6 +504,28 @@ final class Admin_Page {
 		wp_add_inline_script(
 			'wp-verifier-ast',
 			'const wpvIgnoreRules = ' . json_encode( $ignore_rules ) . ';',
+			'before'
+		);
+		
+		// Add AI Guidance configuration
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
+		}
+		$ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
+		wp_add_inline_script(
+			'wp-verifier-ai-guidance',
+			'const wpvAiGuidance = ' . json_encode( $ai_guidance ) . ';',
+			'before'
+		);
+		
+		// Add Error Metadata configuration
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Error_Metadata' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Error_Metadata.php';
+		}
+		$error_metadata = \WordPress\Plugin_Check\Utilities\Error_Metadata::get_all_metadata();
+		wp_add_inline_script(
+			'plugin-check-admin',
+			'const wpvErrorMetadata = ' . json_encode( $error_metadata ) . ';',
 			'before'
 		);
 	}
@@ -665,6 +706,9 @@ final class Admin_Page {
 					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Assets_Tab.php';
 				}
 				Assets_Tab::render();
+				break;
+			case 'ai-guidance':
+				$this->render_ai_guidance_tab();
 				break;
 			default:
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page.php';
@@ -1012,5 +1056,76 @@ final class Admin_Page {
 
 		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=results&plugin=' . urlencode( $plugin ) . '&fixed=1' ) );
 		exit;
+	}
+
+	/**
+	 * Render AI Guidance tab
+	 */
+	public function render_ai_guidance_tab() {
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
+		}
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Error_Metadata' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Error_Metadata.php';
+		}
+		
+		$guidance_data = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
+		$metadata = \WordPress\Plugin_Check\Utilities\Error_Metadata::get_all_metadata();
+		?>
+		<div class="wrap">
+			<h2><?php esc_html_e( 'AI Guidance & Error Metadata', 'wp-verifier' ); ?></h2>
+			<p><?php esc_html_e( 'This table shows the AI guidance and visual metadata paired with PHPCS messages. When you "Copy for AI", the guidance will be appended to help AI make better decisions.', 'wp-verifier' ); ?></p>
+			
+			<table class="wp-list-table widefat fixed striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Error Code', 'wp-verifier' ); ?></th>
+						<th><?php esc_html_e( 'Icon', 'wp-verifier' ); ?></th>
+						<th><?php esc_html_e( 'Category', 'wp-verifier' ); ?></th>
+						<th><?php esc_html_e( 'Original Message', 'wp-verifier' ); ?></th>
+						<th><?php esc_html_e( 'AI Guidance', 'wp-verifier' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php 
+					$all_codes = array_unique( array_merge( array_keys( $guidance_data ), array_keys( $metadata ) ) );
+					if ( empty( $all_codes ) ) : ?>
+						<tr>
+							<td colspan="5"><?php esc_html_e( 'No AI guidance or metadata configured yet.', 'wp-verifier' ); ?></td>
+						</tr>
+					<?php else : ?>
+						<?php foreach ( $all_codes as $error_code ) : 
+							$guidance = $guidance_data[ $error_code ] ?? array();
+							$meta = $metadata[ $error_code ] ?? array();
+						?>
+							<tr>
+								<td><code><?php echo esc_html( $error_code ); ?></code></td>
+								<td>
+									<?php 
+									if ( ! empty( $meta ) ) {
+										echo \WordPress\Plugin_Check\Utilities\Error_Metadata::get_icon_html( $error_code );
+										echo '<br><small style="color: #666;">' . esc_html( $meta['severity'] ?? '' ) . '</small>';
+									} else {
+										echo '<span class="dashicons dashicons-warning" style="color: #666;"></span>';
+									}
+									?>
+								</td>
+								<td><?php echo esc_html( $meta['category'] ?? 'General' ); ?></td>
+								<td><?php echo esc_html( $guidance['message'] ?? $meta['description'] ?? '' ); ?></td>
+								<td><?php echo esc_html( $guidance['ai_guidance'] ?? '' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</tbody>
+			</table>
+			
+			<h3><?php esc_html_e( 'How to Use', 'wp-verifier' ); ?></h3>
+			<ol>
+				<li><?php esc_html_e( 'Run a plugin verification to generate PHPCS results', 'wp-verifier' ); ?></li>
+				<li><?php esc_html_e( 'In the results, errors will display with colored icons based on their category and severity', 'wp-verifier' ); ?></li>
+				<li><?php esc_html_e( 'Click "Copy for AI" on any issue to copy the enhanced message with AI guidance', 'wp-verifier' ); ?></li>
+			</ol>
+		</div>
+		<?php
 	}
 }
