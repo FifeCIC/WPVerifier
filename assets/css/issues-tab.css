@@ -1,0 +1,19 @@
+.wpv-testing-tab {
+	margin-top: 20px;
+}
+.wpv-test-section {
+	margin-bottom: 30px;
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+.wpv-test-section h3 {
+	margin-top: 0;
+}
+.wpv-issue-row:hover {
+	background: #f0f0f1 !important;
+}
+.wpv-issue-row.active {
+	background: #e5f5fa !important;
+}

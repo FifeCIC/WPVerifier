@@ -1224,9 +1224,17 @@ final class Admin_AJAX {
 				throw new InvalidArgumentException( __( 'No saved results found.', 'wp-verifier' ) );
 			}
 			
+			// Load and merge AI guidance
+			$data = json_decode( file_get_contents( $json_file ), true );
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Saved_Results_Handler.php';
+			}
+			$data = Saved_Results_Handler::merge_ai_guidance( $data );
+			
 			wp_send_json_success( array(
 				'path' => $json_file,
-				'modified' => filemtime( $json_file )
+				'modified' => filemtime( $json_file ),
+				'data' => $data
 			) );
 			
 		} catch ( InvalidArgumentException $exception ) {

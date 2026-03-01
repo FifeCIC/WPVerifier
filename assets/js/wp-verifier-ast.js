@@ -10,6 +10,7 @@
 		knownLibraries: [],
 		rediscovered: [],
 		ignoredFolders: [],
+		aiGuidanceConfig: {},
 		debugMode: window.wpvDebugMode || false, // Set to true for verbose logging or add ?wpv_debug=1 to URL
 		
 		log: function(message, ...args) {
@@ -45,6 +46,7 @@
 			this.loadKnownLibraries();
 			this.loadIgnoreRules();
 			this.loadIgnoredPaths();
+			this.loadAIGuidanceConfig();
 			this.filterIgnoredIssues();
 			
 			this.log('About to call render()...');
@@ -85,6 +87,24 @@
 					}
 				});
 			}
+		},
+
+		loadAIGuidanceConfig: function() {
+			const pluginUrl = window.wpvPluginUrl || '';
+			if (!pluginUrl) {
+				this.log('Plugin URL not available for AI guidance config');
+				return;
+			}
+			
+			fetch(pluginUrl + '/ai-guidance-config.json')
+				.then(response => response.json())
+				.then(data => {
+					this.aiGuidanceConfig = data;
+					this.log('AI Guidance config loaded:', data);
+				})
+				.catch(error => {
+					this.log('Failed to load AI guidance config:', error);
+				});
 		},
 
 		extractIgnoredFolders: function(ignoreRules) {
@@ -249,6 +269,7 @@
 		showDetails: function(file, issue) {
 			this.log('Issue data:', issue);
 			const details = $('#wpv-ast-details');
+			const aiGuidance = $('#wpv-ast-ai-guidance');
 			const aiPrompt = `I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${issue.line}, Column: ${issue.column}\nType: ${issue.type}\nCode: ${issue.code}\nMessage: ${$('<div>').html(issue.message).text()}\n\nFix this now, please.`;
 			const isIgnored = this.isIgnored(file, issue.code);
 			const isRediscovered = this.isRediscovered(file, issue.line, issue.code);
@@ -285,9 +306,6 @@
 					<p>${this.escapeHtml($('<div>').html(issue.message).text())}</p>
 				</div>
 				<div class="wpv-ast-detail-actions">
-					<button type="button" class="button wpv-copy-ai" data-prompt="${this.escapeHtml(aiPrompt)}">
-						<span class="dashicons dashicons-clipboard"></span> Copy for AI
-					</button>
 					<button type="button" class="button button-primary wpv-mark-complete" data-file="${this.escapeHtml(file)}" data-line="${issue.line}" data-code="${this.escapeHtml(issue.code)}">
 						<span class="dashicons dashicons-yes"></span> Mark Complete
 					</button>
@@ -299,15 +317,10 @@
 				</div>
 			`);
 			
-			$('.wpv-copy-ai').off('click').on('click', function() {
-				const prompt = $(this).data('prompt');
-				navigator.clipboard.writeText(prompt).then(() => {
-					const $btn = $(this);
-					const originalText = $btn.html();
-					$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
-					setTimeout(() => $btn.html(originalText), 2000);
-				});
-			});
+			// Show AI Guidance
+			this.showAIGuidance(issue, aiPrompt);
+			
+			details.show();
 			
 			$('.wpv-mark-complete').off('click').on('click', function() {
 				const file = $(this).data('file');
@@ -348,6 +361,50 @@
 			.catch(error => {
 				console.error(error);
 				alert('Failed to mark complete.');
+			});
+		},
+
+		showAIGuidance: function(issue, aiPrompt) {
+			const container = $('#wpv-ast-ai-guidance');
+			const content = $('#wpv-ai-guidance-content');
+			
+			const guidance = this.aiGuidanceConfig[issue.code];
+			
+			if (guidance && guidance.ai_guidance) {
+				content.html(`
+					<div style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 4px; border-left: 3px solid #0073aa;">
+						<strong style="color: #0073aa;">Guidance for ${this.escapeHtml(issue.code)}:</strong>
+						<p style="margin: 8px 0 0 0; color: #333;">${this.escapeHtml(guidance.ai_guidance)}</p>
+					</div>
+					<div class="wpv-ast-detail-actions">
+						<button type="button" class="button wpv-copy-ai" data-prompt="${this.escapeHtml(aiPrompt)}">
+							<span class="dashicons dashicons-clipboard"></span> Copy for AI
+						</button>
+					</div>
+				`);
+			} else {
+				content.html(`
+					<div style="margin-bottom: 15px; padding: 12px; background: white; border-radius: 4px; color: #666;">
+						<em>No AI guidance available for this issue type.</em>
+					</div>
+					<div class="wpv-ast-detail-actions">
+						<button type="button" class="button wpv-copy-ai" data-prompt="${this.escapeHtml(aiPrompt)}">
+							<span class="dashicons dashicons-clipboard"></span> Copy for AI
+						</button>
+					</div>
+				`);
+			}
+			
+			container.show();
+			
+			$('.wpv-copy-ai').off('click').on('click', function() {
+				const prompt = $(this).data('prompt');
+				navigator.clipboard.writeText(prompt).then(() => {
+					const $btn = $(this);
+					const originalText = $btn.html();
+					$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
+					setTimeout(() => $btn.html(originalText), 2000);
+				});
 			});
 		},
 

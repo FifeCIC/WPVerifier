@@ -126,6 +126,10 @@ if (is_dir($results_dir)) {
 		<div class="wpv-ast-table-container">
 			<div class="wpv-ast-table" id="wpv-ast-results"></div>
 			<div id="wpv-ast-details" style="margin-top: 20px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; display: none;"></div>
+			<div id="wpv-ast-ai-guidance" style="margin-top: 20px; padding: 20px; background: #f0f6fc; border: 1px solid #0073aa; border-radius: 4px; display: none;">
+				<h3 style="margin: 0 0 15px 0;">AI Guidance</h3>
+				<div id="wpv-ai-guidance-content"></div>
+			</div>
 		</div>
 	</div>
 	<div id="wpv-ast-ignored-folders" style="margin-top: 15px; display: none;">

@@ -55,6 +55,9 @@ class Plugin_Main {
 	 * @global Plugin_Context $context The plugin context instance.
 	 */
 	public function add_hooks() {
+		// Load helper functions.
+		require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/helper-functions.php';
+		
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			global $context;
 

@@ -6,5 +6,9 @@
   "WordPress.Security.NonceVerification.Recommended": {
     "message": "Processing form data without nonce verification.",
     "ai_guidance": "Consider if nonce verification is needed for this GET/REQUEST usage. Check calling context before adding verification. Use @phpcs phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Safe GET parameter usage to exempt when appropriate."
+  },
+  "WordPress.DB.DirectDatabaseQuery.NoCaching": {
+    "message": "Direct database call without caching detected. Consider using wp_cache_get() / wp_cache_set() or wp_cache_delete().",
+    "ai_guidance": "Before adding caching, determine if this function/method is called multiple times in a single page load or if the calling function already implements its own cache management. Only add wp_cache_get/set if the query is actually repeated. Use @phpcs phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Single execution or cached by caller to exempt when appropriate."
   }
 }

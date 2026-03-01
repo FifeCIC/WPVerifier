@@ -398,6 +398,35 @@ final class Admin_Page {
 				WP_PLUGIN_CHECK_VERSION,
 				true
 			);
+			
+			// Add AI Guidance configuration for Results tab
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
+			}
+			$ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
+			wp_add_inline_script(
+				'plugin-check-saved',
+				'const wpvAiGuidance = ' . json_encode( $ai_guidance ) . ';',
+				'before'
+			);
+		}
+
+		// Enqueue issues tab styles if on issues tab
+		if ( 'issues' === $current_tab ) {
+			wp_enqueue_style(
+				'wpv-issues-tab',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/issues-tab.css',
+				array(),
+				WP_PLUGIN_CHECK_VERSION
+			);
+			
+			wp_enqueue_script(
+				'wpv-issues-tab',
+				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/issues-tab.js',
+				array('jquery'),
+				WP_PLUGIN_CHECK_VERSION,
+				true
+			);
 		}
 
 		// Enqueue monitoring scripts if on monitoring tab
@@ -496,7 +525,7 @@ final class Admin_Page {
 		$known_libraries = require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/known-libraries.php';
 		wp_add_inline_script(
 			'wp-verifier-ast',
-			'const WPVerifierLibraries = ' . json_encode( $known_libraries ) . ';',
+			'const WPVerifierLibraries = ' . json_encode( $known_libraries ) . '; const wpvPluginUrl = ' . json_encode( WP_PLUGIN_CHECK_PLUGIN_DIR_URL ) . ';',
 			'before'
 		);
 		
@@ -671,16 +700,19 @@ final class Admin_Page {
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-preparation.php';
 				break;
 			case 'basic':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-basic.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-basic-verification.php';
 				break;
 			case 'verify':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-advanced-verification.php';
 				break;
 			case 'results':
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
 					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Saved_Results_Handler.php';
 				}
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-saved.php';
+				break;
+			case 'issues':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-issues.php';
 				break;
 			case 'monitoring':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-monitoring.php';
@@ -707,11 +739,11 @@ final class Admin_Page {
 				}
 				Assets_Tab::render();
 				break;
-			case 'ai-guidance':
-				$this->render_ai_guidance_tab();
+			case 'error-codes':
+				$this->render_error_codes_tab();
 				break;
 			default:
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-advanced-verification.php';
 				break;
 		}
 
@@ -1059,9 +1091,9 @@ final class Admin_Page {
 	}
 
 	/**
-	 * Render AI Guidance tab
+	 * Render Error Codes tab
 	 */
-	public function render_ai_guidance_tab() {
+	public function render_error_codes_tab() {
 		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
 			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
 		}
@@ -1069,12 +1101,24 @@ final class Admin_Page {
 			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Error_Metadata.php';
 		}
 		
+		// Load all PHPCS error codes
+		$phpcs_codes_file = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'phpcs-error-codes.json';
+		$phpcs_codes = array();
+		if ( file_exists( $phpcs_codes_file ) ) {
+			$phpcs_json = file_get_contents( $phpcs_codes_file );
+			$phpcs_codes = json_decode( $phpcs_json, true );
+		}
+		
 		$guidance_data = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
 		$metadata = \WordPress\Plugin_Check\Utilities\Error_Metadata::get_all_metadata();
+		
+		// Get all unique error codes from all sources
+		$all_codes = array_unique( array_merge( array_keys( $phpcs_codes ), array_keys( $guidance_data ), array_keys( $metadata ) ) );
+		sort( $all_codes );
 		?>
 		<div class="wrap">
-			<h2><?php esc_html_e( 'AI Guidance & Error Metadata', 'wp-verifier' ); ?></h2>
-			<p><?php esc_html_e( 'This table shows the AI guidance and visual metadata paired with PHPCS messages. When you "Copy for AI", the guidance will be appended to help AI make better decisions.', 'wp-verifier' ); ?></p>
+			<h2><?php esc_html_e( 'Error Codes Reference', 'wp-verifier' ); ?></h2>
+			<p><?php esc_html_e( 'This table shows all error codes with their AI guidance and visual metadata. When you "Copy for AI", the guidance will be appended to help AI make better decisions.', 'wp-verifier' ); ?></p>
 			
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
@@ -1088,15 +1132,15 @@ final class Admin_Page {
 				</thead>
 				<tbody>
 					<?php 
-					$all_codes = array_unique( array_merge( array_keys( $guidance_data ), array_keys( $metadata ) ) );
 					if ( empty( $all_codes ) ) : ?>
 						<tr>
-							<td colspan="5"><?php esc_html_e( 'No AI guidance or metadata configured yet.', 'wp-verifier' ); ?></td>
+							<td colspan="5"><?php esc_html_e( 'No error codes configured yet.', 'wp-verifier' ); ?></td>
 						</tr>
 					<?php else : ?>
 						<?php foreach ( $all_codes as $error_code ) : 
 							$guidance = $guidance_data[ $error_code ] ?? array();
 							$meta = $metadata[ $error_code ] ?? array();
+							$phpcs_desc = $phpcs_codes[ $error_code ] ?? '';
 						?>
 							<tr>
 								<td><code><?php echo esc_html( $error_code ); ?></code></td>
@@ -1111,7 +1155,7 @@ final class Admin_Page {
 									?>
 								</td>
 								<td><?php echo esc_html( $meta['category'] ?? 'General' ); ?></td>
-								<td><?php echo esc_html( $guidance['message'] ?? $meta['description'] ?? '' ); ?></td>
+								<td><?php echo esc_html( $guidance['message'] ?? $meta['description'] ?? $phpcs_desc ); ?></td>
 								<td><?php echo esc_html( $guidance['ai_guidance'] ?? '' ); ?></td>
 							</tr>
 						<?php endforeach; ?>

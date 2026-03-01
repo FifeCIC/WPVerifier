@@ -40,6 +40,32 @@ class Saved_Results_Handler {
 	}
 
 	/**
+	 * Merge AI guidance into results data.
+	 *
+	 * @param array $data Results data.
+	 * @return array Results with AI guidance merged.
+	 */
+	public static function merge_ai_guidance( $data ) {
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
+		}
+		$ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
+		
+		if ( ! empty( $data['results'] ) ) {
+			foreach ( $data['results'] as $file => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					$code = $issue['code'] ?? '';
+					if ( $code && isset( $ai_guidance[ $code ] ) ) {
+						$issue['ai_guidance'] = $ai_guidance[ $code ]['ai_guidance'] ?? '';
+					}
+				}
+			}
+		}
+		
+		return $data;
+	}
+
+	/**
 	 * Format result data.
 	 *
 	 * @param string $plugin_dir Plugin directory path.

@@ -2,6 +2,8 @@ jQuery(document).ready(function($) {
 	let currentData = null;
 	let ignoredIssues = [];
 	
+	console.log('wpvAiGuidance loaded:', window.wpvAiGuidance);
+	
 	// Check URL for plugin parameter and auto-load
 	const urlParams = new URLSearchParams(window.location.search);
 	const pluginParam = urlParams.get('plugin');
@@ -251,6 +253,9 @@ jQuery(document).ready(function($) {
 				}
 			});
 			
+			// Build AI prompt
+			const guidance = window.wpvAiGuidance && window.wpvAiGuidance[item.code] ? window.wpvAiGuidance[item.code].ai_guidance : '';
+			console.log('AI Guidance for', item.code, ':', guidance);
 			const aiPrompt = `I have a WordPress plugin verification error:
 
 File: ${file}
@@ -258,9 +263,10 @@ Filename: ${file.split(/[\\\\/]/).pop()}
 Line: ${item.line}, Column: ${item.column}
 Type: ${item.type}
 Code: ${item.code}
-Message: ${$('<div>').text(item.message).text()}
+Message: ${$('<div>').text(item.message).text()}${guidance ? '\n\nAI Guidance: ' + guidance : ''}
 
 Please fix this issue in the file from my workspace. The file is already in the workspace context.`;
+			
 			navigator.clipboard.writeText(aiPrompt).then(() => {
 				const toast = $('<div class="wpv-toast">✓ Copied to clipboard</div>');
 				$('body').append(toast);
@@ -272,38 +278,34 @@ Please fix this issue in the file from my workspace. The file is already in the 
 			});
 			
 			$('#saved-results-details').html(`
-				<div class="wpv-ast-detail-group">
-					<label>Issue ID:</label>
-					<p><code>${item.issue_id || 'N/A'}</code></p>
+				<div style="position: relative;">
+					<span class="wpv-ast-badge ${item.type.toLowerCase()}" style="position: absolute; top: 0; right: 0;">${item.type}</span>
 				</div>
-				<div class="wpv-ast-detail-group">
-					<label>Filename:</label>
-					<span><strong>${file.split(/[\\\\/]/).pop()}</strong></span>
+				<div class="wpv-ast-detail-group" style="display: flex; gap: 10px; align-items: baseline;">
+					<label style="min-width: 80px; font-weight: 600;">Issue ID:</label>
+					<code>${item.issue_id || 'N/A'}</code>
 				</div>
-				<div class="wpv-ast-detail-group">
-					<label>Path:</label>
-					<p><code style="font-size: 11px; word-break: break-all;">${file}</code></p>
+				<div class="wpv-ast-detail-group" style="display: flex; gap: 10px; align-items: baseline;">
+					<label style="min-width: 80px; font-weight: 600;">Filename:</label>
+					<strong>${file.split(/[\\\\/]/).pop()}</strong>
 				</div>
-				<div class="wpv-ast-detail-group">
-					<label>Type:</label>
-					<span class="wpv-ast-badge ${item.type.toLowerCase()}">${item.type}</span>
-				</div>
-				<div class="wpv-ast-detail-group">
-					<label>Line:</label>
+				<div class="wpv-ast-detail-group" style="display: flex; gap: 10px; align-items: baseline;">
+					<label style="min-width: 80px; font-weight: 600;">Line:</label>
 					<span>${item.line}</span>
 				</div>
-				<div class="wpv-ast-detail-group">
-					<label>Code:</label>
-					<p><code>${item.code}</code></p>
+				<div class="wpv-ast-detail-group" style="display: flex; gap: 10px; align-items: baseline;">
+					<label style="min-width: 80px; font-weight: 600;">Code:</label>
+					<code>${item.code}</code>
 				</div>
 				<div class="wpv-ast-detail-group">
-					<label>Message:</label>
-					<p>${$('<div>').text(item.message).html()}</p>
+					<label style="font-weight: 600; display: block; margin-bottom: 5px;">Message:</label>
+					<p style="margin: 0;">${$('<div>').text(item.message).html()}</p>
+				</div>
+				<div class="wpv-ast-detail-group">
+					<label style="font-weight: 600; display: block; margin-bottom: 5px;">Path:</label>
+					<code style="font-size: 11px; word-break: break-all; display: block;">${file}</code>
 				</div>
 				<div class="wpv-ast-detail-actions">
-					<button type="button" class="button wpv-copy-ai" data-prompt="I have a WordPress plugin verification error:\n\nFile: ${file}\nLine: ${item.line}, Column: ${item.column}\nType: ${item.type}\nCode: ${item.code}\nMessage: ${$('<div>').text(item.message).text()}\n\nFix this issue for me.">
-						<span class="dashicons dashicons-clipboard"></span> Copy for AI
-					</button>
 					<a href="vscode://file/${file}:${item.line}:${item.column}" class="button">
 						<span class="dashicons dashicons-editor-code"></span> VSCode
 					</a>
@@ -318,6 +320,21 @@ Please fix this issue in the file from my workspace. The file is already in the 
 					</a>
 					${item.docs ? `<a href="${item.docs}" target="_blank" class="button">Learn More</a>` : ''}
 				</div>
+			`);
+			
+			// Populate AI Guidance panel
+			$('#wpv-ai-guidance-panel').html(`
+				${guidance ? `<div class="wpv-ast-detail-group">
+					<label style="font-weight: 600; display: block; margin-bottom: 5px;">Guidance:</label>
+					<p style="margin: 0 0 15px 0; line-height: 1.6;">${guidance}</p>
+				</div>` : ''}
+				<div class="wpv-ast-detail-group">
+					<label style="font-weight: 600; display: block; margin-bottom: 5px;">Instructions:</label>
+					<pre style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto;">${aiPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+				</div>
+				<button type="button" class="button button-primary wpv-copy-ai" data-prompt="${aiPrompt.replace(/"/g, '&quot;')}">
+					<span class="dashicons dashicons-clipboard"></span> Copy Instructions for AI
+				</button>
 			`);
 			
 			$('.wpv-copy-ai').off('click').on('click', function() {
@@ -365,4 +382,15 @@ Please fix this issue in the file from my workspace. The file is already in the 
 			});
 		});
 	}
+	
+	// Accordion functionality
+	$('.wpv-accordion-header').on('click', function() {
+		const $header = $(this);
+		const targetId = $header.data('target');
+		const $content = $('#' + targetId);
+		const $icon = $header.find('.dashicons');
+		
+		$content.slideToggle(200);
+		$icon.toggleClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2');
+	});
 });

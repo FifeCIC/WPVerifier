@@ -192,6 +192,15 @@ final class Settings_Page {
 			)
 		);
 
+		register_setting(
+			self::OPTION_GROUP,
+			'wpverifier_show_header_codes',
+			array(
+				'type'    => 'boolean',
+				'default' => false,
+			)
+		);
+
 		add_settings_section(
 			'ai_settings_section',
 			__( 'AI Integration', 'wp-verifier' ),
@@ -266,6 +275,14 @@ final class Settings_Page {
 			'enable_logging',
 			__( 'Enable Logging', 'wp-verifier' ),
 			array( $this, 'render_logging_field' ),
+			self::PAGE_SLUG,
+			'general_settings_section'
+		);
+
+		add_settings_field(
+			'show_header_codes',
+			__( 'Show Header Codes', 'wp-verifier' ),
+			array( $this, 'render_header_codes_field' ),
 			self::PAGE_SLUG,
 			'general_settings_section'
 		);
@@ -442,6 +459,24 @@ final class Settings_Page {
 		</label>
 		<p class="description">
 			<?php esc_html_e( 'When enabled, detailed logs will be written to help troubleshoot issues. Logs are written using error_log() and can be viewed in your debug.log file.', 'wp-verifier' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Renders the header codes field.
+	 *
+	 * @since 1.9.0
+	 */
+	public function render_header_codes_field() {
+		$checked = get_option( 'wpverifier_show_header_codes', false );
+		?>
+		<label>
+			<input type="checkbox" name="wpverifier_show_header_codes" value="1" <?php checked( $checked ); ?> />
+			<?php esc_html_e( 'Display identifier codes next to section headers', 'wp-verifier' ); ?>
+		</label>
+		<p class="description">
+			<?php esc_html_e( 'When enabled, section headers will display identifier codes (e.g., PAN01) to help communicate with AI about specific UI elements.', 'wp-verifier' ); ?>
 		</p>
 		<?php
 	}

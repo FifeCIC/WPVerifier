@@ -21,10 +21,11 @@ class Admin_Page_Tabs {
 			'basic'       => __( 'Basic Verification', 'wp-verifier' ),
 			'verify'      => __( 'Advanced Verification', 'wp-verifier' ),
 			'results'     => __( 'Results', 'wp-verifier' ),
+			'issues'      => __( 'Issues', 'wp-verifier' ),
 			'monitoring'  => __( 'Plugin Monitoring', 'wp-verifier' ),
 			'explore'     => __( 'Explore Plugin', 'wp-verifier' ),
 			'namer'       => __( 'Plugin Namer', 'wp-verifier' ),
-			'ai-guidance' => __( 'AI Guidance', 'wp-verifier' ),
+			'error-codes' => __( 'Error Codes', 'wp-verifier' ),
 			'settings'    => __( 'Settings', 'wp-verifier' ),
 			'assets'      => __( 'Assets', 'wp-verifier' ),
 		);

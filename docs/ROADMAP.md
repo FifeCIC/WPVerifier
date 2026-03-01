@@ -1,47 +1,6 @@
 # WP Verifier Development Roadmap
 This roadmap consolidates all planned features and tracks implementation progress. Most features will be supported by existing folders, systems and standard approaches so check for existing implementation before creating new files, functions or classes.
 
-## Visual Error Icons System 🎨
-
-**Goal**: Display colored icons in Results tab to visually categorize different types of PHPCS errors and warnings.
-
-**Status**: Partially implemented - AI Guidance tab shows icons correctly, but Results tab icons not displaying.
-
-### Completed Components
-- [x] **Error Metadata Configuration**: `error-metadata-config.json` with 25+ error codes
-  - [x] Icon mappings (shield, database, clock, etc.)
-  - [x] Color coding by severity (red=high, yellow=medium, blue=low)
-  - [x] Category classification (Security, Database, Performance, etc.)
-  - [x] Descriptive tooltips for each error type
-- [x] **PHP Helper Classes**:
-  - [x] `Error_Metadata.php` - Loads and manages metadata
-  - [x] `AI_Guidance.php` - Enhanced with metadata integration
-- [x] **Admin Interface**: AI Guidance tab displays icons correctly
-- [x] **JavaScript Integration**: Metadata passed to frontend via inline scripts
-
-### Issues to Resolve
-- [ ] **Results Tab Icon Display**: Icons not appearing in accordion-style results
-  - [ ] Debug AST system initialization
-  - [ ] Verify metadata loading in Results context
-  - [ ] Check icon HTML generation in `groupByFile()` function
-  - [ ] Ensure `renderResults()` properly calls AST system
-- [ ] **Template Integration**: Verify icon placeholder in `results-row.php`
-- [ ] **JavaScript Timing**: Resolve potential race conditions in icon injection
-
-### Implementation Notes
-- **Current Architecture**: Icons generated during data processing in `groupByFile()`
-- **Fallback System**: Default warning icon for unconfigured error codes
-- **Performance**: Icons pre-merged into issue data (no post-processing)
-- **Extensibility**: Easy to add new error codes and metadata
-
-### Next Steps
-1. Debug why AST system isn't displaying merged icon data
-2. Add console logging to trace icon generation process
-3. Verify JavaScript execution order and dependencies
-4. Consider alternative icon injection methods if current approach fails
-
----
-
 ## External Ignore System 🚫
 
 **Goal**: Implement hash-based external ignore file system to keep code files clean while maintaining intelligent ignore rules that invalidate when code changes.
@@ -378,25 +337,57 @@ This roadmap consolidates all planned features and tracks implementation progres
 - Implement database cleanup/archival strategy
 
 
-## Future Phases 🔮
+## Issues Tab Enhancement 🔍
 
-### File Monitoring System
-- [x] Plugin selection for active monitoring
-- [x] File change detection (timestamp-based)
-- [x] Background check execution on file changes
-- [x] Monitoring activity logger
-- [x] Admin notification system for new issues
-- [x] **File Watcher**: Monitor selected plugin directory for file timestamp changes.
-- [ ] **Delayed Validation**: Wait 2-5 seconds after file save before running checks (assume developer is still working).
-- [x] **Change Detection**: Alert developer when file modifications are detected with validation results.
-- [x] **Structure Validation**: Check for required files and folders:
-  - [x] Language folder (`/languages` or `/lang`)
-  - [x] Language files (`.pot`, `.po`, `.mo`)
-  - [x] License file (`LICENSE`, `LICENSE.txt`, `LICENSE.md`)
-  - [x] README file (`README.md`, `readme.txt`)
-  - [x] Plugin header file (main plugin file with proper headers)
-- [ ] **File Creation Wizard**: Offer to auto-generate missing files with templates.
-- [x] **Real-time Dashboard**: Show file status, last modified times, and validation results.
+**Goal**: Upgrade Issues tab to use WordPress core WP_List_Table class for professional features.
+
+### Phase 1: WP_List_Table Implementation (Medium Priority)
+- [ ] **Create Custom List Table Class** (`includes/Admin/Issues_List_Table.php`):
+  - [ ] Extend WP_List_Table
+  - [ ] Implement required methods: get_columns(), prepare_items(), column_default()
+  - [ ] Load merged issues data (wpseed results + AI guidance)
+  - [ ] Support severity badges (ERROR/WARNING)
+  - [ ] Maintain accordion row expansion functionality
+
+- [ ] **Add Search Functionality**:
+  - [ ] Implement search_box() method
+  - [ ] Search across file names, error codes, and messages
+  - [ ] Real-time filtering of results
+  - [ ] Clear search button
+
+- [ ] **Add Bulk Actions**:
+  - [ ] Checkbox column for row selection
+  - [ ] Bulk action dropdown (Copy All Prompts, Mark as Reviewed, etc.)
+  - [ ] "Select All" functionality
+  - [ ] Process bulk actions handler
+
+- [ ] **Column Sorting**:
+  - [ ] Make all columns sortable (Severity, File, Line, Code)
+  - [ ] Maintain sort state across page loads
+  - [ ] Visual sort indicators
+
+- [ ] **Pagination**:
+  - [ ] Add pagination controls (10, 25, 50, 100 per page)
+  - [ ] Screen options for items per page
+  - [ ] Total items count display
+
+### Phase 2: Enhanced Features (Low Priority)
+- [ ] **Column Visibility**:
+  - [ ] Screen options to show/hide columns
+  - [ ] Save column preferences per user
+
+- [ ] **Export Functionality**:
+  - [ ] Export filtered results to CSV
+  - [ ] Export with AI prompts included
+  - [ ] Bulk export selected items
+
+### Benefits
+- Professional WordPress admin interface
+- Built-in search and filtering
+- Bulk operations for efficiency
+- Better performance with pagination
+- Consistent with WordPress UX patterns
+
 
 ## Plugin Namer Tool Features
 
