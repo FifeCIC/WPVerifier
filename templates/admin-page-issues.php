@@ -6,7 +6,7 @@
  */
 
 // Load wpseed JSON from verifier-results
-$wpseed_file = WP_CONTENT_DIR . '/verifier-results/wpseed/results.json';
+$wpseed_file = WP_PLUGIN_DIR . '/wpseed/.wpv-results.json';
 $wpseed_data = array();
 if ( file_exists( $wpseed_file ) ) {
 	$wpseed_json = file_get_contents( $wpseed_file );

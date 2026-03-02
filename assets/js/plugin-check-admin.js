@@ -119,7 +119,7 @@
 		const pluginFolder = pluginsList.value.indexOf('/') !== -1 ? pluginsList.value.split('/')[0] : pluginsList.value;
 		const currentUrl = window.location.href;
 		const wpContentBase = currentUrl.substring(0, currentUrl.indexOf('/wp-admin/')) + '/wp-content/';
-		const jsonUrl = wpContentBase + 'verifier-results/' + pluginFolder + '/results.json';
+		const jsonUrl = wpContentBase + 'plugins/' + pluginFolder + '/.wpv-results.json';
 
 		fetch(jsonUrl)
 			.then(r => r.json())
@@ -1353,7 +1353,7 @@
 		const pluginFolder = plugin.indexOf('/') !== -1 ? plugin.split('/')[0] : plugin;
 		const currentUrl = window.location.href;
 		const wpContentBase = currentUrl.substring(0, currentUrl.indexOf('/wp-admin/')) + '/wp-content/';
-		const jsonUrl = wpContentBase + 'verifier-results/' + pluginFolder + '/results.json';
+		const jsonUrl = wpContentBase + 'plugins/' + pluginFolder + '/.wpv-results.json';
 		
 		// Try to read config, default to enabled if not found
 		let wporgPrep = true;

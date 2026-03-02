@@ -1,340 +1,220 @@
 # WP Verifier Development Roadmap
 This roadmap consolidates all planned features and tracks implementation progress. Most features will be supported by existing folders, systems and standard approaches so check for existing implementation before creating new files, functions or classes.
 
-## External Ignore System 🚫
+## External Verification Tracking System 🚫
 
-**Goal**: Implement hash-based external ignore file system to keep code files clean while maintaining intelligent ignore rules that invalidate when code changes.
+**Goal**: Implement function-level hash tracking system to keep code files clean while maintaining intelligent verification status that invalidates only when specific functions change.
 
-**Integration**: This system will be designed to work seamlessly with both JSON and Database storage modes, storing ignores in the same storage backend as results.
+**Storage**: JSON files stored within plugin directory for portability and version control.
 
-### Phase 1: Core Ignore System (High Priority)
-- [ ] **Ignore File Structure**:
-  - [ ] Create `.wpv-ignores.json` format specification
-  - [ ] Schema: file path, line number, 8-char hash, rule code, reason, date, user
-  - [ ] Support for wildcard patterns (e.g., `function wpseed_db_*`)
-  - [ ] Support for file-level ignores (all lines in file)
+### Phase 1: Core Tracking System (High Priority)
+- [ ] **Verification File Structure**:
+  - [ ] Create `.wpv-verification.json` format specification
+  - [ ] Schema structure:
+    ```json
+    {
+      "file_level": {
+        "includes/admin/admin.php": {
+          "hash": "a1b2c3d4",
+          "status": "verified",
+          "verified_by": "user_id",
+          "verified_at": "2024-01-15T10:30:00Z"
+        }
+      },
+      "function_level": {
+        "WPSeed_Admin::includes": {
+          "file": "includes/admin/admin.php",
+          "hash": "e5f6g7h8",
+          "issues": [
+            {
+              "line": 64,
+              "type": "WordPress.Security.NonceVerification.Recommended",
+              "status": "verified",
+              "note": "Page parameter used only for routing",
+              "verified_by": "user_id",
+              "verified_at": "2024-01-15T10:30:00Z"
+            }
+          ]
+        }
+      }
+    }
+    ```
   - [ ] Version field for schema evolution
+  - [ ] Store in plugin root directory for portability
 
-- [ ] **Hash Generation**:
-  - [ ] Implement `generate_line_hash()` - MD5 first 8 chars
-  - [ ] Normalize whitespace before hashing (trim, single spaces)
-  - [ ] Store optional snippet (first 50 chars) for human verification
-  - [ ] Handle multi-line statements (hash combined lines)
+- [ ] **Hash Generation** (`includes/Verification/Hash_Generator.php`):
+  - [ ] Parse PHP files using `token_get_all()`
+  - [ ] Extract function/method/class boundaries (opening `{` to closing `}`)
+  - [ ] Generate SHA256 hash of function body, use first 8 chars
+  - [ ] Generate SHA256 hash of entire file for file-level verification
+  - [ ] Normalize whitespace before hashing
+  - [ ] Handle nested functions and closures
 
-- [ ] **Ignore Matcher** (`includes/Ignores/Ignore_Matcher.php`):
-  - [ ] `should_ignore()` - Check if issue should be ignored
-  - [ ] Line number + hash matching
-  - [ ] Pattern matching for function/class names
-  - [ ] File-level ignore checking
-  - [ ] Logging when ignore doesn't match (hash changed)
+- [ ] **Verification Matcher** (`includes/Verification/Verification_Matcher.php`):
+  - [ ] `is_verified()` - Check if issue is verified
+  - [ ] Match by function name + hash
+  - [ ] Match by file-level hash (entire file verified)
+  - [ ] Return verification status and metadata
+  - [ ] Log when hash doesn't match (code changed)
 
-### Phase 2: Dual Storage for Ignores (High Priority)
-- [ ] **JSON Storage** (`includes/Ignores/JSON_Ignore_Storage.php`):
-  - [ ] Read/write `.wpv-ignores.json` in project root
-  - [ ] Merge with per-plugin ignore files
+### Phase 2: JSON Storage (High Priority)
+- [ ] **JSON Storage Handler** (`includes/Verification/JSON_Storage.php`):
+  - [ ] Read/write `.wpv-verification.json` in plugin root
   - [ ] Atomic file writes (prevent corruption)
   - [ ] Backup before modifications
-
-- [ ] **Database Storage** (`includes/Ignores/DB_Ignore_Storage.php`):
-  - [ ] New table: `wp_wpv_ignores`
-    - Columns: `id`, `plugin_slug`, `file_path`, `line`, `hash`, `snippet`, `rule_code`, `reason`, `pattern`, `scope` (line/file/pattern), `added_by`, `added_at`, `last_matched`
-  - [ ] CRUD operations for ignores
-  - [ ] Query optimization with indexes
-  - [ ] Track when ignores are matched (analytics)
-
-- [ ] **Ignore Storage Router** (`includes/Ignores/Ignore_Storage_Router.php`):
-  - [ ] Route to JSON or Database based on settings
-  - [ ] Unified interface for both storage types
-  - [ ] Sync between JSON and Database
-  - [ ] Migration tools (JSON ↔ Database)
+  - [ ] Merge verification data from multiple sources
+  - [ ] Validate JSON structure on load
 
 ### Phase 3: Integration with Scanning (High Priority)
 - [ ] **Modify `run_phpcs_on_file()`**:
-  - [ ] Load ignores before processing results
-  - [ ] Filter out ignored issues
-  - [ ] Log when hash doesn't match (code changed)
-  - [ ] Track ignore effectiveness (how many filtered)
+  - [ ] Load verification data before processing results
+  - [ ] Check each issue against verification status
+  - [ ] Mark verified issues in results
+  - [ ] Log when hash doesn't match (code changed, needs re-verification)
+  - [ ] Track verification coverage (% of issues verified)
 
 - [ ] **Modify `save_results()`**:
-  - [ ] Apply ignores before saving
-  - [ ] Store "ignored_count" in scan metadata
-  - [ ] Option to save ignored issues separately (for audit)
-
-- [ ] **Backward Compatibility**:
-  - [ ] Continue supporting inline `// phpcs:ignore` comments
-  - [ ] Detect inline ignores and offer to migrate to external file
-  - [ ] Hybrid mode: both inline and external work together
+  - [ ] Include verification status in saved results
+  - [ ] Store "verified_count" in scan metadata
+  - [ ] Separate verified vs unverified issues in display
+  - [ ] Show stale verifications (hash mismatch)
 
 ### Phase 4: UI Management (Medium Priority)
-- [ ] **Ignore Management Page** (new tab in WP Verifier):
-  - [ ] List all active ignores
-  - [ ] Filter by plugin, file, rule type
-  - [ ] Show ignore status (active/stale/invalid)
-  - [ ] Bulk operations (delete, re-validate)
+- [ ] **Verification Management Page** (new tab in WP Verifier):
+  - [ ] List all verified functions/files
+  - [ ] Filter by plugin, file, verification status
+  - [ ] Show verification health (active/stale/invalid)
+  - [ ] Bulk operations (re-verify, remove verification)
   - [ ] Search and sort functionality
 
-- [ ] **Add Ignore from Results**:
-  - [ ] "Ignore This Issue" button in Selected Issue Details
-  - [ ] Modal: Enter reason, choose scope (this line/this file/this pattern)
-  - [ ] Preview what will be ignored
-  - [ ] Confirm and save to storage
+- [ ] **Mark as Verified from Results**:
+  - [ ] "Mark as Fixed" button in Selected Issue Details
+  - [ ] Modal: Enter note, choose scope (this function/entire file)
+  - [ ] Preview what will be marked verified
+  - [ ] Generate hash and save to `.wpv-verification.json`
+  - [ ] Track who verified and when
 
-- [ ] **Ignore Health Dashboard**:
-  - [ ] Show stale ignores (hash no longer matches)
-  - [ ] Show unused ignores (never matched in recent scans)
-  - [ ] Show most-used ignores
-  - [ ] Suggest cleanup actions
+- [ ] **Verification Health Dashboard**:
+  - [ ] Show stale verifications (hash no longer matches)
+  - [ ] Show verification coverage per file
+  - [ ] Show recently verified items
+  - [ ] Suggest files ready for full verification
 
 ### Phase 5: Advanced Features (Medium Priority)
-- [ ] **Pattern-Based Ignores**:
-  - [ ] Ignore all functions matching pattern: `wpseed_db_*`
-  - [ ] Ignore all files in directory: `includes/vendor/*`
-  - [ ] Ignore specific rule in entire file
-  - [ ] Regex support for advanced patterns
+- [ ] **Batch Verification**:
+  - [ ] Verify all functions in a file at once
+  - [ ] Verify all files in a directory
+  - [ ] Bulk verification with single note
+  - [ ] Progress tracking for large batches
 
-- [ ] **Temporary Ignores**:
-  - [ ] Expiration date for ignores
-  - [ ] "Snooze" functionality (ignore for 7 days)
-  - [ ] Auto-cleanup expired ignores
-  - [ ] Notifications when temporary ignores expire
+- [ ] **Verification History**:
+  - [ ] Track verification changes over time
+  - [ ] Show who verified what and when
+  - [ ] Revert to previous verification state
+  - [ ] Export verification history
 
 - [ ] **Team Collaboration**:
-  - [ ] Track who added each ignore
-  - [ ] Require approval for certain ignore types
-  - [ ] Comment/discussion on ignores
-  - [ ] Audit log of ignore changes
+  - [ ] Track who verified each function
+  - [ ] Add comments/notes to verifications
+  - [ ] Require approval for file-level verification
+  - [ ] Audit log of verification changes
 
-### Phase 6: Migration & Cleanup (Low Priority)
-- [ ] **Inline Comment Migration**:
-  - [ ] Scan codebase for `// phpcs:ignore` comments
-  - [ ] Extract to external ignore file
-  - [ ] Generate hash for each line
-  - [ ] Optionally remove inline comments
-  - [ ] Preview before applying
-
-- [ ] **Ignore Validation**:
-  - [ ] Check all ignores against current codebase
-  - [ ] Report stale ignores (hash mismatch)
-  - [ ] Report orphaned ignores (file/line doesn't exist)
-  - [ ] Suggest updates or removals
+### Phase 6: Validation & Cleanup (Low Priority)
+- [ ] **Verification Validation**:
+  - [ ] Check all verifications against current codebase
+  - [ ] Report stale verifications (hash mismatch)
+  - [ ] Report orphaned verifications (function/file doesn't exist)
+  - [ ] Suggest re-verification or removal
+  - [ ] Auto-cleanup invalid verifications
 
 - [ ] **Import/Export**:
-  - [ ] Export ignores to shareable format
-  - [ ] Import ignores from other projects
-  - [ ] Merge ignore files from multiple sources
+  - [ ] Export verifications to shareable format
+  - [ ] Import verifications from other projects
+  - [ ] Merge verification files from multiple sources
   - [ ] Conflict resolution UI
 
 ### Phase 7: Analytics & Reporting (Future)
-- [ ] **Ignore Analytics**:
-  - [ ] Most ignored rules across projects
-  - [ ] Ignore trends over time
-  - [ ] False positive rate estimation
-  - [ ] Ignore effectiveness metrics
+- [ ] **Verification Analytics**:
+  - [ ] Verification coverage by plugin/file
+  - [ ] Verification trends over time
+  - [ ] Most verified issue types
+  - [ ] Team verification activity
 
 - [ ] **Smart Suggestions**:
-  - [ ] AI-powered ignore recommendations
-  - [ ] Detect patterns in manual ignores
-  - [ ] Suggest file-level or pattern ignores
-  - [ ] Learn from team's ignore decisions
+  - [ ] Suggest functions ready for verification
+  - [ ] Detect patterns in verified issues
+  - [ ] Recommend file-level verification when appropriate
+  - [ ] Learn from team's verification decisions
 
 ### Implementation Strategy
 
 **Phase 1-2: Foundation (Week 1-2)**
-- Build core ignore system alongside existing inline comments
-- No disruption to current workflow
-- Both systems work in parallel
+- Build core verification tracking system
+- JSON storage in plugin directory
+- Function-level hash generation
 
 **Phase 3: Integration (Week 3)**
 - Integrate with scanning process
-- Filter results using external ignores
-- Maintain backward compatibility
+- Mark verified issues in results
+- Track verification coverage
 
 **Phase 4: UI (Week 4-5)**
-- Add management interface
-- Allow users to add/remove ignores via UI
-- Provide migration path from inline comments
+- Add "Mark as Fixed" functionality
+- Verification management interface
+- Health dashboard for stale verifications
 
 **Phase 5-7: Enhancement (Future)**
 - Advanced features as needed
 - Based on user feedback and usage patterns
 
-### Database Integration Notes
+### Benefits of Function-Level Verification Tracking
 
-**When Database Storage is Enabled:**
-- Ignores stored in `wp_wpv_ignores` table
-- Fast querying with proper indexes
-- Track ignore usage and effectiveness
-- Analytics on ignore patterns
-
-**When JSON Storage is Used:**
-- Ignores in `.wpv-ignores.json` file
-- Version controlled with code
-- Easy to share across team
-- Simple backup and restore
-
-**Hybrid Approach:**
-- Both storage types can coexist
-- Sync between JSON and Database
-- Choose display source in settings
-- Migration tools for switching
-
-### Benefits of External Ignore System
-
-1. **Clean Code Files**: No `// phpcs:ignore` comments cluttering code
-2. **Intelligent Invalidation**: Hash-based matching detects code changes
-3. **Centralized Management**: All ignores in one place, easy to review
-4. **Team Collaboration**: Track who added what and why
-5. **Analytics**: Understand ignore patterns and effectiveness
-6. **Flexible Storage**: Works with both JSON and Database backends
-7. **Version Control**: Ignore changes tracked separately from code
-8. **Audit Trail**: Complete history of ignore decisions
+1. **Clean Code Files**: No inline comments cluttering code
+2. **Intelligent Invalidation**: Function-level hashing survives unrelated changes
+3. **Portable**: JSON files travel with plugin, no database dependency
+4. **Version Control Friendly**: Track verification decisions in git
+5. **Line-Number Independent**: Adding lines above doesn't invalidate verification
+6. **Audit Trail**: Complete history of who verified what and when
+7. **Dual-Level Tracking**: Both file-level and function-level verification
+8. **Progress Tracking**: See verification coverage per file/plugin
 
 ### Technical Considerations
 
-- **Hash Algorithm**: MD5 (fast, sufficient collision resistance)
-- **Hash Length**: 8 characters (4.3 billion combinations)
+- **Hash Algorithm**: SHA256 (cryptographically secure)
+- **Hash Length**: 8 characters (sufficient for collision avoidance)
+- **Scope**: Function body from opening `{` to closing `}`
 - **Normalization**: Trim whitespace, normalize line endings
-- **Performance**: Cache loaded ignores per request
-- **Backward Compat**: Support inline comments indefinitely
-- **Migration**: Gradual, opt-in, non-breaking
-- **Storage**: Unified interface for JSON/Database
-- **Validation**: Regular checks for stale/orphaned ignores
+- **Performance**: Cache parsed functions per request
+- **Storage**: JSON files in plugin root directory
+- **Portability**: Verification data travels with plugin package
+- **Validation**: Regular checks for stale/orphaned verifications
 
 
-## Database Storage System 🗄️
+## Internationalization (i18n) 🌍
 
-**Goal**: Implement dual storage system (JSON + Database) for verification results with database as optional enhancement.
+**Goal**: Make WP Verifier fully translatable following WordPress standards.
 
-### Phase 1: Database Foundation (High Priority)
-- [ ] **Custom Table Creation**:
-  - [ ] `wp_wpv_results` - Main results table
-    - Columns: `id`, `plugin_slug`, `file_path`, `issue_type` (error/warning), `line`, `column`, `code`, `message`, `severity`, `issue_id`, `ignored`, `resolved`, `created_at`, `updated_at`
-  - [ ] `wp_wpv_scans` - Scan metadata table
-    - Columns: `id`, `plugin_slug`, `scan_date`, `total_errors`, `total_warnings`, `readiness_score`, `check_mode` (full/limit_10/single_file), `categories_checked`, `scan_duration`
-  - [ ] `wp_wpv_ignored_paths` - Ignored paths table
-    - Columns: `id`, `plugin_slug`, `path`, `reason`, `added_by`, `added_at`
-  - [ ] Database schema versioning for migrations
-  - [ ] Activation hook to create tables
-  - [ ] Deactivation cleanup option
+### JavaScript Translation (Medium Priority)
+- [ ] **Implement wp_localize_script() for JS strings**:
+  - [ ] Create translation object in PHP where scripts are enqueued
+  - [ ] Pass translated strings to JavaScript via localized object
+  - [ ] Update all JS files to use localized strings instead of hardcoded text
+  - [ ] Files to update:
+    - [ ] `assets/js/plugin-check-preparation.js`
+    - [ ] `assets/js/plugin-check-saved.js`
+    - [ ] `assets/js/plugin-check.js`
+    - [ ] Other JS files with user-facing text
 
-### Phase 2: Settings & Configuration (High Priority)
-- [ ] **Settings Page Updates**:
-  - [ ] Add "Storage" section to Settings tab
-  - [ ] Checkbox: "Enable Database Storage" (default: OFF)
-    - Warning: "Database mode is not recommended for production websites. Use for development/testing only."
-    - Info: "When enabled, results are stored in both database and JSON files."
-  - [ ] Checkbox: "Disable JSON Storage" (default: OFF, requires Database enabled)
-    - Warning: "Only disable JSON if database storage is working correctly."
-  - [ ] Radio: "UI Data Source" (default: JSON)
-    - Options: "JSON Files" or "Database"
-    - Info: "Choose which storage to use for displaying results in the interface."
-  - [ ] Button: "Migrate JSON to Database" (one-time import)
-  - [ ] Button: "Export Database to JSON" (backup/export)
-  - [ ] Display: Storage statistics (DB size, JSON size, record counts)
+### PHP Translation (Low Priority)
+- [ ] **Audit all PHP files for translation readiness**:
+  - [ ] Ensure all user-facing strings use `__()`, `_e()`, `esc_html__()`, `esc_html_e()`
+  - [ ] Add text domain 'wp-verifier' to all translation functions
+  - [ ] Add translator comments for context where needed
 
-### Phase 3: Dual Storage Implementation (Medium Priority)
-- [ ] **Save Results Handler**:
-  - [ ] Modify `save_results()` in Admin_AJAX.php
-  - [ ] Check settings for storage preferences
-  - [ ] Save to JSON (if not disabled)
-  - [ ] Save to Database (if enabled)
-  - [ ] Transaction support for database writes
-  - [ ] Error handling for storage failures
-  - [ ] Logging for storage operations
-
-- [ ] **Database Writer Class** (`includes/Storage/Database_Writer.php`):
-  - [ ] `save_scan_metadata()` - Save scan info to wp_wpv_scans
-  - [ ] `save_results()` - Save issues to wp_wpv_results
-  - [ ] `save_ignored_paths()` - Save ignored paths
-  - [ ] `update_file_results()` - Update single file results
-  - [ ] Batch insert optimization for large result sets
-  - [ ] Index management for performance
-
-### Phase 4: Data Retrieval Layer (Medium Priority)
-- [ ] **Database Reader Class** (`includes/Storage/Database_Reader.php`):
-  - [ ] `get_plugin_results()` - Fetch all results for a plugin
-  - [ ] `get_file_results()` - Fetch results for specific file
-  - [ ] `get_scan_history()` - Fetch scan metadata
-  - [ ] `get_ignored_paths()` - Fetch ignored paths
-  - [ ] Query optimization with proper indexes
-  - [ ] Caching layer for frequently accessed data
-  - [ ] Convert database format to JSON-compatible format
-
-- [ ] **Storage Router** (`includes/Storage/Storage_Router.php`):
-  - [ ] Check UI data source setting
-  - [ ] Route requests to JSON or Database reader
-  - [ ] Fallback logic (try DB, fall back to JSON)
-  - [ ] Unified interface for both storage types
-
-### Phase 5: UI Integration (Low Priority)
-- [ ] **Results Page Updates**:
-  - [ ] Modify `admin-page-saved.php` to use Storage_Router
-  - [ ] Update AJAX handlers to support both sources
-  - [ ] Add storage source indicator in UI
-  - [ ] Performance comparison display (JSON vs DB load times)
-
-- [ ] **Recheck File Updates**:
-  - [ ] Update `recheck_file()` to save to both storages
-  - [ ] Ensure single-file updates work with database
-
-### Phase 6: Migration & Maintenance (Low Priority)
-- [ ] **Migration Tools**:
-  - [ ] JSON to Database importer
-    - Parse all JSON files in verifier-results/
-    - Bulk insert into database tables
-    - Progress indicator for large imports
-    - Validation and error reporting
-  - [ ] Database to JSON exporter
-    - Query all results from database
-    - Generate JSON files in correct format
-    - Preserve directory structure
-  - [ ] Sync checker (compare JSON vs DB)
-    - Identify discrepancies
-    - Offer to sync missing data
-
-- [ ] **Maintenance Features**:
-  - [ ] Database cleanup (remove old scans)
-  - [ ] Optimize database tables
-  - [ ] Repair corrupted data
-  - [ ] Storage integrity checker
-
-### Phase 7: Advanced Features (Future)
-- [ ] **Query Builder UI**:
-  - [ ] Filter results by plugin, file, error code, severity
-  - [ ] Date range filtering for scans
-  - [ ] Export filtered results
-  - [ ] Saved filter presets
-
-- [ ] **Analytics Dashboard**:
-  - [ ] Most common errors across all plugins
-  - [ ] Error trends over time
-  - [ ] Plugin comparison charts
-  - [ ] Readiness score history graphs
-
-- [ ] **Performance Optimization**:
-  - [ ] Database query caching
-  - [ ] Lazy loading for large result sets
-  - [ ] Pagination for database queries
-  - [ ] Background processing for large imports
-
-### Implementation Notes
-- **Both systems run simultaneously** - JSON and Database storage are independent
-- **JSON remains default** - Database is opt-in enhancement
-- **UI can switch sources** - Choose which storage to display from
-- **Production warning** - Clear messaging that database mode is for development
-- **Graceful degradation** - If database fails, fall back to JSON
-- **No data loss** - Both systems maintain complete data independently
-- **Migration is optional** - Users can start fresh or import existing JSON
-
-### Technical Considerations
-- Use WordPress $wpdb for all database operations
-- Follow WordPress database naming conventions
-- Implement proper sanitization and escaping
-- Use prepared statements for all queries
-- Add database indexes for performance
-- Consider multisite compatibility
-- Plan for large datasets (10,000+ issues)
-- Implement database cleanup/archival strategy
+### Translation Infrastructure (Low Priority)
+- [ ] **POT file generation**: Set up automated POT file generation
+- [ ] **Translation platform**: Consider GlotPress or similar for community translations
+- [ ] **RTL support**: Test and ensure RTL language compatibility
 
 
 ## Issues Tab Enhancement 🔍

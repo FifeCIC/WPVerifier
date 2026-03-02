@@ -937,13 +937,13 @@ final class Admin_AJAX {
 			
 			$plugin_slug = $export_metadata['slug'];
 			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder;
+			$verifier_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
 			
 			if ( ! file_exists( $verifier_dir ) ) {
 				wp_mkdir_p( $verifier_dir );
 			}
 			
-			$file_path = $verifier_dir . '/results.json';
+			$file_path = $verifier_dir . '/.wpv-results.json';
 			
 			// Load existing JSON to preserve ignored_paths and configuration
 			$existing_data = $this->load_existing_data( $file_path );
@@ -1111,6 +1111,17 @@ final class Admin_AJAX {
 				throw new InvalidArgumentException( __( 'Failed to save file.', 'wp-verifier' ) );
 			}
 			
+			// Initialize verification file
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Verification\\JSON_Storage' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/JSON_Storage.php';
+			}
+			$verification_result = \WordPress\Plugin_Check\Verification\JSON_Storage::initialize_verification_file( $plugin_folder );
+			if ( $verification_result ) {
+				error_log( 'WPVerifier: Verification file created for ' . $plugin_folder );
+			} else {
+				error_log( 'WPVerifier: Failed to create verification file for ' . $plugin_folder );
+			}
+			
 			wp_send_json_success( array(
 				'message' => sprintf( __( 'Results saved to %s', 'wp-verifier' ), $file_path ),
 				'path' => $file_path
@@ -1171,7 +1182,7 @@ final class Admin_AJAX {
 	 */
 	private function apply_ignored_paths_filter( $plugin_slug ) {
 		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-		$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
 		
 		if ( ! file_exists( $json_file ) ) {
 			return;
@@ -1217,8 +1228,8 @@ final class Admin_AJAX {
 			}
 			
 			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder;
-			$json_file = $verifier_dir . '/results.json';
+			$verifier_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
+			$json_file = $verifier_dir . '/.wpv-results.json';
 			
 			if ( ! file_exists( $json_file ) ) {
 				throw new InvalidArgumentException( __( 'No saved results found.', 'wp-verifier' ) );
@@ -1254,7 +1265,7 @@ final class Admin_AJAX {
 		$this->check_request_validity();
 
 		try {
-			$verifier_base_dir = WP_CONTENT_DIR . '/verifier-results';
+			$verifier_base_dir = WP_PLUGIN_DIR;
 			
 			if ( ! file_exists( $verifier_base_dir ) ) {
 				wp_send_json_success( array( 'results' => array() ) );
@@ -1265,7 +1276,7 @@ final class Admin_AJAX {
 			$dirs = glob( $verifier_base_dir . '/*', GLOB_ONLYDIR );
 			
 			foreach ( $dirs as $dir ) {
-				$json_file = $dir . '/results.json';
+				$json_file = $dir . '/.wpv-results.json';
 				if ( file_exists( $json_file ) ) {
 					$plugin_name = basename( $dir );
 					$results[] = array(
@@ -1307,7 +1318,7 @@ final class Admin_AJAX {
 			
 			// Load JSON file
 			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
 			
 			if ( ! file_exists( $json_file ) ) {
 				throw new InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
@@ -1890,7 +1901,7 @@ final class Admin_AJAX {
 			}
 
 			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$verifier_dir = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder;
+			$verifier_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
 
 			if ( ! file_exists( $verifier_dir ) ) {
 				throw new InvalidArgumentException( __( 'Results folder not found.', 'wp-verifier' ) );
@@ -2043,7 +2054,7 @@ final class Admin_AJAX {
 			}
 
 			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
 
 			$data = array();
 			if ( file_exists( $json_file ) ) {
@@ -2326,13 +2337,19 @@ final class Admin_AJAX {
 			}
 
 			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$json_file = WP_CONTENT_DIR . '/verifier-results/' . $plugin_folder . '/results.json';
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
 
 			if ( ! file_exists( dirname( $json_file ) ) ) {
 				wp_mkdir_p( dirname( $json_file ) );
 			}
 
 			file_put_contents( $json_file, wp_json_encode( $config, JSON_PRETTY_PRINT ) );
+
+			// Initialize verification file
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Verification\\JSON_Storage' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/JSON_Storage.php';
+			}
+			\WordPress\Plugin_Check\Verification\JSON_Storage::initialize_verification_file( $plugin_folder );
 
 			wp_send_json_success( array(
 				'message' => __( 'Configuration updated successfully.', 'wp-verifier' ),

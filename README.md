@@ -34,30 +34,32 @@ Original project: https://github.com/WordPress/plugin-check/
 
 ---
 
-## Planned Features
+## Features
 
-### ✅ Core Verification (Available)
-- Plugin structure validation
-- WordPress coding standards compliance
-- Security vulnerability detection
-- Performance best practices analysis
-- Accessibility compliance checks
+### ✅ Available Now
+- **Plugin Structure Validation** - Comprehensive checks for WordPress plugin requirements
+- **Coding Standards Compliance** - WordPress, security, performance, and accessibility standards
 - **Custom Ruleset Management** - Create and enforce ecosystem-specific standards
-- **AI-Powered Plugin Namer** - Evaluate plugin names before submission
+- **Ignore Rules System** - Filter third-party code and false positives from results
+- **AI-Powered Plugin Namer** - Evaluate plugin names for availability and compliance
+- **Files Tab Progress Tracker** - Monitor verification progress per file with detailed panels
 - **Setup Wizard** - Guided configuration on first use
+- **JSON-Based Storage** - Portable results that travel with your plugin
 
-### 🔄 Coming Soon
-- **Automated CI/CD Integration** - Seamless integration with deployment pipelines
-- **Custom Ruleset Management** - Define and enforce ecosystem-specific standards
-- **Real-time Verification Dashboard** - Monitor plugin health across your ecosystem
-- **Automated Fix Suggestions** - AI-powered recommendations for common issues
-- **Dependency Conflict Detection** - Identify compatibility issues before deployment
+### 🔄 In Development
+- **Function-Level Verification Tracking** - Smart hash-based system to track verified issues
+  - Intelligent invalidation (only affected functions need re-review)
+  - Clean code (no inline ignore comments)
+  - Portable JSON storage in plugin directory
+  - Progress tracking per file and function
+- **Enhanced Files Tab** - File details panel, issue tracking, verification status
+- **Issues Tab Enhancement** - WP_List_Table implementation with search, sort, and bulk actions
 
-### 🔮 Future Roadmap
-- Advanced reporting and analytics
-- Team collaboration features
-- Historical trend analysis
-- Integration with popular development tools
+### 🔮 Planned Features
+- **Verification Analytics** - Coverage metrics, trends, and team activity
+- **Batch Verification** - Verify entire files or directories at once
+- **Team Collaboration** - Shared verification notes and approval workflows
+- **Advanced Plugin Namer** - Multi-TLD domain checking, trademark search, name alternatives
 
 *Additional features will be announced as development progresses.*
 
@@ -89,10 +91,10 @@ For development/testing:
 We're actively working on adapting Plugin Check's robust foundation to serve our ecosystem's unique needs. Stay tuned for updates as we roll out new features and capabilities.
 
 ### Current Focus
-- Rebranding and customization
-- Custom ruleset development
-- Ecosystem integration planning
-- Documentation updates
+- Function-level verification tracking system
+- Enhanced Files tab with progress monitoring
+- JSON-based storage architecture
+- Team collaboration features
 
 ---
 

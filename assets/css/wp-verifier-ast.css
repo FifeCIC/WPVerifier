@@ -130,6 +130,11 @@
 	color: white;
 }
 
+.wpv-ast-badge.fixed {
+	background: #00a32a;
+	color: white;
+}
+
 .wpv-ast-issue-list {
 	list-style: none;
 	margin: 0;

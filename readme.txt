@@ -106,8 +106,17 @@ In any case, passing the checks in this tool likely helps to achieve a smooth pl
 * Added: Auto-detection of vendor directories (vendor/, node_modules/, libraries/, etc.)
 * Added: Export/Import ignore rules as JSON for team collaboration
 * Added: Support for directory, file, and error code-level ignore scopes
+* Added: Files tab with File Details panel (PAN00) for progress tracking
+* Added: Enhanced sidebar panels for Selected Issue Details (PAN01) and AI Prompt (PAN02)
+* Added: Header code display system for easier navigation (toggle in settings)
 * Improved: Consolidated all features into main plugin tabs interface
+* Improved: JSON-based storage architecture for portability
 * Fixed: Removed duplicate menu entries in Tools menu
+
+**In Development:**
+* Function-level verification tracking with intelligent hash-based invalidation
+* Enhanced Files tab with verification progress monitoring
+* Issues tab upgrade to WP_List_Table with search, sort, and bulk actions
 
 = 1.8.0 =
 

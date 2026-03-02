@@ -1,4 +1,4 @@
-<h4><?php esc_html_e( 'FILE:', 'wp-verifier' ); ?> {{ data.file }}</h4>
+<h4><?php wpverifier_header( __( 'FILE:', 'wp-verifier' ), 'FT01' ); ?> {{ data.file }}</h4>
 <table id="plugin-check__results-table-{{data.index}}" class="widefat striped plugin-check__results-table">
 	<thead>
 		<tr>

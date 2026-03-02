@@ -282,16 +282,6 @@ final class Admin_Page {
 				WP_PLUGIN_CHECK_VERSION,
 				true
 			);
-			
-			wp_add_inline_script(
-				'plugin-check-preparation',
-				'const PLUGIN_CHECK = ' . json_encode(
-					array(
-						'nonce' => $this->admin_ajax->get_nonce(),
-					)
-				),
-				'before'
-			);
 		}
 
 		wp_enqueue_script(
@@ -722,6 +712,9 @@ final class Admin_Page {
 					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Plugin_Namer_Tab.php';
 				}
 				Plugin_Namer_Tab::render();
+				break;
+			case 'test-area':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-test-area.php';
 				break;
 			case 'settings':
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Settings_Page' ) ) {

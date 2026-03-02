@@ -30,7 +30,7 @@ jQuery(document).ready(function($) {
 		html += '<th>Keep Cached Results</th>';
 		html += '<td>';
 		html += '<label><input type="checkbox" id="keep-cache" checked> Preserve existing verification results</label>';
-		html += '<p class="description">When unchecked, saving will clear all cached results and you\'ll start fresh on next verification.</p>';
+		html += '<p class="description">WARNING: When unchecked, saving will clear all cached results and you\'ll start fresh on next verification.</p>';
 		html += '</td>';
 		html += '</tr>';;;
 
@@ -124,7 +124,7 @@ jQuery(document).ready(function($) {
 		const pluginFolder = plugin.indexOf('/') !== -1 ? plugin.split('/')[0] : plugin;
 		const currentUrl = window.location.href;
 		const wpContentBase = currentUrl.substring(0, currentUrl.indexOf('/wp-admin/')) + '/wp-content/';
-		const jsonUrl = wpContentBase + 'verifier-results/' + pluginFolder + '/results.json';
+		const jsonUrl = wpContentBase + 'plugins/' + pluginFolder + '/.wpv-results.json';
 
 		fetch(jsonUrl)
 			.then(response => response.json())

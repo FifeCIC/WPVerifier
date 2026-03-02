@@ -17,16 +17,17 @@ class Admin_Page_Tabs {
 	 */
 	public static function get_tabs() {
 		return array(
-			'preparation' => __( 'Preparation', 'wp-verifier' ),
-			'basic'       => __( 'Basic Verification', 'wp-verifier' ),
-			'verify'      => __( 'Advanced Verification', 'wp-verifier' ),
-			'results'     => __( 'Files', 'wp-verifier' ),
-			'issues'      => __( 'Issues', 'wp-verifier' ),
-			'monitoring'  => __( 'Plugin Monitoring', 'wp-verifier' ),
-			'namer'       => __( 'Plugin Namer', 'wp-verifier' ),
-			'error-codes' => __( 'Error Codes', 'wp-verifier' ),
-			'settings'    => __( 'Settings', 'wp-verifier' ),
-			'assets'      => __( 'Assets', 'wp-verifier' ),
+			'preparation' => array( 'title' => __( 'Preparation', 'wp-verifier' ), 'code' => 'TAB01' ),
+			'verify'      => array( 'title' => __( 'Advanced Verification', 'wp-verifier' ), 'code' => 'TAB02' ),
+			'results'     => array( 'title' => __( 'Files', 'wp-verifier' ), 'code' => 'TAB03' ),
+			'issues'      => array( 'title' => __( 'Issues', 'wp-verifier' ), 'code' => 'TAB04' ),
+			'monitoring'  => array( 'title' => __( 'Plugin Monitoring', 'wp-verifier' ), 'code' => 'TAB05' ),
+			'namer'       => array( 'title' => __( 'Plugin Namer', 'wp-verifier' ), 'code' => 'TAB06' ),
+			'test-area'   => array( 'title' => __( 'Test Area', 'wp-verifier' ), 'code' => 'TAB07' ),
+			'error-codes' => array( 'title' => __( 'Error Codes', 'wp-verifier' ), 'code' => 'TAB08' ),
+			'settings'    => array( 'title' => __( 'Settings', 'wp-verifier' ), 'code' => 'TAB09' ),
+			'assets'      => array( 'title' => __( 'Assets', 'wp-verifier' ), 'code' => 'TAB10' ),
+			'basic'       => array( 'title' => __( 'Basic Verification', 'wp-verifier' ), 'code' => 'TAB11' ),
 		);
 	}
 
@@ -39,15 +40,16 @@ class Admin_Page_Tabs {
 		?>
 		<h2 class="nav-tab-wrapper">
 			<?php
-			foreach ( $tabs as $tab_id => $tab_title ) {
+			foreach ( $tabs as $tab_id => $tab_data ) {
 				$active_class = ( $current_tab === $tab_id ) ? 'nav-tab-active' : '';
 				$url          = add_query_arg( array( 'page' => 'wp-verifier', 'tab' => $tab_id ), admin_url( 'plugins.php' ) );
 				printf(
-					'<a href="%s" class="nav-tab %s">%s</a>',
+					'<a href="%s" class="nav-tab %s">',
 					esc_url( $url ),
-					esc_attr( $active_class ),
-					wp_kses_post( $tab_title )
+					esc_attr( $active_class )
 				);
+				wpverifier_header( $tab_data['title'], $tab_data['code'] );
+				echo '</a>';
 			}
 			?>
 		</h2>

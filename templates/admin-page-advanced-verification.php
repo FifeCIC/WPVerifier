@@ -6,14 +6,11 @@
  */
 
 // Check which plugins have saved results
-$results_dir = WP_CONTENT_DIR . '/verifier-results';
 $plugins_with_results = array();
-if (is_dir($results_dir)) {
-	$plugin_dirs = glob($results_dir . '/*', GLOB_ONLYDIR);
-	foreach ($plugin_dirs as $plugin_dir) {
-		if (file_exists($plugin_dir . '/results.json')) {
-			$plugins_with_results[] = basename($plugin_dir);
-		}
+$plugin_dirs = glob(WP_PLUGIN_DIR . '/*', GLOB_ONLYDIR);
+foreach ($plugin_dirs as $plugin_dir) {
+	if (file_exists($plugin_dir . '/.wpv-results.json')) {
+		$plugins_with_results[] = basename($plugin_dir);
 	}
 }
 
@@ -101,10 +98,10 @@ if (is_dir($results_dir)) {
 					<?php } ?>
 					<?php foreach ( $available_plugins as $plugin_basename => $available_plugin ) {
 						$plugin_folder = strpos($plugin_basename, '/') !== false ? dirname($plugin_basename) : $plugin_basename;
-						$has_report = in_array($plugin_folder, $plugins_with_results);
+						if (!in_array($plugin_folder, $plugins_with_results)) continue;
 					?>
 						<option value="<?php echo esc_attr( $plugin_basename ); ?>"<?php selected( $selected_plugin_basename, $plugin_basename ); ?>>
-							<?php echo esc_html( $available_plugin['Name'] ); ?><?php echo $has_report ? ' ✓' : ''; ?>
+							<?php echo esc_html( $available_plugin['Name'] ); ?>
 						</option>
 					<?php } ?>
 				</select>

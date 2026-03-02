@@ -18,19 +18,18 @@ class Saved_Results_Handler {
 	 * @return array
 	 */
 	public static function get_saved_results() {
-		$results_dir = WP_CONTENT_DIR . '/verifier-results';
 		$saved_results = array();
+		$plugins_dir = WP_PLUGIN_DIR;
 
-		if ( ! is_dir( $results_dir ) ) {
+		if ( ! is_dir( $plugins_dir ) ) {
 			return $saved_results;
 		}
 
-		$plugins = glob( $results_dir . '/*', GLOB_ONLYDIR );
+		$plugins = glob( $plugins_dir . '/*', GLOB_ONLYDIR );
 		foreach ( $plugins as $plugin_dir ) {
-			$json_file = $plugin_dir . '/results.json';
+			$json_file = $plugin_dir . '/.wpv-results.json';
 			if ( file_exists( $json_file ) ) {
 				$data = json_decode( file_get_contents( $json_file ), true );
-				// Only include if it has actual results data
 				if ( $data && ! empty( $data['results'] ) ) {
 					$saved_results[] = self::format_result_data( $plugin_dir, $json_file, $data );
 				}
@@ -38,6 +37,42 @@ class Saved_Results_Handler {
 		}
 
 		return $saved_results;
+	}
+
+	/**
+	 * Load results for a specific plugin.
+	 *
+	 * @param string $plugin_slug Plugin slug.
+	 * @return array|null Results data or null if not found.
+	 */
+	public static function load_plugin_results( $plugin_slug ) {
+		$json_file = WP_PLUGIN_DIR . '/' . $plugin_slug . '/.wpv-results.json';
+		if ( ! file_exists( $json_file ) ) {
+			return null;
+		}
+		$data = json_decode( file_get_contents( $json_file ), true );
+		return $data ? $data : null;
+	}
+
+	/**
+	 * Get last selected plugin info.
+	 *
+	 * @return array|null Array with 'basename', 'name', 'slug' or null.
+	 */
+	public static function get_last_selected_plugin() {
+		$plugin_basename = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
+		if ( ! $plugin_basename ) {
+			return null;
+		}
+		$plugins = get_plugins();
+		if ( ! isset( $plugins[ $plugin_basename ] ) ) {
+			return null;
+		}
+		return array(
+			'basename' => $plugin_basename,
+			'name'     => $plugins[ $plugin_basename ]['Name'],
+			'slug'     => strpos( $plugin_basename, '/' ) !== false ? dirname( $plugin_basename ) : $plugin_basename,
+		);
 	}
 
 	/**
