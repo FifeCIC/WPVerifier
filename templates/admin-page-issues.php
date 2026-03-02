@@ -89,7 +89,7 @@ usort( $merged_issues, function( $a, $b ) {
 							<td><?php echo esc_html( $message ); ?></td>
 						</tr>
 						<tr class="wpv-issue-details" id="wpv-details-<?php echo esc_attr( $index ); ?>" style="display: none;">
-							<td colspan="6" style="background: #f9f9f9; padding: 20px;">
+							<td colspan="5" style="background: #f9f9f9; padding: 20px;">
 								<div style="margin-bottom: 15px;">
 									<strong><?php esc_html_e( 'Full Path:', 'wp-verifier' ); ?></strong><br>
 									<code style="font-size: 11px; word-break: break-all;"><?php echo esc_html( $file_path ); ?></code>

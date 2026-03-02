@@ -30,7 +30,8 @@ class Saved_Results_Handler {
 			$json_file = $plugin_dir . '/results.json';
 			if ( file_exists( $json_file ) ) {
 				$data = json_decode( file_get_contents( $json_file ), true );
-				if ( $data ) {
+				// Only include if it has actual results data
+				if ( $data && ! empty( $data['results'] ) ) {
 					$saved_results[] = self::format_result_data( $plugin_dir, $json_file, $data );
 				}
 			}

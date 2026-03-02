@@ -6,6 +6,7 @@
  */
 
 use WordPress\Plugin_Check\Utilities\Ignore_Rules;
+use WordPress\Plugin_Check\Admin\Saved_Results_Handler;
 
 $available_plugins = array();
 if ( function_exists( 'get_plugins' ) ) {
@@ -13,6 +14,14 @@ if ( function_exists( 'get_plugins' ) ) {
 	foreach ( $all_plugins as $plugin_basename => $plugin_data ) {
 		$available_plugins[ $plugin_basename ] = $plugin_data;
 	}
+}
+
+// Get saved results to check which plugins have been scanned
+$saved_results = Saved_Results_Handler::get_saved_results();
+$scanned_plugins = array();
+foreach ( $saved_results as $result ) {
+	$plugin_slug = strtolower( str_replace( ' ', '-', $result['plugin'] ) );
+	$scanned_plugins[ $plugin_slug ] = $result;
 }
 
 $rules = Ignore_Rules::get_rules();
@@ -30,15 +39,25 @@ $rules = Ignore_Rules::get_rules();
 					<td>
 						<select id="prep-plugin-select" name="plugin" style="min-width: 300px;">
 							<option value=""><?php esc_html_e( '-- Select Plugin --', 'wp-verifier' ); ?></option>
-							<?php foreach ( $available_plugins as $basename => $data ) : ?>
-								<option value="<?php echo esc_attr( $basename ); ?>">
-									<?php echo esc_html( $data['Name'] ); ?>
+							<?php foreach ( $available_plugins as $basename => $data ) : 
+								$plugin_slug = dirname( $basename );
+								$has_results = isset( $scanned_plugins[ $plugin_slug ] );
+								$icon = $has_results ? '✓' : '○';
+								$status = $has_results ? 'Checked' : 'Unchecked';
+							?>
+								<option value="<?php echo esc_attr( $basename ); ?>" data-slug="<?php echo esc_attr( $plugin_slug ); ?>" data-has-results="<?php echo $has_results ? '1' : '0'; ?>">
+									<?php echo esc_html( $icon . ' ' . $data['Name'] . ' (' . $status . ')' ); ?>
 								</option>
 							<?php endforeach; ?>
 						</select>
 					</td>
 				</tr>
 			</table>
+
+			<div id="plugin-results-summary" style="display: none; margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+				<h3><?php esc_html_e( 'Existing Check Results', 'wp-verifier' ); ?></h3>
+				<div id="results-summary-content"></div>
+			</div>
 
 			<div id="plugin-configuration" style="display: none; margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
 				<h3><?php esc_html_e( 'Plugin Configuration', 'wp-verifier' ); ?></h3>
@@ -181,6 +200,41 @@ $rules = Ignore_Rules::get_rules();
 
 <script>
 jQuery(document).ready(function($) {
+	var scannedPlugins = <?php echo json_encode( $scanned_plugins ); ?>;
+	
+	$('#prep-plugin-select').on('change', function() {
+		var selectedOption = $(this).find('option:selected');
+		var pluginSlug = selectedOption.data('slug');
+		var hasResults = selectedOption.data('has-results');
+		
+		if (hasResults && scannedPlugins[pluginSlug]) {
+			var result = scannedPlugins[pluginSlug];
+			$('#results-summary-content').html(`
+				<div style="display: flex; gap: 20px; margin-bottom: 15px;">
+					<div style="flex: 1; padding: 15px; background: #f0f0f1; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: 600; color: #d63638;">${result.issues}</div>
+						<div style="font-size: 13px; color: #646970;">Total Issues</div>
+					</div>
+					<div style="flex: 1; padding: 15px; background: #f0f0f1; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: 600; color: #2271b1;">${result.files}</div>
+						<div style="font-size: 13px; color: #646970;">Files with Issues</div>
+					</div>
+					${result.ignored > 0 ? `
+					<div style="flex: 1; padding: 15px; background: #f0f0f1; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: 600; color: #dba617;">${result.ignored}</div>
+						<div style="font-size: 13px; color: #646970;">Ignored</div>
+					</div>` : ''}
+				</div>
+				<p style="margin: 0;">
+					<a href="<?php echo esc_url( admin_url( 'plugins.php?page=wp-verifier&tab=results&plugin=' ) ); ?>${pluginSlug}" class="button button-primary">View Results</a>
+				</p>
+			`);
+			$('#plugin-results-summary').show();
+		} else {
+			$('#plugin-results-summary').hide();
+		}
+	});
+	
 	$('#plugin').on('change', function() {
 		var plugin = $(this).val();
 		if (plugin) {

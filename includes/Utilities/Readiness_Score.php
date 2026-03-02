@@ -49,32 +49,8 @@ class Readiness_Score {
 	 * @return int Issue count.
 	 */
 	private static function count_issues( $issues ) {
-		$count = 0;
-
-		// Handle both flat array and grouped array formats
-		foreach ( $issues as $file_or_issue ) {
-			if ( is_array( $file_or_issue ) ) {
-				// Grouped format: file => [line => [column => [issues]]]
-				foreach ( $file_or_issue as $line_or_issues ) {
-					if ( is_array( $line_or_issues ) ) {
-						foreach ( $line_or_issues as $column_or_issues ) {
-							if ( is_array( $column_or_issues ) ) {
-								$count += count( $column_or_issues );
-							} else {
-								$count++;
-							}
-						}
-					} else {
-						$count++;
-					}
-				}
-			} else {
-				// Flat format
-				$count++;
-			}
-		}
-
-		return $count;
+		// Issues are passed as a flat array of issue objects
+		return count( $issues );
 	}
 
 	/**

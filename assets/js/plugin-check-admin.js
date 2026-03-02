@@ -1091,6 +1091,8 @@
 						fetch(contentUrl)
 							.then(r => r.json())
 							.then(jsonData => {
+								console.log('Loaded JSON data:', jsonData);
+								console.log('Readiness from JSON:', jsonData.readiness);
 								console.log('About to call renderResultsMessage from auto-save success');
 								renderResultsMessage( false, jsonData.readiness || null, aggregatedRediscovered );
 								showSaveStatus('✓ Results saved successfully', 'success');

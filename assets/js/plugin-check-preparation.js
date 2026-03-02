@@ -212,7 +212,9 @@ jQuery(document).ready(function($) {
 				$('#save-config').prop('disabled', false);
 				
 				if (result.success) {
-					alert('Configuration saved successfully!');
+					if (confirm('Configuration saved successfully!\n\nGo to Advanced Verification now to run the plugin check?')) {
+						window.location.href = 'plugins.php?page=wp-verifier&tab=verify';
+					}
 				} else {
 					alert('Error: ' + (result.data.message || 'Failed to save'));
 				}

@@ -717,9 +717,6 @@ final class Admin_Page {
 			case 'monitoring':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-monitoring.php';
 				break;
-			case 'explore':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-explore.php';
-				break;
 			case 'namer':
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Plugin_Namer_Tab' ) ) {
 					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Plugin_Namer_Tab.php';
