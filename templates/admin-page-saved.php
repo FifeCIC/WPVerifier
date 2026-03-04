@@ -23,7 +23,7 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 	</div>
 <?php else : ?>
 	<?php if ( isset( $results_data['readiness'] ) ) : ?>
-		<div style="margin: 20px 0; padding: 15px; background: #fff; border-left: 4px solid #2271b1;">
+		<div class="wpv-readiness-score">
 			<strong><?php esc_html_e( 'Readiness Score:', 'wp-verifier' ); ?></strong> 
 			<?php echo esc_html( $results_data['readiness']['overall'] ); ?>% 
 			(<?php echo esc_html( $results_data['readiness']['errors'] ); ?> errors, 
@@ -34,12 +34,12 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 	<div class="wpv-ast-container">
 		<div class="wpv-ast-layout">
 			<div class="wpv-ast-table-container">
-				<h3><?php wpverifier_header( sprintf( __( 'Files with Issues - %s', 'wp-verifier' ), $plugin_info['name'] ), 'FT02' ); ?></h3>
+				<h3><?php wpverifier_header( sprintf( __( 'Files with Issues - %s', 'wp-verifier' ), $plugin_info['name'] ), 'FT02', true ); ?></h3>
 				
 				<?php if ( isset( $results_data['results'] ) && is_array( $results_data['results'] ) ) : ?>
-					<div style="background: #f1f1f1; padding: 12px 15px; font-weight: 600; border: 1px solid #c3c4c7; display: flex; gap: 15px;">
-						<div style="flex: 2;"><?php esc_html_e( 'File', 'wp-verifier' ); ?></div>
-						<div style="flex: 1;"><?php esc_html_e( 'Issues', 'wp-verifier' ); ?></div>
+					<div class="wpv-table-header">
+						<div class="wpv-table-header-file"><?php esc_html_e( 'File', 'wp-verifier' ); ?></div>
+						<div class="wpv-table-header-issues"><?php esc_html_e( 'Issues', 'wp-verifier' ); ?></div>
 					</div>
 					<div class="wpv-ast-table">
 						<?php foreach ( $results_data['results'] as $file => $issues ) : 
@@ -53,10 +53,10 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 								}
 							}
 						?>
-							<div class="accordion-row" style="border: 1px solid #c3c4c7; border-top: none; background: #fff;">
-								<div class="accordion-header" style="display: flex; gap: 15px; padding: 12px 15px; cursor: pointer;">
-									<div class="wpv-ast-file-name" style="flex: 2;"><?php echo esc_html( basename( $file ) ); ?></div>
-									<div class="wpv-ast-severity" style="flex: 1;">
+							<div class="accordion-row">
+								<div class="accordion-header">
+									<div class="wpv-ast-file-name"><?php echo esc_html( basename( $file ) ); ?></div>
+									<div class="wpv-ast-severity">
 										<?php if ( $error_count > 0 ) : ?>
 											<span class="wpv-ast-badge error"><?php echo esc_html( $error_count ); ?> errors</span>
 										<?php endif; ?>
@@ -66,10 +66,10 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 										<span class="wpv-ast-badge fixed">0 fixed</span>
 									</div>
 								</div>
-								<div class="accordion-content" style="display: none; padding: 15px; background: #f9f9f9;">
-									<ul class="wpv-ast-issue-list" style="list-style: none; margin: 0; padding: 0;">
+								<div class="accordion-content">
+									<ul class="wpv-ast-issue-list">
 										<?php foreach ( $issues as $idx => $issue ) : ?>
-											<li class="wpv-ast-issue-item" data-file="<?php echo esc_attr( $file ); ?>" data-idx="<?php echo esc_attr( $idx ); ?>" style="padding: 10px; margin-bottom: 5px; background: #fff; border: 1px solid #ddd; cursor: pointer;">
+											<li class="wpv-ast-issue-item" data-file="<?php echo esc_attr( $file ); ?>" data-idx="<?php echo esc_attr( $idx ); ?>">
 												<span class="wpv-ast-badge <?php echo esc_attr( strtolower( $issue['type'] ) ); ?>"><?php echo esc_html( $issue['type'] ); ?></span>
 												Line <?php echo esc_html( $issue['line'] ); ?>: <?php echo esc_html( $issue['message'] ); ?>
 											</li>
@@ -85,7 +85,7 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 			</div>
 			
 			<div class="wpv-ast-sidebar">
-				<h3 class="wpv-accordion-header" data-target="pan00-content" style="cursor: pointer;"><?php wpverifier_header( __( 'File Details', 'wp-verifier' ), 'PAN00' ); ?> <span class="dashicons dashicons-arrow-down-alt2" style="float: right;"></span></h3>
+				<h3 class="wpv-accordion-header" data-target="pan00-content"><?php wpverifier_header( __( 'File Details', 'wp-verifier' ), 'PAN00' ); ?> <span class="dashicons dashicons-arrow-down-alt2"></span></h3>
 				<div id="pan00-content" class="wpv-accordion-content">
 					<div class="wpv-ast-details" id="file-details">
 						<div class="wpv-ast-placeholder">
@@ -94,7 +94,7 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 					</div>
 				</div>
 				
-				<h3 class="wpv-accordion-header" data-target="pan01-content" style="margin-top: 30px; cursor: pointer;"><?php wpverifier_header( __( 'Selected Issue Details', 'wp-verifier' ), 'PAN01' ); ?> <span class="dashicons dashicons-arrow-down-alt2" style="float: right;"></span></h3>
+				<h3 class="wpv-accordion-header panel-spacing" data-target="pan01-content"><?php wpverifier_header( __( 'Selected Issue Details', 'wp-verifier' ), 'PAN01' ); ?> <span class="dashicons dashicons-arrow-down-alt2"></span></h3>
 				<div id="pan01-content" class="wpv-accordion-content">
 					<div class="wpv-ast-details" id="saved-results-details">
 						<div class="wpv-ast-placeholder">
@@ -103,7 +103,7 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 					</div>
 				</div>
 				
-				<h3 class="wpv-accordion-header" data-target="pan02-content" style="margin-top: 30px; cursor: pointer;"><?php wpverifier_header( __( 'AI Prompt', 'wp-verifier' ), 'PAN02' ); ?> <span class="dashicons dashicons-arrow-down-alt2" style="float: right;"></span></h3>
+				<h3 class="wpv-accordion-header panel-spacing" data-target="pan02-content"><?php wpverifier_header( __( 'AI Prompt', 'wp-verifier' ), 'PAN02' ); ?> <span class="dashicons dashicons-arrow-down-alt2"></span></h3>
 				<div id="pan02-content" class="wpv-accordion-content">
 					<div class="wpv-ast-details" id="wpv-ai-guidance-panel">
 						<div class="wpv-ast-placeholder">

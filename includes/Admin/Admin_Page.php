@@ -136,6 +136,30 @@ final class Admin_Page {
 				'callback' => array( $this, 'render_setup_help_tab' ),
 			)
 		);
+
+		$screen->add_help_tab(
+			array(
+				'id'      => 'wp-verifier-about',
+				'title'   => __( 'About', 'wp-verifier' ),
+				'content' => '<!-- FifeCIC About Tab v1.0 --><h2>' . __( 'About FifeCIC', 'wp-verifier' ) . '</h2>' .
+					'<p>' . __( 'This plugin is developed and maintained by FifeCIC (Fife Community Interest Company), a non-profit organization dedicated to serving our local community through technology and innovation.', 'wp-verifier' ) . '</p>' .
+					'<h3>' . __( 'Our Mission', 'wp-verifier' ) . '</h3>' .
+					'<p>' . __( 'FifeCIC exists to empower communities through accessible digital solutions. We believe that quality software should be available to everyone, regardless of budget, and that technology can be a force for positive social change.', 'wp-verifier' ) . '</p>' .
+					'<h3>' . __( 'Volunteer Development', 'wp-verifier' ) . '</h3>' .
+					'<p>' . __( 'This plugin was lovingly crafted by Ryan Bayne, a volunteer developer committed to FifeCIC\'s vision. Every feature, every line of code, represents hours of unpaid dedication to making WordPress better for everyone.', 'wp-verifier' ) . '</p>' .
+					'<p>' . __( 'As a Community Interest Company, we reinvest everything back into our projects and community initiatives. We don\'t have corporate backing or venture capital—just passionate people who believe in what we\'re doing.', 'wp-verifier' ) . '</p>' .
+					'<h3>' . __( 'How You Can Help', 'wp-verifier' ) . '</h3>' .
+					'<p>💝 <strong>' . __( 'Donate:', 'wp-verifier' ) . '</strong> ' . __( 'Your financial support helps us dedicate more time to development, hosting, and community outreach. Every contribution, no matter how small, makes a real difference.', 'wp-verifier' ) . '</p>' .
+					'<p>🤝 <strong>' . __( 'Get Involved:', 'wp-verifier' ) . '</strong> ' . __( 'Whether you\'re a developer, designer, tester, or just enthusiastic about our mission, we\'d love to have you join us. Check out our GitHub repository or contact us directly.', 'wp-verifier' ) . '</p>' .
+					'<p>⭐ <strong>' . __( 'Spread the Word:', 'wp-verifier' ) . '</strong> ' . __( 'Leave a review, share with colleagues, or simply tell others about FifeCIC. Community support is our lifeblood.', 'wp-verifier' ) . '</p>' .
+					'<p>🐛 <strong>' . __( 'Report Issues:', 'wp-verifier' ) . '</strong> ' . __( 'Help us improve by reporting bugs and suggesting features. Your feedback shapes our roadmap.', 'wp-verifier' ) . '</p>' .
+					'<h3>' . __( 'Connect With Us', 'wp-verifier' ) . '</h3>' .
+					'<p><a href="#" class="button">' . __( 'Website', 'wp-verifier' ) . '</a> ' .
+					'<a href="#" class="button">' . __( 'GitHub', 'wp-verifier' ) . '</a> ' .
+					'<a href="#" class="button">' . __( 'Email', 'wp-verifier' ) . '</a> ' .
+					'<a href="#" class="button button-primary">' . __( 'Donate', 'wp-verifier' ) . '</a></p>'
+			)
+		);
 	}
 
 	/**
@@ -399,6 +423,14 @@ final class Admin_Page {
 				'const wpvAiGuidance = ' . json_encode( $ai_guidance ) . ';',
 				'before'
 			);
+			
+			wp_localize_script(
+				'plugin-check-saved',
+				'wpvConfig',
+				array(
+					'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
+				)
+			);
 		}
 
 		// Enqueue issues tab styles if on issues tab
@@ -526,17 +558,7 @@ final class Admin_Page {
 			'before'
 		);
 		
-		// Add AI Guidance configuration
-		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
-			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
-		}
-		$ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
-		wp_add_inline_script(
-			'wp-verifier-ai-guidance',
-			'const wpvAiGuidance = ' . json_encode( $ai_guidance ) . ';',
-			'before'
-		);
-		
+
 		// Add Error Metadata configuration
 		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Error_Metadata' ) ) {
 			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Error_Metadata.php';

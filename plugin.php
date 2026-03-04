@@ -43,6 +43,12 @@ function wp_plugin_check_load() {
 	// Load the Composer autoloader.
 	require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'vendor/autoload.php';
 
+	// Load verification classes
+	require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/Hash_Generator.php';
+	require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/JSON_Storage.php';
+	require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/Verification_Matcher.php';
+	require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Verification_Status.php';
+
 	// Setup the plugin.
 	$instance = new Plugin_Main( WP_PLUGIN_CHECK_MAIN_FILE );
 	$instance->add_hooks();

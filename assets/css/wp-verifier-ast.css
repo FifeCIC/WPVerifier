@@ -29,7 +29,10 @@
 	border: 1px solid #ccd0d4;
 	border-radius: 4px;
 	padding: 20px;
-	min-height: 200px;
+}
+
+#file-details {
+	min-height: auto;
 }
 
 .wpv-ast-placeholder {
@@ -182,6 +185,105 @@
 
 .wpv-copy-ai .dashicons {
 	margin-top: 3px;
+}
+
+.wpv-readiness-score {
+	margin: 20px 0;
+	padding: 15px;
+	background: #fff;
+	border-left: 4px solid #2271b1;
+}
+
+.wpv-table-header {
+	background: #f1f1f1;
+	padding: 12px 15px;
+	font-weight: 600;
+	border: 1px solid #c3c4c7;
+	display: flex;
+	gap: 15px;
+}
+
+.wpv-table-header-file {
+	flex: 2;
+}
+
+.wpv-table-header-issues {
+	flex: 1;
+}
+
+.wpv-ast-table .accordion-row {
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	background: #fff;
+}
+
+.wpv-ast-table .accordion-header {
+	display: flex;
+	gap: 15px;
+	padding: 12px 15px;
+	cursor: pointer;
+}
+
+.wpv-ast-table .accordion-content {
+	display: none;
+	padding: 15px;
+	background: #f9f9f9;
+}
+
+.wpv-ast-issue-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wpv-ast-issue-item {
+	padding: 10px;
+	margin-bottom: 5px;
+	background: #fff;
+	border: 1px solid #ddd;
+	cursor: pointer;
+}
+
+.wpv-accordion-header {
+	cursor: pointer;
+}
+
+.wpv-accordion-header .dashicons {
+	float: right;
+}
+
+.wpv-accordion-header.panel-spacing {
+	margin-top: 30px;
+}
+
+.wpv-detail-info {
+	margin-bottom: 10px;
+}
+
+.wpv-detail-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: start;
+	margin-bottom: 15px;
+}
+
+.wpv-detail-content {
+	flex: 1;
+}
+
+.wpv-prompt-pre {
+	background: #f5f5f5;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-size: 12px;
+	line-height: 1.5;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+
+.wpv-copy-detailed-btn {
+	margin-left: 8px;
 }
 
 @media (max-width: 1200px) {

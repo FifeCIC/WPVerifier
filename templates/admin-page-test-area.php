@@ -15,7 +15,8 @@ $test_results = array();
 
 // Test 1: File Hash Generation
 $test_file = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/helper-functions.php';
-$file_hash = Hash_Generator::generate_file_hash( $test_file );
+$hash_generator = new Hash_Generator();
+$file_hash = $hash_generator->generate_file_hash( $test_file );
 $test_results[] = array(
 	'name' => 'File Hash Generation',
 	'status' => $file_hash !== false ? 'pass' : 'fail',
@@ -24,7 +25,7 @@ $test_results[] = array(
 );
 
 // Test 2: Function Hash Generation
-$function_hash = Hash_Generator::generate_function_hash( $test_file, 'wpverifier_header' );
+$function_hash = $hash_generator->generate_function_hash( $test_file, 'wpverifier_header' );
 $test_results[] = array(
 	'name' => 'Function Hash Generation',
 	'status' => $function_hash !== false ? 'pass' : 'fail',
@@ -33,7 +34,7 @@ $test_results[] = array(
 );
 
 // Test 3: Invalid File
-$invalid_hash = Hash_Generator::generate_file_hash( '/nonexistent/file.php' );
+$invalid_hash = $hash_generator->generate_file_hash( '/nonexistent/file.php' );
 $test_results[] = array(
 	'name' => 'Invalid File Handling',
 	'status' => $invalid_hash === false ? 'pass' : 'fail',
@@ -42,8 +43,8 @@ $test_results[] = array(
 );
 
 // Test 4: Hash Consistency
-$hash1 = Hash_Generator::generate_file_hash( $test_file );
-$hash2 = Hash_Generator::generate_file_hash( $test_file );
+$hash1 = $hash_generator->generate_file_hash( $test_file );
+$hash2 = $hash_generator->generate_file_hash( $test_file );
 $test_results[] = array(
 	'name' => 'Hash Consistency',
 	'status' => $hash1 === $hash2 ? 'pass' : 'fail',

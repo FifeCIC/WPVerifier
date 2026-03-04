@@ -1,6 +1,6 @@
 <?php
 /**
- * JSON Storage Handler for Verification Tracking
+ * JSON Storage handler for verification tracking
  *
  * @package wp-verifier
  */
@@ -8,109 +8,176 @@
 namespace WordPress\Plugin_Check\Verification;
 
 /**
- * Handles reading and writing .wpv-verification.json files
+ * Handles JSON storage for verification data
  */
 class JSON_Storage {
 
 	/**
-	 * Get verification file path for a plugin
-	 *
-	 * @param string $plugin_slug Plugin slug
-	 * @return string Full path to verification JSON file
+	 * Verification file name
 	 */
-	public static function get_verification_file_path( $plugin_slug ) {
-		$plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_slug;
-		return $plugin_dir . '/.wpv-verification.json';
+	const VERIFICATION_FILE = '.wpv-verification.json';
+
+	/**
+	 * Get verification file path
+	 *
+	 * @return string Full path to verification file
+	 */
+	protected function get_verification_file_path() {
+		return WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . self::VERIFICATION_FILE;
 	}
 
 	/**
-	 * Initialize verification file for a plugin
+	 * Load verification data from JSON file
 	 *
-	 * @param string $plugin_slug Plugin slug
-	 * @return bool True on success, false on failure
+	 * @return array Verification data structure
 	 */
-	public static function initialize_verification_file( $plugin_slug ) {
-		$file_path = self::get_verification_file_path( $plugin_slug );
+	public function load_verification_data() {
+		$file_path = $this->get_verification_file_path();
 		
-		if ( file_exists( $file_path ) ) {
-			return true;
+		if ( ! file_exists( $file_path ) ) {
+			return $this->get_default_structure();
 		}
 
-		$initial_data = array(
-			'version'        => '1.0',
-			'plugin'         => $plugin_slug,
-			'created_at'     => current_time( 'mysql' ),
-			'readiness'      => 0,
-			'file_level'     => array(),
-			'function_level' => array(),
+		$content = file_get_contents( $file_path );
+		if ( false === $content ) {
+			return $this->get_default_structure();
+		}
+
+		$data = json_decode( $content, true );
+		if ( null === $data ) {
+			return $this->get_default_structure();
+		}
+
+		return $this->validate_structure( $data );
+	}
+
+	/**
+	 * Save verification data to JSON file
+	 *
+	 * @param array $data Verification data to save
+	 * @return bool True on success, false on failure
+	 */
+	public function save_verification_data( $data ) {
+		$file_path = $this->get_verification_file_path();
+		
+		// Create backup if file exists
+		if ( file_exists( $file_path ) ) {
+			$backup_path = $file_path . '.backup';
+			copy( $file_path, $backup_path );
+		}
+
+		$json = wp_json_encode( $data, JSON_PRETTY_PRINT );
+		if ( false === $json ) {
+			return false;
+		}
+
+		// Atomic write using temp file
+		$temp_path = $file_path . '.tmp';
+		$result = file_put_contents( $temp_path, $json, LOCK_EX );
+		
+		if ( false === $result ) {
+			return false;
+		}
+
+		return rename( $temp_path, $file_path );
+	}
+
+	/**
+	 * Mark function as verified
+	 *
+	 * @param string $function_name Function name (Class::method or function_name)
+	 * @param string $file_path Relative file path
+	 * @param string $hash Function hash
+	 * @param array  $issues Array of issues to mark as verified
+	 * @param string $note Optional verification note
+	 * @return bool True on success
+	 */
+	public function mark_function_verified( $function_name, $file_path, $hash, $issues = array(), $note = '' ) {
+		$data = $this->load_verification_data();
+		
+		if ( ! isset( $data['function_level'][ $function_name ] ) ) {
+			$data['function_level'][ $function_name ] = array(
+				'file' => $file_path,
+				'hash' => $hash,
+				'issues' => array(),
+			);
+		}
+
+		$current_user = wp_get_current_user();
+		$timestamp = current_time( 'c' );
+
+		foreach ( $issues as $issue ) {
+			$issue_data = array(
+				'line' => $issue['line'] ?? 0,
+				'type' => $issue['type'] ?? '',
+				'status' => 'verified',
+				'note' => $note,
+				'verified_by' => $current_user->ID,
+				'verified_at' => $timestamp,
+			);
+
+			$data['function_level'][ $function_name ]['issues'][] = $issue_data;
+		}
+
+		return $this->save_verification_data( $data );
+	}
+
+	/**
+	 * Mark entire file as verified
+	 *
+	 * @param string $file_path Relative file path
+	 * @param string $hash File hash
+	 * @param string $note Optional verification note
+	 * @return bool True on success
+	 */
+	public function mark_file_verified( $file_path, $hash, $note = '' ) {
+		$data = $this->load_verification_data();
+		
+		$current_user = wp_get_current_user();
+		$timestamp = current_time( 'c' );
+
+		$data['file_level'][ $file_path ] = array(
+			'hash' => $hash,
+			'status' => 'verified',
+			'note' => $note,
+			'verified_by' => $current_user->ID,
+			'verified_at' => $timestamp,
 		);
 
-		return self::write_verification_data( $plugin_slug, $initial_data );
+		return $this->save_verification_data( $data );
 	}
 
 	/**
-	 * Read verification data from JSON file
+	 * Get default verification data structure
 	 *
-	 * @param string $plugin_slug Plugin slug
-	 * @return array|null Verification data or null on failure
+	 * @return array Default structure
 	 */
-	public static function read_verification_data( $plugin_slug ) {
-		$file_path = self::get_verification_file_path( $plugin_slug );
-
-		if ( ! file_exists( $file_path ) ) {
-			return null;
-		}
-
-		$json_content = file_get_contents( $file_path );
-		if ( false === $json_content ) {
-			return null;
-		}
-
-		$data = json_decode( $json_content, true );
-		if ( null === $data ) {
-			return null;
-		}
-
-		return self::validate_structure( $data ) ? $data : null;
+	protected function get_default_structure() {
+		return array(
+			'version' => '1.0',
+			'file_level' => array(),
+			'function_level' => array(),
+		);
 	}
 
 	/**
-	 * Write verification data to JSON file
+	 * Validate and fix verification data structure
 	 *
-	 * @param string $plugin_slug Plugin slug
-	 * @param array  $data Verification data
-	 * @return bool True on success, false on failure
+	 * @param array $data Data to validate
+	 * @return array Validated data
 	 */
-	public static function write_verification_data( $plugin_slug, $data ) {
-		$file_path = self::get_verification_file_path( $plugin_slug );
+	protected function validate_structure( $data ) {
+		$default = $this->get_default_structure();
 		
-		$json_content = wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-		if ( false === $json_content ) {
-			return false;
-		}
-
-		$result = file_put_contents( $file_path, $json_content, LOCK_EX );
-		return false !== $result;
-	}
-
-	/**
-	 * Validate verification data structure
-	 *
-	 * @param array $data Verification data
-	 * @return bool True if valid, false otherwise
-	 */
-	private static function validate_structure( $data ) {
 		if ( ! is_array( $data ) ) {
-			return false;
+			return $default;
 		}
 
-		$required_keys = array( 'version', 'file_level', 'function_level' );
-		foreach ( $required_keys as $key ) {
-			if ( ! isset( $data[ $key ] ) ) {
-				return false;
-			}
-		}
+		// Ensure required keys exist
+		$data['version'] = $data['version'] ?? $default['version'];
+		$data['file_level'] = is_array( $data['file_level'] ?? null ) ? $data['file_level'] : array();
+		$data['function_level'] = is_array( $data['function_level'] ?? null ) ? $data['function_level'] : array();
 
-		return true;
+		return $data;
 	}
 }

@@ -19,6 +19,17 @@ final class Settings_Page {
 	use AI_Connect;
 
 	/**
+	 * Initialize hash tracking system
+	 *
+	 * @since 1.9.0
+	 */
+	protected function init_hash_tracking() {
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Verification_Status' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Verification_Status.php';
+		}
+	}
+
+	/**
 	 * Option group name.
 	 *
 	 * @since 1.8.0
@@ -286,6 +297,10 @@ final class Settings_Page {
 			self::PAGE_SLUG,
 			'general_settings_section'
 		);
+
+		// Add hash tracking status section
+		$this->init_hash_tracking();
+		\WordPress\Plugin_Check\Admin\Verification_Status::add_verification_section();
 	}
 
 	/**
@@ -833,6 +848,10 @@ final class Settings_Page {
 	 * @since 1.8.0
 	 */
 	public function render_ai_tab() {
+		// Handle test verification action
+		if ( isset( $_POST['test_verification'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'test_verification' ) ) {
+			\WordPress\Plugin_Check\Admin\Verification_Status::test_verification_system();
+		}
 		?>
 		<form method="post" action="options.php">
 			<?php
@@ -840,6 +859,15 @@ final class Settings_Page {
 			do_settings_sections( self::PAGE_SLUG );
 			submit_button();
 			?>
+		</form>
+		
+		<hr style="margin: 30px 0;">
+		
+		<form method="post" action="">
+			<?php wp_nonce_field( 'test_verification' ); ?>
+			<h3><?php esc_html_e( 'Test Hash Tracking System', 'wp-verifier' ); ?></h3>
+			<p><?php esc_html_e( 'Click the button below to test the hash tracking system with sample data.', 'wp-verifier' ); ?></p>
+			<?php submit_button( __( 'Test Verification System', 'wp-verifier' ), 'secondary', 'test_verification', false ); ?>
 		</form>
 		<?php
 	}

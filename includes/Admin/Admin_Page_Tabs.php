@@ -48,7 +48,7 @@ class Admin_Page_Tabs {
 					esc_url( $url ),
 					esc_attr( $active_class )
 				);
-				wpverifier_header( $tab_data['title'], $tab_data['code'] );
+				wpverifier_header( $tab_data['title'], $tab_data['code'], true );
 				echo '</a>';
 			}
 			?>

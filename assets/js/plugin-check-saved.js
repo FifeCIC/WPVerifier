@@ -3,6 +3,18 @@ jQuery(document).ready(function($) {
 		return;
 	}
 	
+	let aiGuidanceConfig = {};
+	
+	// Load AI guidance config
+	if (typeof wpvConfig !== 'undefined' && wpvConfig.pluginUrl) {
+		fetch(wpvConfig.pluginUrl + 'ai-guidance-config.json')
+			.then(response => response.json())
+			.then(data => {
+				aiGuidanceConfig = data;
+			})
+			.catch(err => console.log('AI guidance config not loaded'));
+	}
+	
 	$('.accordion-header').on('click', function() {
 		const $header = $(this);
 		$header.toggleClass('active').next('.accordion-content').slideToggle(200);
@@ -10,21 +22,13 @@ jQuery(document).ready(function($) {
 		// Update File Details panel
 		const file = $header.closest('.accordion-row').find('.wpv-ast-file-name').text();
 		const issues = wpvSavedResults[file] || [];
-		const errorCount = issues.filter(i => i.type === 'ERROR').length;
-		const warningCount = issues.filter(i => i.type === 'WARNING').length;
 		
 		$('#file-details').html(`
-			<div style="margin-bottom: 10px;">
-				<strong>File:</strong><br>${file}
+			<div class="wpv-detail-info">
+				<strong>File:</strong> ${file}
 			</div>
-			<div style="margin-bottom: 10px;">
+			<div class="wpv-detail-info">
 				<strong>Total Issues:</strong> ${issues.length}
-			</div>
-			<div style="margin-bottom: 10px;">
-				<strong>Errors:</strong> <span class="wpv-ast-badge error">${errorCount}</span>
-			</div>
-			<div style="margin-bottom: 10px;">
-				<strong>Warnings:</strong> <span class="wpv-ast-badge warning">${warningCount}</span>
 			</div>
 		`);
 	});
@@ -53,6 +57,17 @@ Message: ${issue.message}
 
 Please fix this issue in the file from my workspace.`;
 		
+		const guidance = aiGuidanceConfig[issue.code];
+		const detailedPrompt = guidance ? `File: ${file}
+Line: ${issue.line}
+Code: ${issue.code}
+Message: ${issue.message}
+
+AI Guidance:
+${guidance.ai_guidance}
+
+Please fix this issue in the file from my workspace.` : aiPrompt;
+		
 		// Copy to clipboard
 		navigator.clipboard.writeText(aiPrompt).then(() => {
 			const toast = $('<div class="wpv-toast">✓ Copied to clipboard</div>');
@@ -65,22 +80,21 @@ Please fix this issue in the file from my workspace.`;
 		});
 		
 		$('#saved-results-details').html(`
-			<div style="margin-bottom: 15px;">
+			<div class="wpv-detail-header">
+				<div class="wpv-detail-content">
+					<div class="wpv-detail-info">
+						<strong>Line:</strong> ${issue.line}
+					</div>
+					<div class="wpv-detail-info">
+						<strong>Code:</strong> <code>${issue.code}</code>
+					</div>
+					<div class="wpv-detail-info">
+						<strong>Message:</strong><br>${$('<div>').text(issue.message).html()}
+					</div>
+				</div>
 				<span class="wpv-ast-badge ${issue.type.toLowerCase()}">${issue.type}</span>
 			</div>
-			<div style="margin-bottom: 10px;">
-				<strong>File:</strong> ${file.split(/[\\\\/]/).pop()}
-			</div>
-			<div style="margin-bottom: 10px;">
-				<strong>Line:</strong> ${issue.line}
-			</div>
-			<div style="margin-bottom: 10px;">
-				<strong>Code:</strong> <code>${issue.code}</code>
-			</div>
-			<div style="margin-bottom: 10px;">
-				<strong>Message:</strong><br>${$('<div>').text(issue.message).html()}
-			</div>
-			<div class="wpv-ast-detail-actions" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px;">
+			<div class="wpv-ast-detail-actions">
 				<button type="button" class="button wpv-copy-ai-btn">
 					<span class="dashicons dashicons-clipboard"></span> Copy for AI
 				</button>
@@ -101,18 +115,32 @@ Please fix this issue in the file from my workspace.`;
 		`);
 		
 		$('#wpv-ai-guidance-panel').html(`
-			<div style="margin-bottom: 10px;">
-				<strong>Instructions:</strong><br>
-				<pre style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word;">${aiPrompt}</pre>
-			</div>
-			<button type="button" class="button button-primary wpv-copy-prompt-btn">
-				<span class="dashicons dashicons-clipboard"></span> Copy Instructions for AI
-			</button>
+			${guidance ? `<div class="wpv-detail-info">
+				<strong>AI Prompt:</strong><br>
+				<pre class="wpv-prompt-pre">${detailedPrompt}</pre>
+			</div>` : `<div class="wpv-detail-info">
+				<strong>AI Prompt:</strong><br>
+				<pre class="wpv-prompt-pre">${aiPrompt}</pre>
+			</div>`}
+			${guidance ? `<button type="button" class="button button-primary wpv-copy-detailed-btn">
+				<span class="dashicons dashicons-clipboard"></span> Copy AI Prompt
+			</button>` : `<button type="button" class="button button-primary wpv-copy-prompt-btn">
+				<span class="dashicons dashicons-clipboard"></span> Copy AI Prompt
+			</button>`}
 		`);
 		
 		// Bind button events
 		$('.wpv-copy-ai-btn, .wpv-copy-prompt-btn').on('click', function() {
 			navigator.clipboard.writeText(aiPrompt).then(() => {
+				const $btn = $(this);
+				const originalHtml = $btn.html();
+				$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
+				setTimeout(() => $btn.html(originalHtml), 2000);
+			});
+		});
+		
+		$('.wpv-copy-detailed-btn').on('click', function() {
+			navigator.clipboard.writeText(detailedPrompt).then(() => {
 				const $btn = $(this);
 				const originalHtml = $btn.html();
 				$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
