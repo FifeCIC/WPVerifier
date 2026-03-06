@@ -138,6 +138,16 @@
 	color: white;
 }
 
+.wpv-ast-badge.ignored {
+	background: #646970;
+	color: white;
+}
+
+.wpv-ast-badge.pending {
+	background: #dba617;
+	color: white;
+}
+
 .wpv-ast-issue-list {
 	list-style: none;
 	margin: 0;

@@ -140,9 +140,9 @@ final class Admin_Page {
 		$screen->add_help_tab(
 			array(
 				'id'      => 'wp-verifier-about',
-				'title'   => __( 'About', 'wp-verifier' ),
+				'title'   => __( 'FifeCIC', 'wp-verifier' ),
 				'content' => '<!-- FifeCIC About Tab v1.0 --><h2>' . __( 'About FifeCIC', 'wp-verifier' ) . '</h2>' .
-					'<p>' . __( 'This plugin is developed and maintained by FifeCIC (Fife Community Interest Company), a non-profit organization dedicated to serving our local community through technology and innovation.', 'wp-verifier' ) . '</p>' .
+					'<p>' . __( 'This plugins developer is supported by FifeCIC (Fife Community Interest Company), a non-profit organization dedicated to serving our local community through technology and innovation.', 'wp-verifier' ) . '</p>' .
 					'<h3>' . __( 'Our Mission', 'wp-verifier' ) . '</h3>' .
 					'<p>' . __( 'FifeCIC exists to empower communities through accessible digital solutions. We believe that quality software should be available to everyone, regardless of budget, and that technology can be a force for positive social change.', 'wp-verifier' ) . '</p>' .
 					'<h3>' . __( 'Volunteer Development', 'wp-verifier' ) . '</h3>' .
@@ -160,8 +160,119 @@ final class Admin_Page {
 					'<a href="#" class="button button-primary">' . __( 'Donate', 'wp-verifier' ) . '</a></p>'
 			)
 		);
+
+        $screen->add_help_tab( array(
+            'id'        => 'wpseed_faq_tab',
+            'title'     => __( 'FAQ', 'wpseed' ),
+            'content'   => '',
+            'callback'  => array( $this, 'faq' ),
+        ) );
 	}
 
+    
+    public function faq() {
+        $questions = array(
+            0 => __( '-- Select a question --', 'wpseed' ),
+            1 => __( "Do I need to give credit to you (Ryan Bayne) if I create a plugin using the seed?", 'wpseed' ),
+            2 => __( "Can I hire you (Ryan Bayne) to create a plugin for me using the seed?", 'wpseed' ),
+            3 => __( "Is there support for anyone using this boilerplate to create a plugin?", 'wpseed' ),
+        );  
+        
+        wp_add_inline_style( 'wp-admin', '.faq-answers li { background:white; padding:10px 20px; border:1px solid #cacaca; }' );
+        
+        ?>
+
+        <p>
+            <ul id="faq-index">
+                <?php foreach ( $questions as $question_index => $question ): ?>
+                    <li data-answer="<?php echo esc_attr($question_index); ?>"><a href="#q<?php echo esc_attr($question_index); ?>"><?php echo esc_html($question); ?></a></li>
+                <?php endforeach; ?>
+            </ul>
+        </p>
+        
+        <ul class="faq-answers">
+            <li class="faq-answer" id='q1'>
+                <?php esc_html_e('There are multiple developers mentioned in the documentation of this plugin. You must continue to give credit to them all. Removing credits and any reference to repositories will make it difficult for developers to maintain the plugin you create. If you want my support you must also mentioned myself and the WordPress Plugin Seed on your plugins main page.', 'wpseed');?>
+            </li>
+            <li class="faq-answer" id='q2'>
+                <p> <?php esc_html_e('Yes, you can hire me (the plugin author) to create a plugin for you and prices vary but start very low. Technically it takes a only a few minutes to create a new plugin using my boilerplate. You can pay me a small fee to start your plugin and then make separate agreements for doing more work to it.', 'wpseed');?> </p>
+            </li>
+
+            <li class="faq-answer" id='q3'>
+                <p> <?php esc_html_e('There is always some level of free support but I will expect to see some credit giving to myself and the project. Support is only offered when getting started or your plugin is already available on the WordPress.org repository. If you require support for a premium/commercial plugin project then you will have to pay a small consultation fee.', 'wpseed');?> </p>
+            </li>
+     
+        </ul>
+             
+        <?php
+        $faq_script = "
+            jQuery( document).ready( function( $ ) {
+                var selectedQuestion = '';
+
+                function selectQuestion() {
+                    var q = $( '#' + $(this).val() );
+                    if ( selectedQuestion.length ) {
+                        selectedQuestion.hide();
+                    }
+                    q.show();
+                    selectedQuestion = q;
+                }
+
+                var faqAnswers = $('.faq-answer');
+                var faqIndex = $('#faq-index');
+                faqAnswers.hide();
+                faqIndex.hide();
+
+                var indexSelector = $('<select/>')
+                    .attr( 'id', 'question-selector' )
+                    .addClass( 'widefat' );
+                var questions = faqIndex.find( 'li' );
+                var advancedGroup = false;
+                questions.each( function () {
+                    var self = $(this);
+                    var answer = self.data('answer');
+                    var text = self.text();
+                    var option;
+
+                    if ( answer === 39 ) {
+                        advancedGroup = $( '<optgroup />' )
+                            .attr( 'label', '" . esc_js( __( 'Advanced: This part of FAQ requires some knowledge about HTML, PHP and/or WordPress coding.', 'wpseed' ) ) . "' );
+
+                        indexSelector.append( advancedGroup );
+                    }
+
+                    if ( answer !== '' && text !== '' ) {
+                        option = $( '<option/>' )
+                            .val( 'q' + answer )
+                            .text( text );
+                        if ( advancedGroup ) {
+                            advancedGroup.append( option );
+                        }
+                        else {
+                            indexSelector.append( option );
+                        }
+
+                    }
+
+                });
+
+                faqIndex.after( indexSelector );
+                indexSelector.before(
+                    $('<label />')
+                        .attr( 'for', 'question-selector' )
+                        .text( '" . esc_js( __( 'Select a question', 'wpseed' ) ) . "' )
+                        .addClass( 'screen-reader-text' )
+                );
+
+                indexSelector.change( selectQuestion );
+            });
+        ";
+        wp_add_inline_script( 'jquery', $faq_script );
+        ?>        
+
+        <?php 
+    }
+	
 	/**
 	 * Renders the plugin help tab.
 	 *
@@ -429,6 +540,7 @@ final class Admin_Page {
 				'wpvConfig',
 				array(
 					'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
+					'nonce' => $this->admin_ajax->get_nonce(),
 				)
 			);
 		}

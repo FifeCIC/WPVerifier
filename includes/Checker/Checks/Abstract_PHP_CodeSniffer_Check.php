@@ -14,6 +14,7 @@ use WordPress\Plugin_Check\Checker\Check_Result;
 use WordPress\Plugin_Check\Checker\Static_Check;
 use WordPress\Plugin_Check\Traits\Amend_Check_Result;
 use WordPress\Plugin_Check\Utilities\Plugin_Request_Utility;
+use WordPress\Plugin_Check\Verification\Hash_Generator;
 
 /**
  * Check for running one or more PHP CodeSniffer sniffs.
@@ -136,6 +137,19 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		foreach ( $reports['files'] as $file_name => $file_results ) {
 			if ( empty( $file_results['messages'] ) ) {
 				continue;
+			}
+
+			// Step 2: Generate hashes for files with issues (non-breaking logging)
+			if ( class_exists( 'WordPress\\Plugin_Check\\Verification\\Hash_Generator' ) ) {
+				try {
+					$hash_generator = new \WordPress\Plugin_Check\Verification\Hash_Generator();
+					$file_hash = $hash_generator->generate_file_hash( $file_name );
+					if ( $file_hash ) {
+						error_log( "WPVerifier Hash: File {$file_name} = {$file_hash}" );
+					}
+				} catch ( Exception $e ) {
+					// Silent fail - don't break existing functionality
+				}
 			}
 
 			foreach ( $file_results['messages'] as $file_message ) {

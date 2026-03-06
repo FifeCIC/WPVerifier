@@ -59,6 +59,129 @@ class Hash_Generator {
 	}
 
 	/**
+	 * Generate hashes for all functions in a file
+	 *
+	 * @param string $file_path Path to PHP file
+	 * @return array Array of function_name => hash pairs
+	 */
+	public function generate_function_hashes( $file_path ) {
+		if ( ! file_exists( $file_path ) ) {
+			return array();
+		}
+
+		$content = file_get_contents( $file_path );
+		if ( false === $content ) {
+			return array();
+		}
+
+		$functions = $this->extract_all_functions( $content );
+		$hashes = array();
+
+		foreach ( $functions as $function_name => $function_body ) {
+			$normalized = $this->normalize_content( $function_body );
+			$hashes[ $function_name ] = substr( hash( 'sha256', $normalized ), 0, 8 );
+		}
+
+		return $hashes;
+	}
+
+	/**
+	 * Extract all functions from PHP content
+	 *
+	 * @param string $content PHP file content
+	 * @return array Array of function_name => function_body pairs
+	 */
+	protected function extract_all_functions( $content ) {
+		$tokens = token_get_all( $content );
+		$functions = array();
+		$current_class = '';
+
+		for ( $i = 0; $i < count( $tokens ); $i++ ) {
+			$token = $tokens[ $i ];
+
+			if ( is_array( $token ) ) {
+				// Track current class
+				if ( T_CLASS === $token[0] ) {
+					$current_class = $this->get_class_name_from_tokens( $tokens, $i );
+				}
+				// Find function declarations
+				elseif ( T_FUNCTION === $token[0] ) {
+					$function_name = $this->get_function_name_from_tokens( $tokens, $i );
+					$function_body = $this->extract_function_body_from_index( $tokens, $i );
+					
+					if ( $function_name && $function_body ) {
+						// Use class::method format if inside a class
+						if ( $current_class && strpos( $function_name, '::' ) === false ) {
+							$function_name = $current_class . '::' . $function_name;
+						}
+						$functions[ $function_name ] = $function_body;
+					}
+				}
+			}
+		}
+
+		return $functions;
+	}
+
+	/**
+	 * Get class name from tokens starting at T_CLASS
+	 *
+	 * @param array $tokens Token array
+	 * @param int   $start_index Index of T_CLASS token
+	 * @return string Class name
+	 */
+	protected function get_class_name_from_tokens( $tokens, $start_index ) {
+		for ( $i = $start_index + 1; $i < count( $tokens ); $i++ ) {
+			if ( is_array( $tokens[ $i ] ) && T_STRING === $tokens[ $i ][0] ) {
+				return $tokens[ $i ][1];
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Extract function body from token index
+	 *
+	 * @param array $tokens Token array
+	 * @param int   $function_index Index of T_FUNCTION token
+	 * @return string Function body
+	 */
+	protected function extract_function_body_from_index( $tokens, $function_index ) {
+		$brace_count = 0;
+		$function_body = '';
+		$found_opening_brace = false;
+
+		for ( $i = $function_index; $i < count( $tokens ); $i++ ) {
+			$token = $tokens[ $i ];
+
+			if ( ! is_array( $token ) ) {
+				if ( '{' === $token ) {
+					$brace_count++;
+					$found_opening_brace = true;
+					if ( 1 === $brace_count ) {
+						continue; // Skip opening brace
+					}
+				} elseif ( '}' === $token ) {
+					$brace_count--;
+					if ( 0 === $brace_count && $found_opening_brace ) {
+						break; // End of function
+					}
+				}
+
+				if ( $found_opening_brace && $brace_count > 0 ) {
+					$function_body .= $token;
+				}
+			} else {
+				if ( $found_opening_brace && $brace_count > 0 ) {
+					$function_body .= $token[1];
+				}
+			}
+		}
+
+		return $function_body;
+	}
+
+	/**
 	 * Extract function body from PHP content
 	 *
 	 * @param string $content PHP file content

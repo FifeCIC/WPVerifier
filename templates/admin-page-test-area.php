@@ -52,6 +52,17 @@ $test_results[] = array(
 	'details' => sprintf( 'Hash 1: %s, Hash 2: %s', $hash1, $hash2 ),
 );
 
+// Test 5: Plugin File Hash Generation (for next step)
+$plugin_file = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Settings_Page.php';
+$plugin_file_hash = $hash_generator->generate_file_hash( $plugin_file );
+$plugin_function_hash = $hash_generator->generate_function_hash( $plugin_file, 'Settings_Page::add_hooks' );
+$test_results[] = array(
+	'name' => 'Plugin File Hash Ready',
+	'status' => ($plugin_file_hash && $plugin_function_hash) ? 'pass' : 'fail',
+	'result' => $plugin_file_hash ? "File: {$plugin_file_hash}, Function: {$plugin_function_hash}" : 'Failed',
+	'details' => 'Ready for verification integration',
+);
+
 ?>
 
 <div class="wrap">

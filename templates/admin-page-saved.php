@@ -45,11 +45,19 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 						<?php foreach ( $results_data['results'] as $file => $issues ) : 
 							$error_count = 0;
 							$warning_count = 0;
+							$fixed_count = 0;
+							$ignored_count = 0;
 							foreach ( $issues as $issue ) {
 								if ( $issue['type'] === 'ERROR' ) {
 									$error_count++;
 								} elseif ( $issue['type'] === 'WARNING' ) {
 									$warning_count++;
+								}
+								if ( isset( $issue['resolved'] ) && $issue['resolved'] === true ) {
+									$fixed_count++;
+								}
+								if ( isset( $issue['ignored'] ) && $issue['ignored'] === true ) {
+									$ignored_count++;
 								}
 							}
 						?>
@@ -63,7 +71,12 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 										<?php if ( $warning_count > 0 ) : ?>
 											<span class="wpv-ast-badge warning"><?php echo esc_html( $warning_count ); ?> warnings</span>
 										<?php endif; ?>
-										<span class="wpv-ast-badge fixed">0 fixed</span>
+										<?php if ( $fixed_count > 0 ) : ?>
+											<span class="wpv-ast-badge fixed"><?php echo esc_html( $fixed_count ); ?> fixed</span>
+										<?php endif; ?>
+										<?php if ( $ignored_count > 0 ) : ?>
+											<span class="wpv-ast-badge ignored"><?php echo esc_html( $ignored_count ); ?> ignored</span>
+										<?php endif; ?>
 									</div>
 								</div>
 								<div class="accordion-content">

@@ -201,6 +201,8 @@
 				this.log('  Issues count:', issues.length);
 				const errorCount = issues.filter(i => i.type === 'ERROR').length;
 				const warningCount = issues.filter(i => i.type === 'WARNING').length;
+				const fixedCount = issues.filter(i => i.resolved === true).length;
+				const ignoredCount = issues.filter(i => i.ignored === true).length;
 				const isLibrary = this.isLibraryFile(file);
 
 				const row = $(`
@@ -212,6 +214,8 @@
 							<div class="wpv-ast-severity">
 								${errorCount > 0 ? `<span class="wpv-ast-badge error">${errorCount} errors</span>` : ''}
 								${warningCount > 0 ? `<span class="wpv-ast-badge warning">${warningCount} warnings</span>` : ''}
+								${fixedCount > 0 ? `<span class="wpv-ast-badge fixed">${fixedCount} fixed</span>` : ''}
+								${ignoredCount > 0 ? `<span class="wpv-ast-badge ignored">${ignoredCount} ignored</span>` : ''}
 							</div>
 						</div>
 						<div class="accordion-content">
@@ -223,10 +227,14 @@
 				const issueList = row.find('.wpv-ast-issue-list');
 				issues.forEach((issue, idx) => {
 					const messageText = $('<div>').html(issue.message).text();
+					const statusBadge = issue.resolved ? '<span class="wpv-ast-badge fixed">Fixed</span>' : 
+										   issue.ignored ? '<span class="wpv-ast-badge ignored">Ignored</span>' : 
+										   '<span class="wpv-ast-badge pending">Pending</span>';
 					issueList.append(`
 						<li class="wpv-ast-issue-item" data-issue-id="${idx}">
 							${issue.icon}
 							<span class="wpv-ast-badge ${issue.type.toLowerCase()}">${issue.type}</span>
+							${statusBadge}
 							Line ${issue.line}: ${this.escapeHtml(messageText)}
 							${issue.docs ? `<a href="${issue.docs}" target="_blank" class="wpv-issue-docs">↗</a>` : ''}
 						</li>

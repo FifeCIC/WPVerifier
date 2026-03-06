@@ -272,6 +272,22 @@ final class Admin_AJAX {
 	const ACTION_RECHECK_FILE = 'wpv_recheck_file';
 
 	/**
+	 * Mark issue as ignored action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_MARK_IGNORED = 'wpv_mark_ignored';
+
+	/**
+	 * Mark issue as resolved action name.
+	 *
+	 * @since 1.9.0
+	 * @var string
+	 */
+	const ACTION_MARK_RESOLVED = 'wpv_mark_resolved';
+
+	/**
 	 * Update configuration action name.
 	 *
 	 * @since 1.9.0
@@ -318,6 +334,8 @@ final class Admin_AJAX {
 		add_action( 'wp_ajax_' . self::ACTION_VALIDATE_STRUCTURE, array( $this, 'validate_structure' ) );
 		add_action( 'wp_ajax_wpv_get_mark_fixed_nonce', array( $this, 'get_mark_fixed_nonce' ) );
 		add_action( 'wp_ajax_' . self::ACTION_RECHECK_FILE, array( $this, 'recheck_file' ) );
+		add_action( 'wp_ajax_' . self::ACTION_MARK_IGNORED, array( $this, 'mark_ignored' ) );
+		add_action( 'wp_ajax_' . self::ACTION_MARK_RESOLVED, array( $this, 'mark_resolved' ) );
 		add_action( 'wp_ajax_' . self::ACTION_UPDATE_CONFIG, array( $this, 'update_config' ) );
 	}
 
@@ -926,6 +944,8 @@ final class Admin_AJAX {
 	 * Handles saving Plugin Check results to file.
 	 *
 	 * @since 1.0.0
+	 * 
+	 * @todo This function might be improved, the foreach loops are similar
 	 */
 	public function save_results() {
 		$this->check_request_validity();
@@ -943,10 +963,10 @@ final class Admin_AJAX {
 				wp_mkdir_p( $verifier_dir );
 			}
 			
-			$file_path = $verifier_dir . '/.wpv-results.json';
+			$json_file_path = $verifier_dir . '/.wpv-results.json';
 			
 			// Load existing JSON to preserve ignored_paths and configuration
-			$existing_data = $this->load_existing_data( $file_path );
+			$existing_data = $this->load_existing_data( $json_file_path );
 			
 			// Convert grouped format to flat format
 			$errors_flat = array();
@@ -1090,9 +1110,70 @@ final class Admin_AJAX {
 				$skipped_rules = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::get_wporg_codes();
 			}
 			
+			// Generate file hashes for verification tracking and save to verification file
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Verification\\Hash_Generator' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/Hash_Generator.php';
+			}
+			$hash_generator = new \WordPress\Plugin_Check\Verification\Hash_Generator();
+			
+			// Get unique files from both errors and warnings
+			$all_files = array_unique( array_merge( 
+				array_column( $errors_flat, 'file' ),
+				array_column( $warnings_flat, 'file' )
+			) );
+			
+			// Save file hashes to verification file
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Verification\\JSON_Storage' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/JSON_Storage.php';
+			}
+			
+			// Load verification data from the target plugin directory
+			$verification_file_path = $verifier_dir . '/.wpv-verification.json';
+			$verification_data = array();
+			if ( file_exists( $verification_file_path ) ) {
+				$verification_data = json_decode( file_get_contents( $verification_file_path ), true );
+			}
+			if ( ! is_array( $verification_data ) ) {
+				$verification_data = array(
+					'version' => '1.0',
+					'file_level' => array(),
+					'function_level' => array(),
+				);
+			}
+			
+			// Add file hashes to verification data
+			if ( ! isset( $verification_data['file_hashes'] ) ) {
+				$verification_data['file_hashes'] = array();
+			}
+			if ( ! isset( $verification_data['function_hashes'] ) ) {
+				$verification_data['function_hashes'] = array();
+			}
+			
+			foreach ( $all_files as $file_path ) {
+				if ( ! empty( $file_path ) && file_exists( $file_path ) ) {
+					// Normalize file path (fix double backslashes)
+					$normalized_path = str_replace( '\\\\', '\\', $file_path );
+					$verification_data['file_hashes'][ $normalized_path ] = $hash_generator->generate_file_hash( $file_path );
+					
+					// Generate function hashes for files with issues
+					$function_hashes = $hash_generator->generate_function_hashes( $file_path );
+					if ( ! empty( $function_hashes ) ) {
+						$verification_data['function_hashes'][ $normalized_path ] = $function_hashes;
+						error_log( 'WPVerifier: Generated ' . count( $function_hashes ) . ' function hashes for ' . basename( $file_path ) );
+					}
+				}
+			}
+			
+			// Update verification file timestamp
+			$verification_data['updated_at'] = $export_metadata['timestamp_human'];
+			
+			// Save updated verification data to target plugin directory
+			file_put_contents( $verification_file_path, wp_json_encode( $verification_data, JSON_PRETTY_PRINT ) );
+			
 			// Build final structure with merged ignored_paths and configuration
 			$final_results = array(
-				'generated_at' => $export_metadata['timestamp_human'],
+				'generated_at' => $existing_data['generated_at'] ?? $export_metadata['timestamp_human'],
+				'updated_at' => $export_metadata['timestamp_human'],
 				'plugin' => $export_metadata['plugin'],
 				'readiness' => $readiness,
 				'configuration' => array(
@@ -1103,28 +1184,17 @@ final class Admin_AJAX {
 				'results' => empty( $results_by_file ) ? new \stdClass() : $results_by_file,
 			);
 			
-			$result = file_put_contents( $file_path, wp_json_encode( $final_results, JSON_PRETTY_PRINT ) );
+			$result = file_put_contents( $json_file_path, wp_json_encode( $final_results, JSON_PRETTY_PRINT ) );
 			
-			error_log( 'JSON saved to: ' . $file_path . ' - Readiness: ' . $readiness['overall'] . ' (Errors: ' . $readiness['errors'] . ', Warnings: ' . $readiness['warnings'] . ')' );
+			error_log( 'JSON saved to: ' . $json_file_path . ' - Readiness: ' . $readiness['overall'] . ' (Errors: ' . $readiness['errors'] . ', Warnings: ' . $readiness['warnings'] . ')' );
 			
 			if ( false === $result ) {
 				throw new InvalidArgumentException( __( 'Failed to save file.', 'wp-verifier' ) );
 			}
 			
-			// Initialize verification file
-			if ( ! class_exists( 'WordPress\\Plugin_Check\\Verification\\JSON_Storage' ) ) {
-				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Verification/JSON_Storage.php';
-			}
-			$verification_result = \WordPress\Plugin_Check\Verification\JSON_Storage::initialize_verification_file( $plugin_folder );
-			if ( $verification_result ) {
-				error_log( 'WPVerifier: Verification file created for ' . $plugin_folder );
-			} else {
-				error_log( 'WPVerifier: Failed to create verification file for ' . $plugin_folder );
-			}
-			
 			wp_send_json_success( array(
-				'message' => sprintf( __( 'Results saved to %s', 'wp-verifier' ), $file_path ),
-				'path' => $file_path
+				'message' => sprintf( __( 'Results saved to %s', 'wp-verifier' ), $json_file_path ),
+				'path' => $json_file_path
 			) );
 			
 		} catch ( InvalidArgumentException $exception ) {
@@ -2313,6 +2383,124 @@ final class Admin_AJAX {
 			'errors' => $errors,
 			'warnings' => $warnings,
 		);
+	}
+
+	/**
+	 * Mark issue as ignored.
+	 *
+	 * @since 1.9.0
+	 */
+	public function mark_ignored() {
+		$this->check_request_validity();
+
+		try {
+			$issue_id = isset( $_POST['issue_id'] ) ? sanitize_text_field( wp_unslash( $_POST['issue_id'] ) ) : '';
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+			if ( empty( $issue_id ) || empty( $plugin ) ) {
+				throw new InvalidArgumentException( __( 'Issue ID and plugin are required.', 'wp-verifier' ) );
+			}
+
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+
+			if ( ! file_exists( $json_file ) ) {
+				throw new InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+			}
+
+			$data = json_decode( file_get_contents( $json_file ), true );
+			if ( ! $data || ! isset( $data['results'] ) ) {
+				throw new InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+			}
+
+			$updated = false;
+			foreach ( $data['results'] as $file => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					if ( $issue['issue_id'] === $issue_id ) {
+						$issue['ignored'] = true;
+						$issue['ignored_by'] = wp_get_current_user()->user_login;
+						$updated = true;
+						break 2;
+					}
+				}
+			}
+
+			if ( ! $updated ) {
+				throw new InvalidArgumentException( __( 'Issue not found.', 'wp-verifier' ) );
+			}
+
+			$data['updated_at'] = current_time( 'mysql' );
+			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
+
+			wp_send_json_success( array(
+				'message' => __( 'Issue marked as ignored.', 'wp-verifier' ),
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Mark issue as resolved.
+	 *
+	 * @since 1.9.0
+	 */
+	public function mark_resolved() {
+		$this->check_request_validity();
+
+		try {
+			$issue_id = isset( $_POST['issue_id'] ) ? sanitize_text_field( wp_unslash( $_POST['issue_id'] ) ) : '';
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+			if ( empty( $issue_id ) || empty( $plugin ) ) {
+				throw new InvalidArgumentException( __( 'Issue ID and plugin are required.', 'wp-verifier' ) );
+			}
+
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+
+			if ( ! file_exists( $json_file ) ) {
+				throw new InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+			}
+
+			$data = json_decode( file_get_contents( $json_file ), true );
+			if ( ! $data || ! isset( $data['results'] ) ) {
+				throw new InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+			}
+
+			$updated = false;
+			foreach ( $data['results'] as $file => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					if ( $issue['issue_id'] === $issue_id ) {
+						$issue['resolved'] = true;
+						$issue['resolved_by'] = wp_get_current_user()->user_login;
+						$updated = true;
+						break 2;
+					}
+				}
+			}
+
+			if ( ! $updated ) {
+				throw new InvalidArgumentException( __( 'Issue not found.', 'wp-verifier' ) );
+			}
+
+			$data['updated_at'] = current_time( 'mysql' );
+			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
+
+			wp_send_json_success( array(
+				'message' => __( 'Issue marked as resolved.', 'wp-verifier' ),
+			) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
 	}
 
 	/**

@@ -148,6 +148,33 @@ class JSON_Storage {
 	}
 
 	/**
+	 * Initialize verification file for a plugin
+	 *
+	 * @param string $plugin_folder Plugin folder name
+	 * @return bool True on success, false on failure
+	 */
+	public static function initialize_verification_file( $plugin_folder ) {
+		$file_path = WP_PLUGIN_DIR . '/' . $plugin_folder . '/' . self::VERIFICATION_FILE;
+		
+		if ( file_exists( $file_path ) ) {
+			return true; // Already exists
+		}
+		
+		$default_data = array(
+			'version' => '1.0',
+			'file_level' => array(),
+			'function_level' => array(),
+		);
+		
+		$json = wp_json_encode( $default_data, JSON_PRETTY_PRINT );
+		if ( false === $json ) {
+			return false;
+		}
+		
+		return false !== file_put_contents( $file_path, $json );
+	}
+
+	/**
 	 * Get default verification data structure
 	 *
 	 * @return array Default structure

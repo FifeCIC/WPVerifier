@@ -3,6 +3,9 @@ jQuery(document).ready(function($) {
 		return;
 	}
 	
+	// Get plugin slug from current page or default to wpseed
+	const pluginSlug = new URLSearchParams(window.location.search).get('plugin') || 'wpseed/wpseed.php';
+	
 	let aiGuidanceConfig = {};
 	
 	// Load AI guidance config
@@ -29,6 +32,11 @@ jQuery(document).ready(function($) {
 			</div>
 			<div class="wpv-detail-info">
 				<strong>Total Issues:</strong> ${issues.length}
+			</div>
+			<div class="wpv-ast-detail-actions" style="margin-top: 15px;">
+				<button type="button" class="button wpv-recheck-file-btn" data-file="${file}">
+					<span class="dashicons dashicons-update"></span> Recheck File
+				</button>
 			</div>
 		`);
 	});
@@ -101,13 +109,10 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 				<a href="vscode://file/${file}:${issue.line}:${issue.column || 0}" class="button">
 					<span class="dashicons dashicons-editor-code"></span> VSCode
 				</a>
-				<button type="button" class="button wpv-recheck-file-btn" data-file="${file}">
-					<span class="dashicons dashicons-update"></span> Recheck File
-				</button>
-				<a href="#" class="button button-primary wpv-fixed-btn" data-issue-id="${issue.issue_id || ''}">
+				<a href="#" class="button wpv-fixed-btn" data-issue-id="${issue.issue_id || ''}">
 					<span class="dashicons dashicons-yes"></span> Fixed
 				</a>
-				<a href="#" class="button wpv-ignore-btn" data-file="${file}" data-code="${issue.code}">
+				<a href="#" class="button wpv-ignore-btn" data-issue-id="${issue.issue_id || ''}">
 					<span class="dashicons dashicons-hidden"></span> Ignore Code
 				</a>
 				${issue.docs ? `<a href="${issue.docs}" target="_blank" class="button">Learn More</a>` : ''}
@@ -180,18 +185,107 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 		
 		$('.wpv-fixed-btn').on('click', function(e) {
 			e.preventDefault();
-			const issueId = $(this).data('issue-id');
-			if (issueId) {
-				window.location.href = ajaxurl.replace('admin-ajax.php', 'admin-post.php') + '?action=wpv_mark_fixed&issue_id=' + encodeURIComponent(issueId);
+			const $btn = $(this);
+			const issueId = $btn.data('issue-id');
+			const originalHtml = $btn.html();
+			
+			if (!issueId) {
+				alert('Issue ID not found.');
+				return;
 			}
+			
+			$btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Marking...');
+			
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'wpv_mark_resolved',
+					issue_id: issueId,
+					plugin: pluginSlug,
+					nonce: wpvConfig?.nonce || wpvAjax?.nonce || ''
+				},
+				success: function(response) {
+					if (response.success) {
+						$btn.html('<span class="dashicons dashicons-yes"></span> Resolved').removeClass('button-primary').addClass('button-secondary');
+						refreshAST();
+					} else {
+						alert('Error: ' + (response.data?.message || 'Unknown error'));
+						$btn.prop('disabled', false).html(originalHtml);
+					}
+				},
+				error: function() {
+					alert('Failed to mark issue as resolved.');
+					$btn.prop('disabled', false).html(originalHtml);
+				}
+			});
 		});
 		
 		$('.wpv-ignore-btn').on('click', function(e) {
 			e.preventDefault();
-			const file = $(this).data('file');
-			const code = $(this).data('code');
-			const url = window.location.pathname + '?page=wp-verifier&tab=results&action=ignore_code&file=' + encodeURIComponent(file) + '&code=' + encodeURIComponent(code);
-			window.location.href = url;
+			const $btn = $(this);
+			const issueId = $btn.data('issue-id');
+			const originalHtml = $btn.html();
+			
+			if (!issueId) {
+				alert('Issue ID not found.');
+				return;
+			}
+			
+			$btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Ignoring...');
+			
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'wpv_mark_ignored',
+					issue_id: issueId,
+					plugin: pluginSlug,
+					nonce: wpvConfig?.nonce || wpvAjax?.nonce || ''
+				},
+				success: function(response) {
+					if (response.success) {
+						$btn.html('<span class="dashicons dashicons-hidden"></span> Ignored').removeClass('button').addClass('button-secondary');
+						refreshAST();
+					} else {
+						alert('Error: ' + (response.data?.message || 'Unknown error'));
+						$btn.prop('disabled', false).html(originalHtml);
+					}
+				},
+				error: function() {
+					alert('Failed to mark issue as ignored.');
+					$btn.prop('disabled', false).html(originalHtml);
+				}
+			});
 		});
 	});
+	
+	// Function to refresh AST after status changes
+	function refreshAST() {
+		if (typeof wpvSavedResults !== 'undefined' && window.WPVerifierAST) {
+			// Reload the JSON data
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'plugin_check_load_results',
+					plugin: pluginSlug,
+					nonce: wpvConfig?.nonce || ''
+				},
+				success: function(response) {
+					if (response.success && response.data && response.data.data) {
+						// Update global results
+						wpvSavedResults = response.data.data.results || {};
+						// Re-render AST
+						if (window.WPVerifierAST && typeof window.WPVerifierAST.init === 'function') {
+							window.WPVerifierAST.init(wpvSavedResults);
+						}
+					}
+				},
+				error: function() {
+					console.log('Failed to refresh AST data');
+				}
+			});
+		}
+	}
 });
