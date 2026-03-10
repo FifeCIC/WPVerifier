@@ -88,6 +88,13 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			);
 		}
 
+		// Step 1: Check for unchanged files and skip them
+		$files_to_scan = $this->get_files_to_scan( $result );
+		if ( empty( $files_to_scan ) ) {
+			// All files unchanged, skip PHPCS entirely
+			return;
+		}
+
 		// Backup the original command line arguments.
 		$orig_cmd_args = $_SERVER['argv'] ?? '';
 
@@ -105,7 +112,7 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		}
 
 		// Create the default arguments for PHPCS.
-		$defaults = $this->get_argv_defaults( $result );
+		$defaults = $this->get_argv_defaults( $result, $files_to_scan );
 
 		// Set the check arguments for PHPCS.
 		$_SERVER['argv'] = $this->parse_argv( $args, $defaults );
@@ -144,9 +151,7 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 				try {
 					$hash_generator = new \WordPress\Plugin_Check\Verification\Hash_Generator();
 					$file_hash = $hash_generator->generate_file_hash( $file_name );
-					if ( $file_hash ) {
-						error_log( "WPVerifier Hash: File {$file_name} = {$file_hash}" );
-					}
+					// Hash generated silently for verification tracking
 				} catch ( Exception $e ) {
 					// Silent fail - don't break existing functionality
 				}
@@ -198,17 +203,126 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 	}
 
 	/**
+	 * Gets files that need to be scanned (changed files only)
+	 *
+	 * @param Check_Result $result The check result context
+	 * @return array Array of file paths that need scanning
+	 */
+	private function get_files_to_scan( Check_Result $result ) {
+		try {
+			$hash_generator = new Hash_Generator();
+			$plugin_path = $result->plugin()->location();
+			$results_file = $plugin_path . '/.wpv-results.json';
+			
+			// Load existing hashes
+			$existing_hashes = array();
+			$has_existing_results = false;
+			if ( file_exists( $results_file ) ) {
+				$data = json_decode( file_get_contents( $results_file ), true );
+				if ( isset( $data['file_hashes'] ) && ! empty( $data['file_hashes'] ) ) {
+					$existing_hashes = $data['file_hashes'];
+					$has_existing_results = true;
+				}
+			}
+			
+			// If no existing results, scan all files (first run)
+			if ( ! $has_existing_results ) {
+				return array( $plugin_path ); // Scan entire plugin
+			}
+			
+			// Get all PHP files in plugin
+			$php_files = $this->get_php_files( $plugin_path );
+			$changed_files = array();
+			
+			foreach ( $php_files as $file_path ) {
+				$current_hash = $hash_generator->generate_file_hash( $file_path );
+				$relative_path = str_replace( $plugin_path . '/', '', $file_path );
+				
+				// Compare with existing hash
+				if ( ! isset( $existing_hashes[ $relative_path ] ) || 
+					 $existing_hashes[ $relative_path ] !== $current_hash ) {
+					$changed_files[] = $file_path;
+				}
+			}
+			
+			// If no files changed, still return plugin path to maintain compatibility
+			// This ensures we don't break existing functionality
+			return empty( $changed_files ) ? array( $plugin_path ) : $changed_files;
+			
+		} catch ( Exception $e ) {
+			// On error, scan all files (fallback to original behavior)
+			return array( $result->plugin()->location() );
+		}
+	}
+
+	/**
+	 * Get all PHP files in directory (respecting ignore patterns)
+	 *
+	 * @param string $plugin_path Plugin directory path
+	 * @return array Array of PHP file paths
+	 */
+	private function get_php_files( $plugin_path ) {
+		$php_files = array();
+		$directories_to_ignore = Plugin_Request_Utility::get_directories_to_ignore();
+		$files_to_ignore = Plugin_Request_Utility::get_files_to_ignore();
+		
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator( $plugin_path, \RecursiveDirectoryIterator::SKIP_DOTS )
+		);
+		
+		foreach ( $iterator as $file ) {
+			if ( $file->getExtension() !== 'php' ) {
+				continue;
+			}
+			
+			$file_path = $file->getPathname();
+			$relative_path = str_replace( $plugin_path . '/', '', $file_path );
+			
+			// Check ignore patterns
+			$should_ignore = false;
+			
+			// Check directory ignores
+			foreach ( $directories_to_ignore as $ignore_dir ) {
+				if ( strpos( $relative_path, $ignore_dir . '/' ) === 0 ) {
+					$should_ignore = true;
+					break;
+				}
+			}
+			
+			// Check file ignores
+			if ( ! $should_ignore ) {
+				foreach ( $files_to_ignore as $ignore_file ) {
+					if ( basename( $file_path ) === $ignore_file ) {
+						$should_ignore = true;
+						break;
+					}
+				}
+			}
+			
+			if ( ! $should_ignore ) {
+				$php_files[] = $file_path;
+			}
+		}
+		
+		return $php_files;
+	}
+
+	/**
 	 * Gets the default command arguments.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param Check_Result $result The check result to amend, including the plugin context to check.
+	 * @param array        $files_to_scan Optional. Specific files to scan instead of entire plugin.
 	 * @return array An indexed array of PHPCS CLI arguments.
 	 */
-	private function get_argv_defaults( Check_Result $result ): array {
+	private function get_argv_defaults( Check_Result $result, $files_to_scan = null ): array {
+		// Use specific files if provided, otherwise scan entire plugin
+		$scan_target = $files_to_scan ? implode( ',', $files_to_scan ) : $result->plugin()->location();
+		
 		$defaults = array(
 			'',
-			$result->plugin()->location(),
+			$scan_target,
 			'--report=Json',
 			'--report-width=9999',
 		);
@@ -218,18 +332,21 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		$directories_to_ignore = Plugin_Request_Utility::get_directories_to_ignore();
 		$files_to_ignore       = Plugin_Request_Utility::get_files_to_ignore();
 
-		// Ignore directories.
-		if ( ! empty( $directories_to_ignore ) ) {
-			$ignore_patterns[] = '*/' . implode( '/*,*/', $directories_to_ignore ) . '/*';
-		}
+		// Only add ignore patterns if scanning entire plugin (not specific files)
+		if ( null === $files_to_scan ) {
+			// Ignore directories.
+			if ( ! empty( $directories_to_ignore ) ) {
+				$ignore_patterns[] = '*/' . implode( '/*,*/', $directories_to_ignore ) . '/*';
+			}
 
-		// Ignore files.
-		if ( ! empty( $files_to_ignore ) ) {
-			$ignore_patterns[] = '/' . implode( ',/', $files_to_ignore );
-		}
+			// Ignore files.
+			if ( ! empty( $files_to_ignore ) ) {
+				$ignore_patterns[] = '/' . implode( ',/', $files_to_ignore );
+			}
 
-		if ( ! empty( $ignore_patterns ) ) {
-			$defaults[] = '--ignore=' . implode( ',', $ignore_patterns );
+			if ( ! empty( $ignore_patterns ) ) {
+				$defaults[] = '--ignore=' . implode( ',', $ignore_patterns );
+			}
 		}
 
 		// Set the Minimum WP version supported for the plugin.

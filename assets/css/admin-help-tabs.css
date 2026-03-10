@@ -1,0 +1,47 @@
+.wpv-instructions {
+	max-width: 800px;
+}
+
+.instruction-steps {
+	margin: 20px 0;
+}
+
+.step-card {
+	background: #f8f9fa;
+	border: 1px solid #dee2e6;
+	border-radius: 5px;
+	padding: 15px;
+	margin: 10px 0;
+	border-left: 4px solid #0073aa;
+}
+
+.step-card h3 {
+	margin-top: 0;
+	color: #0073aa;
+}
+
+.step-number {
+	background: #0073aa;
+	color: white;
+	border-radius: 50%;
+	padding: 5px 10px;
+	margin-right: 10px;
+	font-weight: bold;
+}
+
+.instruction-tips {
+	background: #fff3cd;
+	border: 1px solid #ffeaa7;
+	border-radius: 5px;
+	padding: 15px;
+	margin-top: 20px;
+}
+
+.instruction-tips h3 {
+	margin-top: 0;
+	color: #856404;
+}
+
+.instruction-tips ul {
+	margin-bottom: 0;
+}

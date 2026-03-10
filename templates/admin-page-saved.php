@@ -128,7 +128,5 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 		</div>
 	</div>
 	
-	<script type="text/javascript">
-	const wpvSavedResults = <?php echo wp_json_encode( $results_data['results'] ); ?>;
-	</script>
+
 <?php endif; ?>

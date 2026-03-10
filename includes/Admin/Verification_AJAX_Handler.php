@@ -1,0 +1,707 @@
+<?php
+/**
+ * Verification AJAX Handler
+ *
+ * Handles AJAX requests related to verification and scan execution.
+ * Extracted from Admin_AJAX.php as part of consolidation effort.
+ *
+ * @package wp-verifier
+ */
+
+namespace WordPress\Plugin_Check\Admin;
+
+use Exception;
+use InvalidArgumentException;
+use WordPress\Plugin_Check\Checker\AJAX_Runner;
+use WordPress\Plugin_Check\Checker\Runtime_Check;
+use WordPress\Plugin_Check\Checker\Runtime_Environment_Setup;
+use WordPress\Plugin_Check\Utilities\Plugin_Request_Utility;
+use WP_Error;
+
+/**
+ * Handles verification and scan-related AJAX requests
+ */
+class Verification_AJAX_Handler {
+
+	/**
+	 * Nonce key for verification actions
+	 */
+	const NONCE_KEY = 'plugin-check-run-checks';
+
+	/**
+	 * Register AJAX hooks for verification actions
+	 */
+	public function add_hooks() {
+		add_action( 'wp_ajax_wpv_run_checks', array( $this, 'run_checks' ) );
+		add_action( 'wp_ajax_plugin_check_clean_up_environment', array( $this, 'clean_up_environment' ) );
+		add_action( 'wp_ajax_plugin_check_set_up_environment', array( $this, 'set_up_environment' ) );
+		add_action( 'wp_ajax_plugin_check_get_checks_to_run', array( $this, 'get_checks_to_run' ) );
+		add_action( 'wp_ajax_plugin_check_run_checks', array( $this, 'run_checks' ) );
+		add_action( 'wp_ajax_plugin_check_basic_check', array( $this, 'basic_check' ) );
+		add_action( 'wp_ajax_plugin_check_validate_structure', array( $this, 'validate_structure' ) );
+	}
+
+	/**
+	 * Set up runtime environment if needed
+	 */
+	public function set_up_environment() {
+		$this->check_request_validity();
+
+		$runner = $this->get_ajax_runner();
+
+		if ( is_wp_error( $runner ) ) {
+			wp_send_json_error( $runner, 500 );
+		}
+
+		try {
+			$config = $this->configure_runner( $runner );
+			$checks_to_run = $runner->get_checks_to_run();
+		} catch ( Exception $error ) {
+			wp_send_json_error(
+				new WP_Error( 'invalid-request', $error->getMessage() ),
+				400
+			);
+		}
+
+		$message = __( 'No runtime checks, runtime environment was not setup.', 'wp-verifier' );
+
+		if ( $this->has_runtime_check( $checks_to_run ) ) {
+			$runtime = new Runtime_Environment_Setup();
+			$runtime->set_up();
+			$message = __( 'Runtime environment setup successful.', 'wp-verifier' );
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => $message,
+				'plugin'  => $config['plugin'],
+				'checks'  => $config['checks'],
+			)
+		);
+	}
+
+	/**
+	 * Clean up runtime environment
+	 */
+	public function clean_up_environment() {
+		$this->check_request_validity();
+
+		// Test if the runtime environment is prepared (and thus needs cleanup).
+		$runtime = new Runtime_Environment_Setup();
+		if ( $runtime->is_set_up() ) {
+			$runtime->clean_up();
+			$message = __( 'Runtime environment cleanup successful.', 'wp-verifier' );
+		} else {
+			$message = __( 'Runtime environment was not prepared, cleanup was not run.', 'wp-verifier' );
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => $message,
+			)
+		);
+	}
+
+	/**
+	 * Get checks to run
+	 */
+	public function get_checks_to_run() {
+		$this->check_request_validity();
+
+		$categories = filter_input( INPUT_POST, 'categories', FILTER_DEFAULT, FILTER_FORCE_ARRAY );
+		$categories = is_null( $categories ) ? array() : $categories;
+
+		$runner = $this->get_ajax_runner();
+
+		if ( is_wp_error( $runner ) ) {
+			wp_send_json_error( $runner, 403 );
+		}
+
+		try {
+			$this->configure_runner( $runner );
+			$runner->set_categories( $categories );
+
+			$plugin_basename = $runner->get_plugin_basename();
+			$checks_to_run   = $runner->get_checks_to_run();
+		} catch ( Exception $error ) {
+			wp_send_json_error(
+				new WP_Error( 'invalid-checks', $error->getMessage() ),
+				403
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'plugin' => $plugin_basename,
+				'checks' => array_keys( $checks_to_run ),
+			)
+		);
+	}
+
+	/**
+	 * Run checks
+	 */
+	public function run_checks() {
+		$this->check_request_validity();
+
+		$runner = $this->get_ajax_runner();
+
+		if ( is_wp_error( $runner ) ) {
+			wp_send_json_error( $runner, 500 );
+		}
+
+		$types = filter_input( INPUT_POST, 'types', FILTER_DEFAULT, FILTER_FORCE_ARRAY );
+		$types = is_null( $types ) ? array( 'error', 'warning' ) : $types;
+
+		// Debug logging
+		error_log( 'WPV Debug: Starting verification with types: ' . print_r( $types, true ) );
+
+		try {
+			$config = $this->configure_runner( $runner );
+			
+			// Apply ignored_paths from JSON for Advanced Verification
+			$this->apply_ignored_paths_filter( $config['plugin'] );
+			
+			error_log( 'WPV Debug: Running checks for plugin: ' . $config['plugin'] );
+			$results = $runner->run();
+			
+			// Debug results
+			$errors = $results->get_errors();
+			$warnings = $results->get_warnings();
+			error_log( 'WPV Debug: Found ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
+			
+			// Filter WordPress.org specific rules if not preparing for WordPress.org
+			$wporg_prep = filter_input( INPUT_POST, 'wporg_preparation', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( '0' === $wporg_prep ) {
+				if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\WPOrg_Rules' ) ) {
+					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/WPOrg_Rules.php';
+				}
+				$results = $this->filter_wporg_results( $results );
+				
+				// Debug filtered results
+				$filtered_errors = $results->get_errors();
+				$filtered_warnings = $results->get_warnings();
+				error_log( 'WPV Debug: After filtering - ' . $this->count_issues( $filtered_errors ) . ' errors and ' . $this->count_issues( $filtered_warnings ) . ' warnings' );
+			}
+		} catch ( Exception $error ) {
+			error_log( 'WPV Debug: Exception during verification: ' . $error->getMessage() );
+			wp_send_json_error(
+				new WP_Error( 'invalid-request', $error->getMessage() ),
+				400
+			);
+		}
+
+		$response_data = $this->prepare_results_response( $results, $types );
+		error_log( 'WPV Debug: Response data keys: ' . implode( ', ', array_keys( $response_data ) ) );
+		
+		// Save results to JSON file
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		if ( $plugin ) {
+			$this->save_results_to_json( $plugin, $response_data['errors'], $response_data['warnings'] );
+		}
+
+		wp_send_json_success( $response_data );
+	}
+
+	/**
+	 * Basic check - no filtering, raw results
+	 */
+	public function basic_check() {
+		$this->check_request_validity();
+
+		$runner = $this->get_ajax_runner();
+		if ( is_wp_error( $runner ) ) {
+			wp_send_json_error( $runner, 500 );
+		}
+
+		$types = filter_input( INPUT_POST, 'types', FILTER_DEFAULT, FILTER_FORCE_ARRAY );
+		$types = is_null( $types ) ? array() : $types;
+
+		try {
+			$this->configure_runner( $runner );
+			$results = $runner->run();
+		} catch ( Exception $error ) {
+			wp_send_json_error(
+				new WP_Error( 'invalid-request', $error->getMessage() ),
+				400
+			);
+		}
+
+		$response = array(
+			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
+			'errors'   => array(),
+			'warnings' => array(),
+		);
+
+		if ( in_array( 'error', $types, true ) ) {
+			$response['errors'] = $results->get_errors();
+		}
+
+		if ( in_array( 'warning', $types, true ) ) {
+			$response['warnings'] = $results->get_warnings();
+		}
+
+		wp_send_json_success( $response );
+	}
+
+	/**
+	 * Validate plugin structure
+	 */
+	public function validate_structure() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( empty( $plugin ) ) {
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+			}
+
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Structure_Validator' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Structure_Validator.php';
+			}
+
+			$results = \WordPress\Plugin_Check\Utilities\Structure_Validator::validate( $plugin );
+
+			wp_send_json_success( array( 'validation' => $results ) );
+
+		} catch ( InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Configure the runner based on the current request
+	 */
+	private function configure_runner( $runner ) {
+		$checks               = filter_input( INPUT_POST, 'checks', FILTER_DEFAULT, FILTER_FORCE_ARRAY );
+		$checks               = is_null( $checks ) ? array() : $checks;
+		$plugin               = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$include_experimental = 1 === filter_input( INPUT_POST, 'include-experimental', FILTER_VALIDATE_INT );
+
+		$runner->set_experimental_flag( $include_experimental );
+		$runner->set_check_slugs( $checks );
+		$runner->set_plugin( $plugin );
+
+		return array(
+			'checks' => $checks,
+			'plugin' => $plugin,
+		);
+	}
+
+	/**
+	 * Get AJAX Runner instance
+	 */
+	private function get_ajax_runner() {
+		$runner = Plugin_Request_Utility::get_runner();
+
+		if ( is_null( $runner ) ) {
+			$runner = new AJAX_Runner();
+		}
+
+		if ( ! ( $runner instanceof AJAX_Runner ) ) {
+			return new WP_Error( 'invalid-runner', __( 'AJAX Runner was not initialized correctly.', 'wp-verifier' ) );
+		}
+
+		return $runner;
+	}
+
+	/**
+	 * Check for a Runtime_Check in a list of checks
+	 */
+	private function has_runtime_check( array $checks ) {
+		foreach ( $checks as $check ) {
+			if ( $check instanceof Runtime_Check ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Filter WordPress.org specific results
+	 */
+	private function filter_wporg_results( $results ) {
+		$errors = $results->get_errors();
+		$warnings = $results->get_warnings();
+		
+		$filtered_errors = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $errors );
+		$filtered_warnings = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $warnings );
+		
+		// Create new result object with filtered data
+		$filtered_results = new \WordPress\Plugin_Check\Checker\Check_Result( $results->plugin() );
+		
+		// Re-add filtered errors and warnings
+		foreach ( $filtered_errors as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						$filtered_results->add_message(
+							true,
+							$issue['message'],
+							array(
+								'code' => $issue['code'],
+								'file' => $file,
+								'line' => $line,
+								'column' => $column,
+								'severity' => $issue['severity'] ?? 5,
+								'link' => $issue['link'] ?? null,
+								'docs' => $issue['docs'] ?? '',
+							)
+						);
+					}
+				}
+			}
+		}
+		
+		foreach ( $filtered_warnings as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						$filtered_results->add_message(
+							false,
+							$issue['message'],
+							array(
+								'code' => $issue['code'],
+								'file' => $file,
+								'line' => $line,
+								'column' => $column,
+								'severity' => $issue['severity'] ?? 5,
+								'link' => $issue['link'] ?? null,
+								'docs' => $issue['docs'] ?? '',
+							)
+						);
+					}
+				}
+			}
+		}
+		
+		return $filtered_results;
+	}
+
+	/**
+	 * Prepare the results response based on requested types
+	 */
+	private function prepare_results_response( $results, array $types ) {
+		$response = array(
+			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
+			'errors'   => array(),
+			'warnings' => array(),
+			'html_output' => '',
+		);
+
+		$errors = array();
+		$warnings = array();
+
+		if ( in_array( 'error', $types, true ) ) {
+			$errors = $results->get_errors();
+			$response['errors'] = $errors;
+		}
+
+		if ( in_array( 'warning', $types, true ) ) {
+			$warnings = $results->get_warnings();
+			$response['warnings'] = $warnings;
+		}
+
+		// Generate HTML output
+		$response['html_output'] = $this->generate_results_html( $errors, $warnings );
+
+		// Check for rediscovered issues
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		if ( $plugin ) {
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Issue_Tracker' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Issue_Tracker.php';
+			}
+			$response['rediscovered'] = \WordPress\Plugin_Check\Utilities\Issue_Tracker::find_rediscovered( $plugin, $errors, $warnings );
+			$response['completed'] = \WordPress\Plugin_Check\Utilities\Issue_Tracker::get_completed( $plugin );
+		}
+
+		// Save to history and add comparison data
+		if ( $plugin ) {
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Scan_History.php';
+			}
+
+			$last_scan = \WordPress\Plugin_Check\Utilities\Scan_History::get_last_scan( $plugin );
+			$comparison = \WordPress\Plugin_Check\Utilities\Scan_History::compare_scans( $errors, $warnings, $last_scan );
+			$response['comparison'] = $comparison;
+
+			\WordPress\Plugin_Check\Utilities\Scan_History::save_scan( $plugin, $errors, $warnings );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Generate HTML output for verification results
+	 */
+	private function generate_results_html( $errors, $warnings ) {
+		$total_errors = $this->count_issues( $errors );
+		$total_warnings = $this->count_issues( $warnings );
+		$total_issues = $total_errors + $total_warnings;
+
+		if ( $total_issues === 0 ) {
+			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong></p></div>';
+		}
+
+		ob_start();
+		?>
+		<div class="plugin-check-results">
+			<div class="results-summary" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
+				<h3><?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?></h3>
+				<div style="display: flex; gap: 20px; margin: 15px 0;">
+					<div style="flex: 1; text-align: center; padding: 15px; background: #dc3232; color: white; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_errors ); ?></div>
+						<div><?php esc_html_e( 'Errors', 'wp-verifier' ); ?></div>
+					</div>
+					<div style="flex: 1; text-align: center; padding: 15px; background: #ffb900; color: white; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_warnings ); ?></div>
+						<div><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?></div>
+					</div>
+					<div style="flex: 1; text-align: center; padding: 15px; background: #666; color: white; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_issues ); ?></div>
+						<div><?php esc_html_e( 'Total Issues', 'wp-verifier' ); ?></div>
+					</div>
+				</div>
+			</div>
+
+			<?php if ( ! empty( $errors ) ) : ?>
+				<div class="errors-section" style="margin-bottom: 30px;">
+					<h3 style="color: #dc3232;"><?php esc_html_e( 'Errors', 'wp-verifier' ); ?> (<?php echo esc_html( $total_errors ); ?>)</h3>
+					<?php echo $this->render_issues_table( $errors, 'error' ); ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $warnings ) ) : ?>
+				<div class="warnings-section" style="margin-bottom: 30px;">
+					<h3 style="color: #ffb900;"><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?> (<?php echo esc_html( $total_warnings ); ?>)</h3>
+					<?php echo $this->render_issues_table( $warnings, 'warning' ); ?>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render issues table
+	 */
+	private function render_issues_table( $issues, $type ) {
+		if ( empty( $issues ) ) {
+			return '';
+		}
+
+		ob_start();
+		?>
+		<table class="wp-list-table widefat fixed striped">
+			<thead>
+				<tr>
+					<th style="width: 40%;"><?php esc_html_e( 'File', 'wp-verifier' ); ?></th>
+					<th style="width: 10%;"><?php esc_html_e( 'Line', 'wp-verifier' ); ?></th>
+					<th style="width: 15%;"><?php esc_html_e( 'Code', 'wp-verifier' ); ?></th>
+					<th style="width: 35%;"><?php esc_html_e( 'Message', 'wp-verifier' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $issues as $file => $lines ) : ?>
+					<?php foreach ( $lines as $line => $columns ) : ?>
+						<?php foreach ( $columns as $column => $issue_list ) : ?>
+							<?php foreach ( $issue_list as $issue ) : ?>
+								<tr>
+									<td><code><?php echo esc_html( $file ); ?></code></td>
+									<td><?php echo esc_html( $line ); ?></td>
+									<td><code><?php echo esc_html( $issue['code'] ?? '' ); ?></code></td>
+									<td><?php echo esc_html( $issue['message'] ?? '' ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						<?php endforeach; ?>
+					<?php endforeach; ?>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Save verification results to JSON file
+	 */
+	private function save_results_to_json( $plugin_slug, $errors, $warnings ) {
+		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
+		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+		
+		error_log( 'WPV Debug: Saving results to: ' . $json_file );
+		error_log( 'WPV Debug: Errors count: ' . $this->count_issues( $errors ) );
+		error_log( 'WPV Debug: Warnings count: ' . $this->count_issues( $warnings ) );
+		
+		// Convert to original flat format per file
+		$results_by_file = array();
+		
+		// Process errors
+		foreach ( $errors as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						if ( ! isset( $results_by_file[ $file ] ) ) {
+							$results_by_file[ $file ] = array();
+						}
+						$results_by_file[ $file ][] = array(
+							'issue_id' => 'E-' . substr( md5( $file . $line . $issue['code'] ), 0, 8 ),
+							'message' => $issue['message'] ?? '',
+							'code' => $issue['code'] ?? '',
+							'type' => 'ERROR',
+							'line' => (int) $line,
+							'column' => (int) $column,
+							'ignored' => false,
+							'resolved' => false
+						);
+					}
+				}
+			}
+		}
+		
+		// Process warnings
+		foreach ( $warnings as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issues ) {
+					foreach ( $issues as $issue ) {
+						if ( ! isset( $results_by_file[ $file ] ) ) {
+							$results_by_file[ $file ] = array();
+						}
+						$results_by_file[ $file ][] = array(
+							'issue_id' => 'W-' . substr( md5( $file . $line . $issue['code'] ), 0, 8 ),
+							'message' => $issue['message'] ?? '',
+							'code' => $issue['code'] ?? '',
+							'type' => 'WARNING',
+							'line' => (int) $line,
+							'column' => (int) $column,
+							'ignored' => false,
+							'resolved' => false
+						);
+					}
+				}
+			}
+		}
+		
+		$total_errors = $this->count_issues( $errors );
+		$total_warnings = $this->count_issues( $warnings );
+		
+		$results_data = array(
+			'generated_at' => gmdate( 'Y-m-d H:i:s' ),
+			'plugin' => $plugin_slug,
+			'readiness' => array(
+				'overall' => min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) ),
+				'errors' => $total_errors,
+				'warnings' => $total_warnings
+			),
+			'configuration' => array(
+				'wporg_preparation' => true,
+				'skipped_rules' => array()
+			),
+			'ignored_paths' => array(),
+			'results' => $results_by_file
+		);
+		
+		if ( file_put_contents( $json_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT ) ) ) {
+			error_log( 'WPV Debug: Results saved successfully' );
+		} else {
+			error_log( 'WPV Debug: Failed to save results file' );
+		}
+	}
+
+	/**
+	 * Apply ignored_paths from JSON to directory filter for Advanced Verification
+	 */
+	private function apply_ignored_paths_filter( $plugin_slug ) {
+		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
+		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+		
+		if ( ! file_exists( $json_file ) ) {
+			return;
+		}
+		
+		$ignored_paths = $this->load_existing_ignored_paths( $json_file );
+		if ( empty( $ignored_paths ) ) {
+			return;
+		}
+		
+		$paths_to_ignore = array();
+		foreach ( $ignored_paths as $item ) {
+			if ( isset( $item['path'] ) ) {
+				$paths_to_ignore[] = $item['path'];
+			}
+		}
+		
+		if ( empty( $paths_to_ignore ) ) {
+			return;
+		}
+		
+		add_filter(
+			'wp_plugin_check_ignore_directories',
+			static function ( $dirs ) use ( $paths_to_ignore ) {
+				return array_unique( array_merge( $dirs, $paths_to_ignore ) );
+			},
+			10
+		);
+	}
+
+	/**
+	 * Load existing ignored_paths from JSON file
+	 */
+	private function load_existing_ignored_paths( $file_path ) {
+		if ( ! file_exists( $file_path ) ) {
+			return array();
+		}
+
+		$existing_data = json_decode( file_get_contents( $file_path ), true );
+		if ( ! $existing_data || ! isset( $existing_data['ignored_paths'] ) ) {
+			return array();
+		}
+
+		return is_array( $existing_data['ignored_paths'] ) ? $existing_data['ignored_paths'] : array();
+	}
+
+	/**
+	 * Check if the request is valid
+	 */
+	private function check_request_validity() {
+		$valid_request = $this->verify_request( filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
+
+		if ( is_wp_error( $valid_request ) ) {
+			wp_send_json_error( $valid_request, 403 );
+		}
+	}
+
+	/**
+	 * Verify the request nonce and permissions
+	 */
+	private function verify_request( $nonce ) {
+		if ( ! wp_verify_nonce( $nonce, self::NONCE_KEY ) ) {
+			return new WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wp-verifier' ) );
+		}
+
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return new WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wp-verifier' ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Count total issues in results array
+	 */
+	private function count_issues( $issues ) {
+		$count = 0;
+		foreach ( $issues as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issue_list ) {
+					$count += count( $issue_list );
+				}
+			}
+		}
+		return $count;
+	}
+}

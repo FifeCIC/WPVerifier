@@ -1,0 +1,227 @@
+<?php
+/**
+ * Configuration Tab - Plugin Setup, Vendor Detection & Hash Generation
+ * Consolidated from admin-page-preparation.php and admin-page-hash-generation.php
+ *
+ * @package wp-verifier
+ */
+
+use WordPress\Plugin_Check\Utilities\Ignore_Rules;
+use WordPress\Plugin_Check\Utilities\Template_Helper;
+use WordPress\Plugin_Check\Admin\Saved_Results_Handler;
+use WordPress\Plugin_Check\Admin\Vendor_Detector;
+
+$available_plugins = Template_Helper::get_available_plugins();
+$current_plugin = Template_Helper::get_current_plugin();
+$rules = Ignore_Rules::get_rules();
+?>
+
+<div class="wrap">
+    <?php Template_Helper::render_page_header(
+        'Configuration', 
+        'Configure plugin settings, manage ignore rules, and generate file hashes for verification tracking.',
+        $current_plugin,
+        $available_plugins
+    ); ?>
+
+    <?php if (!empty($available_plugins)) : ?>
+        <div style="max-width: 800px;">
+            <!-- Plugin Configuration Section -->
+            <div id="plugin-configuration" style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+                <h3><?php esc_html_e('Plugin Configuration', 'wp-verifier'); ?></h3>
+                <div id="config-content">
+                    <?php if ($current_plugin && isset($available_plugins[$current_plugin])) : ?>
+                        <p><em><?php esc_html_e('Go to Select Plugin tab to change the active plugin.', 'wp-verifier'); ?></em></p>
+                        
+                        <!-- Vendor Folders Detection -->
+                        <h4><?php esc_html_e('Vendor/Library Folders', 'wp-verifier'); ?></h4>
+                        <p><?php esc_html_e('Select folders to exclude from verification:', 'wp-verifier'); ?></p>
+                        <?php
+                        $vendors = Vendor_Detector::detect_vendors($current_plugin);
+                        if (!empty($vendors)) :
+                        ?>
+                            <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;">
+                                <?php foreach ($vendors as $path => $subdirs) : ?>
+                                    <?php if (!empty($subdirs)) : ?>
+                                        <div style="margin-bottom: 10px;">
+                                            <strong><?php echo esc_html($path); ?>/</strong>
+                                            <?php foreach ($subdirs as $subdir) : ?>
+                                                <label style="display: block; margin: 3px 0 3px 20px;">
+                                                    <input type="checkbox" name="vendor_folders[]" value="<?php echo esc_attr($path . '/' . $subdir); ?>" />
+                                                    <code><?php echo esc_html($subdir); ?></code>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else : ?>
+                            <p><em><?php esc_html_e('No vendor/library folders detected.', 'wp-verifier'); ?></em></p>
+                        <?php endif; ?>
+                        
+                        <div id="config-form"></div>
+                        <p>
+                            <button type="button" id="load-config" class="button button-primary"><?php esc_html_e('Load Configuration', 'wp-verifier'); ?></button>
+                        </p>
+                    <?php else : ?>
+                        <p style="color: #d63638;"><?php esc_html_e('No active plugin selected. Please go to the Select Plugin tab first.', 'wp-verifier'); ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Hash Generation Section -->
+            <?php if ($current_plugin && isset($available_plugins[$current_plugin])) : ?>
+                <div id="hash-generation-panel" style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+                    <h3><?php esc_html_e('Hash Generation', 'wp-verifier'); ?></h3>
+                    <p><strong><?php esc_html_e('Active Plugin:', 'wp-verifier'); ?></strong> <?php echo esc_html($available_plugins[$current_plugin]['Name']); ?></p>
+                    <div id="hash-status"></div>
+                    <div id="hash-progress" style="margin: 15px 0;"></div>
+                    <div id="hash-results" style="margin-top: 15px;"></div>
+                    <p>
+                        <button type="button" id="generate-hashes" class="button button-primary"><?php esc_html_e('Generate File Hashes', 'wp-verifier'); ?></button>
+                        <button type="button" id="validate-hashes" class="button" style="display: none;"><?php esc_html_e('Validate Existing Hashes', 'wp-verifier'); ?></button>
+                        <span id="hash-spinner" class="spinner" style="float: none;"></span>
+                    </p>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                        <h4><?php esc_html_e('What are File Hashes?', 'wp-verifier'); ?></h4>
+                        <p><?php esc_html_e('File hashes create a unique fingerprint for each file and function in your plugin. This enables:', 'wp-verifier'); ?></p>
+                        <ul>
+                            <li><?php esc_html_e('Incremental scanning - only check files that have changed', 'wp-verifier'); ?></li>
+                            <li><?php esc_html_e('Issue tracking - link problems to specific code versions', 'wp-verifier'); ?></li>
+                            <li><?php esc_html_e('Change detection - identify what code has been modified', 'wp-verifier'); ?></li>
+                            <li><?php esc_html_e('Ignore management - track which issues have been reviewed', 'wp-verifier'); ?></li>
+                        </ul>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php else : ?>
+        <p><?php esc_html_e('No plugins found.', 'wp-verifier'); ?></p>
+    <?php endif; ?>
+
+    <!-- Ignore Rules Management Section -->
+    <?php if ($current_plugin && isset($available_plugins[$current_plugin])) : ?>
+        <div id="ignore-rules-panel" style="margin-top: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
+            <h3><?php esc_html_e('Ignore Rules Management', 'wp-verifier'); ?></h3>
+            <p><?php esc_html_e('Manage rules to filter out third-party code and false positives from verification results.', 'wp-verifier'); ?></p>
+
+            <div style="display: flex; gap: 20px; margin: 20px 0;">
+                <button type="button" class="button" onclick="document.getElementById('add-rule-form').style.display='block'"><?php esc_html_e('Add Rule', 'wp-verifier'); ?></button>
+                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wpv_export_ignore_rules'), 'wpv_export_rules')); ?>" class="button"><?php esc_html_e('Export Rules', 'wp-verifier'); ?></a>
+                <button type="button" class="button" onclick="document.getElementById('import-form').style.display='block'"><?php esc_html_e('Import Rules', 'wp-verifier'); ?></button>
+            </div>
+
+            <!-- Add Rule Form -->
+            <div id="add-rule-form" style="display:none; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; margin: 15px 0; border-radius: 4px;">
+                <h4><?php esc_html_e('Add Ignore Rule', 'wp-verifier'); ?></h4>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                    <?php wp_nonce_field('wpv_add_ignore_rule', 'wpv_nonce'); ?>
+                    <input type="hidden" name="action" value="wpv_add_ignore_rule" />
+                    <table class="form-table">
+                        <tr>
+                            <th><label for="scope"><?php esc_html_e('Scope', 'wp-verifier'); ?></label></th>
+                            <td>
+                                <select name="scope" id="scope" required>
+                                    <option value="directory"><?php esc_html_e('Directory', 'wp-verifier'); ?></option>
+                                    <option value="file"><?php esc_html_e('File', 'wp-verifier'); ?></option>
+                                    <option value="code"><?php esc_html_e('Error Code', 'wp-verifier'); ?></option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="plugin"><?php esc_html_e('Plugin', 'wp-verifier'); ?></label></th>
+                            <td>
+                                <?php echo Template_Helper::render_plugin_selector($current_plugin, $available_plugins); ?>
+                                <p class="description"><?php esc_html_e('Optional: Select a plugin to auto-fill the base path', 'wp-verifier'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="path"><?php esc_html_e('Path', 'wp-verifier'); ?></label></th>
+                            <td>
+                                <input type="text" name="path" id="path" class="regular-text" required placeholder="includes/libraries/vendor/" />
+                                <p class="description"><?php esc_html_e('Relative path from plugin root (e.g., includes/libraries/vendor/ or vendor/)', 'wp-verifier'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="code"><?php esc_html_e('Error Code', 'wp-verifier'); ?></label></th>
+                            <td><input type="text" name="code" id="code" class="regular-text" placeholder="WordPress.Security.EscapeOutput" /></td>
+                        </tr>
+                        <tr>
+                            <th><label for="reason"><?php esc_html_e('Reason', 'wp-verifier'); ?></label></th>
+                            <td>
+                                <select name="reason" id="reason">
+                                    <option value="vendor"><?php esc_html_e('Vendor/Library', 'wp-verifier'); ?></option>
+                                    <option value="other"><?php esc_html_e('Other', 'wp-verifier'); ?></option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="note"><?php esc_html_e('Note', 'wp-verifier'); ?></label></th>
+                            <td><input type="text" name="note" id="note" class="regular-text" /></td>
+                        </tr>
+                    </table>
+                    <p>
+                        <button type="submit" class="button button-primary"><?php esc_html_e('Add Rule', 'wp-verifier'); ?></button>
+                        <button type="button" class="button" onclick="document.getElementById('add-rule-form').style.display='none'"><?php esc_html_e('Cancel', 'wp-verifier'); ?></button>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Import Form -->
+            <div id="import-form" style="display:none; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; margin: 15px 0; border-radius: 4px;">
+                <h4><?php esc_html_e('Import Rules', 'wp-verifier'); ?></h4>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data">
+                    <?php wp_nonce_field('wpv_import_rules', 'wpv_nonce'); ?>
+                    <input type="hidden" name="action" value="wpv_import_ignore_rules" />
+                    <p>
+                        <input type="file" name="rules_file" accept=".json" required />
+                    </p>
+                    <p>
+                        <button type="submit" class="button button-primary"><?php esc_html_e('Import', 'wp-verifier'); ?></button>
+                        <button type="button" class="button" onclick="document.getElementById('import-form').style.display='none'"><?php esc_html_e('Cancel', 'wp-verifier'); ?></button>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Active Rules Table -->
+            <h4><?php esc_html_e('Active Rules', 'wp-verifier'); ?></h4>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th><?php esc_html_e('Scope', 'wp-verifier'); ?></th>
+                        <th><?php esc_html_e('Path', 'wp-verifier'); ?></th>
+                        <th><?php esc_html_e('Code', 'wp-verifier'); ?></th>
+                        <th><?php esc_html_e('Reason', 'wp-verifier'); ?></th>
+                        <th><?php esc_html_e('Note', 'wp-verifier'); ?></th>
+                        <th><?php esc_html_e('Actions', 'wp-verifier'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($rules)) : ?>
+                        <tr>
+                            <td colspan="6"><?php esc_html_e('No ignore rules defined.', 'wp-verifier'); ?></td>
+                        </tr>
+                    <?php else : ?>
+                        <?php foreach ($rules as $id => $rule) : ?>
+                            <tr>
+                                <td><?php echo esc_html(ucfirst($rule['scope'] ?? '')); ?></td>
+                                <td><code><?php echo esc_html($rule['path'] ?? ''); ?></code></td>
+                                <td><?php echo esc_html($rule['code'] ?? ''); ?></td>
+                                <td><?php echo esc_html(ucfirst($rule['reason'] ?? '')); ?></td>
+                                <td><?php echo esc_html($rule['note'] ?? ''); ?></td>
+                                <td>
+                                    <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wpv_remove_ignore_rule&rule_id=' . $id), 'wpv_remove_rule_' . $id)); ?>" 
+                                       onclick="return confirm('<?php esc_attr_e('Remove this rule?', 'wp-verifier'); ?>');">
+                                        <?php esc_html_e('Remove', 'wp-verifier'); ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+
+</div>

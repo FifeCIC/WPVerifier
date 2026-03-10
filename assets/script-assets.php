@@ -11,17 +11,49 @@ if (!defined('ABSPATH')) {
 
 return array(
     'admin' => array(
+        // Consolidated AJAX utilities - shared across all pages
+        'wpv-ajax' => array(
+            'path' => 'js/wpv-ajax.js',
+            'purpose' => 'Shared AJAX utility functions',
+            'pages' => array('wp-verifier'),
+            'dependencies' => array('jquery'),
+            'localize' => array(
+                'name' => 'wpv_ajax_object',
+                'data' => array(
+                    'ajax_url' => 'admin_url:admin-ajax.php',
+                    'nonce' => 'nonce:plugin-check-run-checks',
+                    'current_plugin' => 'php:get_user_meta(get_current_user_id(), "wpv_last_selected_plugin", true)',
+                ),
+            ),
+        ),
+        // Consolidated configuration functionality
+        'admin-configuration' => array(
+            'path' => 'js/admin-configuration.js',
+            'purpose' => 'Configuration tab functionality (merged preparation + hash generation)',
+            'pages' => array('wp-verifier'),
+            'dependencies' => array('jquery', 'wpv-ajax')
+        ),
+        // Consolidated verification functionality
+        'admin-verification' => array(
+            'path' => 'js/admin-verification.js',
+            'purpose' => 'Verification tab functionality (merged basic + advanced)',
+            'pages' => array('wp-verifier'),
+            'dependencies' => array('jquery', 'wpv-ajax')
+        ),
+        // Legacy - marked for removal after consolidation
         'plugin-check-admin' => array(
             'path' => 'js/plugin-check-admin.js',
-            'purpose' => 'Main admin functionality',
+            'purpose' => 'LEGACY: Main admin functionality - TO BE REMOVED',
             'pages' => array('wp-verifier'),
-            'dependencies' => array('wp-util')
+            'dependencies' => array('wp-util'),
+            'deprecated' => true
         ),
         'plugin-check-namer' => array(
             'path' => 'js/plugin-check-namer.js',
-            'purpose' => 'Plugin namer tool',
-            'pages' => array('plugin-check-namer'),
-            'dependencies' => array()
+            'purpose' => 'REMOVED: Plugin namer tool - ELIMINATED',
+            'pages' => array(),
+            'dependencies' => array(),
+            'removed' => true
         ),
         'admin-settings' => array(
             'path' => 'js/admin-settings.js',
@@ -37,35 +69,32 @@ return array(
         ),
         'wpv-plugin-namer' => array(
             'path' => 'js/admin-plugin-namer.js',
-            'purpose' => 'Plugin Namer tab functionality',
-            'pages' => array('wp-verifier'),
+            'purpose' => 'REMOVED: Plugin Namer tab functionality - ELIMINATED',
+            'pages' => array(),
             'dependencies' => array('jquery'),
-            'localize' => array(
-                'name' => 'wpvPluginNamer',
-                'data' => array(
-                    'ajaxUrl' => 'admin_url:admin-ajax.php',
-                    'nonce' => 'nonce:plugin-check-run-checks',
-                    'actions' => array(
-                        'checkDomains' => 'constant:ACTION_CHECK_DOMAINS',
-                        'checkConflicts' => 'constant:ACTION_CHECK_CONFLICTS',
-                        'analyzeSeo' => 'constant:ACTION_ANALYZE_SEO',
-                        'checkTrademarks' => 'constant:ACTION_CHECK_TRADEMARKS',
-                        'saveName' => 'constant:ACTION_SAVE_NAME',
-                        'getSavedNames' => 'constant:ACTION_GET_SAVED_NAMES',
-                    ),
-                    'i18n' => array(
-                        'available' => 'i18n:Available',
-                        'taken' => 'i18n:Taken',
-                        'checking' => 'i18n:Checking...',
-                        'error' => 'i18n:Error',
-                        'noConflicts' => 'i18n:No conflicts found',
-                        'exactMatch' => 'i18n:Exact match found!',
-                        'similar' => 'i18n:Similar plugins found',
-                        'saved' => 'i18n:Evaluation saved successfully',
-                        'saveFailed' => 'i18n:Failed to save evaluation',
-                    ),
-                ),
-            ),
+            'removed' => true
+        ),
+        // Legacy files - marked for removal after consolidation
+        'admin-page-preparation' => array(
+            'path' => 'js/admin-page-preparation.js',
+            'purpose' => 'LEGACY: Preparation page functionality - CONSOLIDATED INTO admin-configuration.js',
+            'pages' => array(),
+            'dependencies' => array('jquery'),
+            'deprecated' => true
+        ),
+        'admin-page-hash-generation' => array(
+            'path' => 'js/admin-page-hash-generation.js',
+            'purpose' => 'LEGACY: Hash generation page functionality - CONSOLIDATED INTO admin-configuration.js',
+            'pages' => array(),
+            'dependencies' => array('jquery'),
+            'deprecated' => true
+        ),
+        'basic-verification' => array(
+            'path' => 'js/basic-verification.js',
+            'purpose' => 'REMOVED: Basic verification functionality - ELIMINATED',
+            'pages' => array(),
+            'dependencies' => array('jquery'),
+            'removed' => true
         ),
     ),
 );

@@ -23,6 +23,20 @@ return array(
             'pages' => array('wp-verifier', 'plugin-check-namer', 'plugin-check-settings'),
             'dependencies' => array()
         ),
+        // Consolidated configuration styles
+        'admin-configuration' => array(
+            'path' => 'css/admin-configuration.css',
+            'purpose' => 'Configuration tab styles (merged preparation + hash generation)',
+            'pages' => array('wp-verifier'),
+            'dependencies' => array()
+        ),
+        // Consolidated verification styles
+        'admin-verification' => array(
+            'path' => 'css/admin-verification.css',
+            'purpose' => 'Verification tab styles (merged basic + advanced)',
+            'pages' => array('wp-verifier'),
+            'dependencies' => array()
+        ),
         'wp-verifier-setup' => array(
             'path' => 'css/wp-verifier-setup.css',
             'purpose' => 'Setup wizard styles',
@@ -37,9 +51,25 @@ return array(
         ),
         'wpv-plugin-namer' => array(
             'path' => 'css/admin-plugin-namer.css',
-            'purpose' => 'Plugin Namer tab styles',
-            'pages' => array('wp-verifier'),
-            'dependencies' => array()
+            'purpose' => 'REMOVED: Plugin Namer tab styles - ELIMINATED',
+            'pages' => array(),
+            'dependencies' => array(),
+            'removed' => true
+        ),
+        // Legacy styles - marked for removal after consolidation
+        'admin-page-preparation' => array(
+            'path' => 'css/admin-page-preparation.css',
+            'purpose' => 'LEGACY: Preparation page styles - CONSOLIDATED INTO admin-configuration.css',
+            'pages' => array(),
+            'dependencies' => array(),
+            'deprecated' => true
+        ),
+        'admin-page-hash-generation' => array(
+            'path' => 'css/admin-page-hash-generation.css',
+            'purpose' => 'LEGACY: Hash generation page styles - CONSOLIDATED INTO admin-configuration.css',
+            'pages' => array(),
+            'dependencies' => array(),
+            'deprecated' => true
         ),
     ),
 );

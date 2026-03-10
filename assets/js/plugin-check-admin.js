@@ -1070,6 +1070,12 @@
 				rediscovered: aggregatedRediscovered,
 				completed: aggregatedCompleted
 			};
+			
+			// Log what we're sending to server
+			const errorCount = Object.keys(resultsWithMeta.errors || {}).length;
+			const warningCount = Object.keys(resultsWithMeta.warnings || {}).length;
+			console.log('JS TRACE: Sending to server - errors files:', errorCount, 'warnings files:', warningCount);
+			
 			savePayload.append('results', JSON.stringify(resultsWithMeta));
 			
 			showSaveStatus('Saving results and calculating readiness score...');

@@ -1,0 +1,31 @@
+#plugin-check__results .notice,
+#plugin-check__results .notice + h4 {
+	margin-top: 20px;
+}
+
+#plugin-check__results h4:first-child {
+	margin-top: 80.5px;
+}
+
+@media ( max-width: 782px ) {
+	#plugin-check__results h4:first-child {
+		margin-top: 88.5px;
+	}
+}
+
+.plugin-check__export-controls {
+	margin-top: 24px;
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.plugin-check__export-controls.is-hidden {
+	display: none;
+}
+
+.faq-answers li {
+	background: white;
+	padding: 10px 20px;
+	border: 1px solid #cacaca;
+}

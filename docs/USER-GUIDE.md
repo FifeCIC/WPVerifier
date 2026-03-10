@@ -1,10 +1,59 @@
-# WordPress.org Preparation Configuration
+# WP Verifier User Guide
 
-## Overview
+## Quick Start Workflow
 
-The WordPress.org Preparation feature allows you to configure whether WordPress.org-specific checks should be applied to your plugin. This is useful when developing plugins that won't be submitted to WordPress.org (e.g., premium plugins, GitHub-only plugins, or internal tools).
+### 1. Select Plugin
+- Navigate to **WP Verifier → Select Plugin**
+- Choose your plugin from the dropdown
+- Click "Set as Active Plugin"
+- Verify WPV files status shows your plugin configuration
 
-## Features
+### 2. Configure Settings
+- Go to **Configure** tab
+- Click "Load Configuration" to see current settings
+- Choose plugin distribution type (WordPress.org, GitHub, or Other)
+- Select vendor folders to exclude from scanning
+- Click "Save Configuration" to create `.wpv-config.json`
+
+### 3. Generate File Hashes (Recommended)
+- Go to **Hash Generation** tab
+- Click "Generate File Hashes" to create baseline
+- This enables incremental scanning and change detection
+- Creates `.wpv-verification.json` for tracking
+
+### 4. Run Verification
+- Go to **Advanced Verification** tab
+- Click "Run Verification" to scan your plugin
+- Results are saved to `.wpv-results.json`
+- Review issues in **Files** and **Issues** tabs
+
+### 5. Manage Issues
+- Use ignore rules to filter out false positives
+- Mark issues as resolved when fixed
+- Export results for documentation
+
+---
+
+## File Hash System
+
+### What are File Hashes?
+File hashes create a unique fingerprint for each file and function in your plugin. This enables:
+- **Incremental scanning** - only check files that have changed
+- **Issue tracking** - link problems to specific code versions
+- **Change detection** - identify what code has been modified
+- **Ignore management** - track which issues have been reviewed
+
+### Hash Generation Process
+1. Navigate to **Hash Generation** tab
+2. Ensure your plugin is selected as active
+3. Click "Generate File Hashes"
+4. System creates SHA256 hashes for all PHP files
+5. Hashes are stored in `.wpv-verification.json`
+6. Use "Validate Existing Hashes" to check for changes
+
+---
+
+## WordPress.org Preparation Configuration
 
 ### Per-Plugin Configuration
 

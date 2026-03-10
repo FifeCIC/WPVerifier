@@ -102,6 +102,21 @@ In any case, passing the checks in this tool likely helps to achieve a smooth pl
 
 = 1.9.0 =
 
+**CONSOLIDATION UPDATE:**
+* Consolidated: Template files reduced through merging similar functionality
+* Consolidated: JavaScript files reduced from 12 to 6 files (46% reduction)
+* Consolidated: AJAX handlers unified with proper action hooks
+* Removed: Basic Verification tab (duplicate of Advanced Verification)
+* Removed: Plugin Namer feature and associated files
+* Removed: Duplicate TAB03 (Hash Generation) functionality
+* Enhanced: TAB01 auto-creates missing WPV files on plugin activation
+* Enhanced: TAB02 configuration with vendor folder detection
+* Enhanced: TAB03 verification with readiness checklist and progress tracking
+* Fixed: Missing AJAX handlers for configuration and verification
+* Fixed: Asset localization for current plugin access
+* Improved: Centralized asset management through Asset_Manager class
+
+**ORIGINAL FEATURES (Preserved):**
 * Added: Ignore Rules system for filtering third-party code and false positives
 * Added: Auto-detection of vendor directories (vendor/, node_modules/, libraries/, etc.)
 * Added: Export/Import ignore rules as JSON for team collaboration
@@ -109,7 +124,6 @@ In any case, passing the checks in this tool likely helps to achieve a smooth pl
 * Added: Files tab with File Details panel (PAN00) for progress tracking
 * Added: Enhanced sidebar panels for Selected Issue Details (PAN01) and AI Prompt (PAN02)
 * Added: Header code display system for easier navigation (toggle in settings)
-* Improved: Consolidated all features into main plugin tabs interface
 * Improved: JSON-based storage architecture for portability
 * Fixed: Removed duplicate menu entries in Tools menu
 

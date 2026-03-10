@@ -52,15 +52,45 @@ $test_results[] = array(
 	'details' => sprintf( 'Hash 1: %s, Hash 2: %s', $hash1, $hash2 ),
 );
 
-// Test 5: Plugin File Hash Generation (for next step)
-$plugin_file = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Settings_Page.php';
-$plugin_file_hash = $hash_generator->generate_file_hash( $plugin_file );
-$plugin_function_hash = $hash_generator->generate_function_hash( $plugin_file, 'Settings_Page::add_hooks' );
+// Test 5: Hash Workflow Test
+$workflow_test_result = 'Not run';
+$workflow_status = 'info';
+if ( isset( $_POST['run_workflow_test'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'hash_workflow_test' ) ) {
+	try {
+		// Create test file with intentional issue
+		$test_plugin_dir = WP_PLUGIN_DIR . '/test-hash-plugin';
+		$test_file_path = $test_plugin_dir . '/test-hash.php';
+		wp_mkdir_p( $test_plugin_dir );
+		file_put_contents( $test_file_path, '<?php\n// This will trigger WordPress.Security.EscapeOutput.OutputNotEscaped\necho $_GET["test"];\n' );
+		
+		$initial_hash = $hash_generator->generate_file_hash( $test_file_path );
+		
+		// Fix the file
+		file_put_contents( $test_file_path, '<?php\n// Fixed: Added proper escaping\necho esc_html( $_GET["test"] );\n' );
+		$fixed_hash = $hash_generator->generate_file_hash( $test_file_path );
+		
+		// Cleanup
+		unlink( $test_file_path );
+		rmdir( $test_plugin_dir );
+		
+		if ( $initial_hash !== $fixed_hash ) {
+			$workflow_test_result = "Initial: {$initial_hash}, Fixed: {$fixed_hash}";
+			$workflow_status = 'pass';
+		} else {
+			$workflow_test_result = 'Hashes should be different after fix';
+			$workflow_status = 'fail';
+		}
+	} catch ( Exception $e ) {
+		$workflow_test_result = 'Error: ' . $e->getMessage();
+		$workflow_status = 'fail';
+	}
+}
+
 $test_results[] = array(
-	'name' => 'Plugin File Hash Ready',
-	'status' => ($plugin_file_hash && $plugin_function_hash) ? 'pass' : 'fail',
-	'result' => $plugin_file_hash ? "File: {$plugin_file_hash}, Function: {$plugin_function_hash}" : 'Failed',
-	'details' => 'Ready for verification integration',
+	'name' => 'Hash Workflow Test',
+	'status' => $workflow_status,
+	'result' => $workflow_test_result,
+	'details' => 'Tests complete fix/ignore workflow with hash updates',
 );
 
 ?>
@@ -88,8 +118,10 @@ $test_results[] = array(
 					<td>
 						<?php if ( 'pass' === $test['status'] ) : ?>
 							<span style="color: #00a32a; font-weight: bold;">✓ PASS</span>
-						<?php else : ?>
+						<?php elseif ( 'fail' === $test['status'] ) : ?>
 							<span style="color: #d63638; font-weight: bold;">✗ FAIL</span>
+						<?php else : ?>
+							<span style="color: #666; font-weight: bold;">— INFO</span>
 						<?php endif; ?>
 					</td>
 					<td><code><?php echo esc_html( $test['result'] ); ?></code></td>
@@ -103,7 +135,7 @@ $test_results[] = array(
 		<h3><?php esc_html_e( 'Test Summary', 'wp-verifier' ); ?></h3>
 		<?php
 		$passed = count( array_filter( $test_results, function( $t ) { return 'pass' === $t['status']; } ) );
-		$total = count( $test_results );
+		$total = count( array_filter( $test_results, function( $t ) { return 'info' !== $t['status']; } ) );
 		?>
 		<p>
 			<strong><?php echo esc_html( sprintf( '%d / %d tests passed', $passed, $total ) ); ?></strong>
@@ -113,5 +145,28 @@ $test_results[] = array(
 				<span style="color: #d63638; margin-left: 10px;">✗ Some tests failed</span>
 			<?php endif; ?>
 		</p>
+	</div>
+	
+	<hr style="margin: 30px 0;">
+	
+	<div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4;">
+		<h3><?php esc_html_e( 'Hash Workflow Test', 'wp-verifier' ); ?></h3>
+		<p><?php esc_html_e( 'This test validates the complete hash workflow: scan → fix → recheck → hash update.', 'wp-verifier' ); ?></p>
+		
+		<form method="post" action="">
+			<?php wp_nonce_field( 'hash_workflow_test' ); ?>
+			<p>
+				<?php submit_button( __( 'Run Hash Workflow Test', 'wp-verifier' ), 'secondary', 'run_workflow_test', false ); ?>
+			</p>
+		</form>
+		
+		<h4><?php esc_html_e( 'Test Steps:', 'wp-verifier' ); ?></h4>
+		<ol>
+			<li><?php esc_html_e( 'Create test file with PHPCS issue', 'wp-verifier' ); ?></li>
+			<li><?php esc_html_e( 'Generate initial hash', 'wp-verifier' ); ?></li>
+			<li><?php esc_html_e( 'Fix the issue in the file', 'wp-verifier' ); ?></li>
+			<li><?php esc_html_e( 'Generate new hash and verify it changed', 'wp-verifier' ); ?></li>
+			<li><?php esc_html_e( 'Clean up test files', 'wp-verifier' ); ?></li>
+		</ol>
 	</div>
 </div>

@@ -17,7 +17,7 @@ class Assets_Tab {
 
     public static function render() {
         if (!class_exists('WordPress\\Plugin_Check\\Assets\\Asset_Manager')) {
-            require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Assets/Asset_Manager.php';
+            require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/Asset_Manager.php';
         }
 
         $asset_manager = new Asset_Manager();

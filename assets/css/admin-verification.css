@@ -1,0 +1,311 @@
+/**
+ * Verification Tab Styles
+ * Consolidated from basic-verification.css and advanced verification styles
+ *
+ * @package wp-verifier
+ */
+
+/* Plugin Selection Panels */
+
+.plugin-check-content {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.plugin-check__options {
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.plugin-check__options h4 {
+    margin: 0 0 10px 0;
+    color: #23282d;
+    font-size: 14px;
+}
+
+.plugin-check__options table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.plugin-check__options table td {
+    padding: 5px 0;
+}
+
+.plugin-check__options label {
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.plugin-check__options input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Export Controls */
+.plugin-check__export-controls {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.export-button {
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+/* Results Display */
+#plugin-check__results {
+    margin-top: 20px;
+}
+
+/* Ignored Files Panel */
+#wpv-ignored-files-panel {
+    background: #f0f6fc;
+    padding: 20px;
+    border: 1px solid #2271b1;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+#wpv-ignored-files-panel h3 {
+    margin: 0 0 15px 0;
+    color: #2271b1;
+}
+
+#wpv-ignored-files-content ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+#wpv-ignored-files-content li {
+    margin-bottom: 5px;
+}
+
+#wpv-ignored-files-content code {
+    background: rgba(34, 113, 177, 0.1);
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-family: Consolas, Monaco, monospace;
+}
+
+/* AST Results Container */
+.wpv-ast-container {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wpv-ast-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+.wpv-ast-table-container {
+    padding: 20px;
+}
+
+.wpv-ast-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.wpv-ast-table th,
+.wpv-ast-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.wpv-ast-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+    color: #23282d;
+    border-bottom: 2px solid #ddd;
+}
+
+.wpv-ast-table tr:hover {
+    background: #f9f9f9;
+}
+
+.wpv-ast-table code {
+    background: #f1f1f1;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+}
+
+/* Issue Type Badges */
+.issue-type {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.issue-type-error {
+    background: #dc3232;
+    color: #fff;
+}
+
+.issue-type-warning {
+    background: #ffb900;
+    color: #000;
+}
+
+.issue-type-info {
+    background: #00a0d2;
+    color: #fff;
+}
+
+/* Issue Details Panel */
+#wpv-ast-details {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#wpv-ast-details h4,
+#wpv-ast-details h5 {
+    margin: 0 0 15px 0;
+    color: #23282d;
+}
+
+#wpv-ast-details .form-table th {
+    width: 120px;
+    font-weight: 600;
+}
+
+#wpv-ast-details .form-table td {
+    padding-left: 15px;
+}
+
+#wpv-ast-details pre {
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 3px;
+    overflow-x: auto;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* AI Guidance Panel */
+#wpv-ast-ai-guidance {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f0f6fc;
+    border: 1px solid #0073aa;
+    border-radius: 4px;
+}
+
+#wpv-ast-ai-guidance h3 {
+    margin: 0 0 15px 0;
+    color: #0073aa;
+}
+
+#wpv-ai-guidance-content {
+    line-height: 1.6;
+}
+
+/* Ignored Folders Display */
+#wpv-ast-ignored-folders {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+#wpv-ast-ignored-folders h4 {
+    margin: 0 0 10px 0;
+    color: #23282d;
+}
+
+#wpv-ignored-folders-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#wpv-ignored-folders-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+#wpv-ignored-folders-list li:last-child {
+    border-bottom: none;
+}
+
+/* Action Buttons */
+.view-details {
+    font-size: 11px;
+    padding: 3px 8px;
+}
+
+/* Progress Indicators */
+.verification-progress {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.verification-progress .progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.verification-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0073aa, #005a87);
+    transition: width 0.3s ease;
+}
+
+.verification-progress .progress-text {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .plugin-check-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .wpv-ast-layout {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .wpv-ast-table {
+        font-size: 12px;
+    }
+    
+    .wpv-ast-table th,
+    .wpv-ast-table td {
+        padding: 8px;
+    }
+    
+    .verification-mode-selector {
+        padding: 10px;
+    }
+}

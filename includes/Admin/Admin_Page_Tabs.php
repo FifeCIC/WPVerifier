@@ -17,17 +17,17 @@ class Admin_Page_Tabs {
 	 */
 	public static function get_tabs() {
 		return array(
-			'preparation' => array( 'title' => __( 'Preparation', 'wp-verifier' ), 'code' => 'TAB01' ),
-			'verify'      => array( 'title' => __( 'Advanced Verification', 'wp-verifier' ), 'code' => 'TAB02' ),
-			'results'     => array( 'title' => __( 'Files', 'wp-verifier' ), 'code' => 'TAB03' ),
-			'issues'      => array( 'title' => __( 'Issues', 'wp-verifier' ), 'code' => 'TAB04' ),
-			'monitoring'  => array( 'title' => __( 'Plugin Monitoring', 'wp-verifier' ), 'code' => 'TAB05' ),
-			'namer'       => array( 'title' => __( 'Plugin Namer', 'wp-verifier' ), 'code' => 'TAB06' ),
+			'select'      => array( 'title' => __( 'Select Plugin', 'wp-verifier' ), 'code' => 'TAB01' ),
+			'preparation' => array( 'title' => __( 'Configure', 'wp-verifier' ), 'code' => 'TAB02' ),
+			'verify'      => array( 'title' => __( 'Verification', 'wp-verifier' ), 'code' => 'TAB03' ),
+			'results'     => array( 'title' => __( 'Files', 'wp-verifier' ), 'code' => 'TAB04' ),
+			'issues'      => array( 'title' => __( 'Issues', 'wp-verifier' ), 'code' => 'TAB05' ),
+			'monitoring'  => array( 'title' => __( 'Plugin Monitoring', 'wp-verifier' ), 'code' => 'TAB06' ),
 			'test-area'   => array( 'title' => __( 'Test Area', 'wp-verifier' ), 'code' => 'TAB07' ),
 			'error-codes' => array( 'title' => __( 'Error Codes', 'wp-verifier' ), 'code' => 'TAB08' ),
 			'settings'    => array( 'title' => __( 'Settings', 'wp-verifier' ), 'code' => 'TAB09' ),
 			'assets'      => array( 'title' => __( 'Assets', 'wp-verifier' ), 'code' => 'TAB10' ),
-			'basic'       => array( 'title' => __( 'Basic Verification', 'wp-verifier' ), 'code' => 'TAB11' ),
+			'architecture' => array( 'title' => __( 'Architecture', 'wp-verifier' ), 'code' => 'TAB11' ),
 		);
 	}
 
@@ -35,7 +35,7 @@ class Admin_Page_Tabs {
 	 * Display tabs navigation
 	 */
 	public static function render_tabs() {
-		$current_tab = isset( $_GET['tab'] ) ? sanitize_title( wp_unslash( $_GET['tab'] ) ) : 'basic';
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_title( wp_unslash( $_GET['tab'] ) ) : 'verify';
 		$tabs        = self::get_tabs();
 		?>
 		<h2 class="nav-tab-wrapper">

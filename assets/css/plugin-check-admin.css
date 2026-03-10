@@ -174,3 +174,178 @@
 		transform: rotate(359deg);
 	}
 }
+/* Architecture Tab Styles */
+.wpv-arch-intro {
+	margin: 20px 0;
+}
+
+.wpv-arch-no-plugin {
+	color: #d63638;
+}
+
+.wpv-arch-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 30px;
+	margin-bottom: 30px;
+}
+
+.wpv-arch-panel {
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #ccd0d4;
+}
+
+.wpv-arch-flow {
+	font-family: monospace;
+	line-height: 1.6;
+	font-size: 12px;
+}
+
+.wpv-arch-step {
+	margin: 10px 0;
+	padding: 8px;
+	background: #f0f0f1;
+}
+
+.wpv-arch-step-warning {
+	background: #fff2cc;
+}
+
+.wpv-arch-step a {
+	color: #0073aa;
+	text-decoration: none;
+}
+
+.wpv-arch-step-issue {
+	color: #d63638;
+	font-size: 11px;
+}
+
+.wpv-arch-plugin-info {
+	margin-bottom: 15px;
+	padding: 10px;
+	background: #e7f3ff;
+	border-left: 4px solid #2271b1;
+}
+
+.wpv-arch-validation {
+	margin: 8px 0;
+	padding: 8px;
+	font-size: 12px;
+}
+
+.wpv-arch-validation-success {
+	border-left: 4px solid #00a32a;
+	background: #f0f6fc;
+}
+
+.wpv-arch-validation-error {
+	border-left: 4px solid #d63638;
+	background: #fef2f2;
+}
+
+.wpv-arch-validation-warning {
+	border-left: 4px solid #dba617;
+	background: #fffbf0;
+}
+
+.wpv-arch-validation-info {
+	border-left: 4px solid #2271b1;
+	background: #f0f6fc;
+}
+
+.wpv-arch-validation-header {
+	font-weight: bold;
+	margin-bottom: 4px;
+}
+
+.wpv-arch-validation-details {
+	color: #666;
+	font-size: 11px;
+}
+
+.wpv-arch-no-selection {
+	padding: 20px;
+	text-align: center;
+	color: #666;
+}
+
+.wpv-arch-functions-panel {
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #ccd0d4;
+	margin-bottom: 30px;
+}
+
+.wpv-arch-functions-table th {
+	width: 30%;
+}
+
+.wpv-arch-functions-table th:nth-child(2) {
+	width: 25%;
+}
+
+.wpv-arch-functions-table th:nth-child(3) {
+	width: 45%;
+}
+
+.wpv-arch-issue-panel {
+	background: #fff2cc;
+	padding: 20px;
+	border: 1px solid #f0c33c;
+	margin-bottom: 30px;
+}
+
+.wpv-arch-issue-header {
+	color: #b32d2e;
+}
+
+.wpv-arch-ignored-panel {
+	background: #f0f6fc;
+	padding: 20px;
+	border: 1px solid #2271b1;
+	margin-bottom: 30px;
+}
+
+.wpv-arch-ignored-error {
+	color: #d63638;
+	margin-bottom: 15px;
+	padding: 10px;
+	background: #fef2f2;
+	border-left: 4px solid #d63638;
+}
+
+.wpv-arch-ignored-success {
+	color: #00a32a;
+	padding: 10px;
+	background: #f0f6fc;
+	border-left: 4px solid #00a32a;
+}
+
+.wpv-arch-ignored-table {
+	font-size: 12px;
+}
+
+.wpv-arch-ignored-table th:nth-child(1) { width: 25%; }
+.wpv-arch-ignored-table th:nth-child(2) { width: 35%; }
+.wpv-arch-ignored-table th:nth-child(3) { width: 15%; }
+.wpv-arch-ignored-table th:nth-child(4) { width: 25%; }
+
+.wpv-arch-ignored-path {
+	font-size: 10px;
+	color: #666;
+}
+
+.wpv-arch-no-plugin-dashed {
+	padding: 20px;
+	text-align: center;
+	color: #666;
+	border: 2px dashed #ccd0d4;
+}
+
+.wpv-arch-guidance-panel {
+	background: #e7f3ff;
+	padding: 20px;
+	border: 1px solid #2271b1;
+}

@@ -1,0 +1,226 @@
+/**
+ * Configuration Tab Styles
+ * Consolidated from admin-page-preparation.css and admin-page-hash-generation.css
+ *
+ * @package wp-verifier
+ */
+
+/* Configuration Panel Styles */
+#plugin-configuration,
+#hash-generation-panel {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#plugin-configuration h3,
+#hash-generation-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #23282d;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Configuration Form Styles */
+.config-form .form-table th {
+    width: 200px;
+    padding: 15px 10px 15px 0;
+    vertical-align: top;
+}
+
+.config-form .form-table td {
+    padding: 15px 10px;
+}
+
+.config-form .description {
+    margin-top: 5px;
+    font-style: italic;
+    color: #666;
+}
+
+/* Hash Generation Styles */
+#hash-status {
+    margin: 15px 0;
+}
+
+#hash-progress {
+    margin: 15px 0;
+}
+
+.progress-container {
+    margin: 10px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+    height: 20px;
+}
+
+.progress-fill {
+    background: #0073aa;
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 3px 0 0 3px;
+}
+
+.progress-text {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+#hash-results {
+    margin-top: 15px;
+}
+
+.hash-results h4,
+.validation-results h4 {
+    margin: 0 0 10px 0;
+    color: #23282d;
+}
+
+.hash-results table,
+.validation-results table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.hash-results table td,
+.validation-results table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.hash-results table td:first-child,
+.validation-results table td:first-child {
+    font-weight: 600;
+    width: 150px;
+}
+
+/* Vendor Detection Results */
+#vendor-results {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 3px;
+}
+
+#vendor-results h4 {
+    margin: 0 0 10px 0;
+    color: #23282d;
+}
+
+#vendor-results ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+#vendor-results li {
+    margin-bottom: 5px;
+}
+
+#vendor-results code {
+    background: #f1f1f1;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-family: Consolas, Monaco, monospace;
+}
+
+/* Ignore Rules Management */
+#add-rule-form,
+#import-form {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    margin: 20px 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#add-rule-form h3,
+#import-form h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #23282d;
+}
+
+/* Button Styles */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.button.button-primary {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+}
+
+.button.button-primary:hover {
+    background: #005a87;
+    border-color: #005a87;
+}
+
+/* Spinner Styles */
+.spinner.is-active {
+    visibility: visible;
+    float: none;
+    margin-left: 10px;
+}
+
+/* Status Messages */
+.notice {
+    margin: 15px 0;
+    padding: 12px;
+    border-left: 4px solid;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.notice.notice-success {
+    border-left-color: #46b450;
+}
+
+.notice.notice-error {
+    border-left-color: #dc3232;
+}
+
+.notice.notice-info {
+    border-left-color: #00a0d2;
+}
+
+.notice p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #plugin-configuration,
+    #hash-generation-panel {
+        padding: 15px;
+    }
+    
+    .config-form .form-table th {
+        width: auto;
+        display: block;
+        padding-bottom: 5px;
+    }
+    
+    .config-form .form-table td {
+        display: block;
+        padding-top: 0;
+    }
+    
+    .button-group {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

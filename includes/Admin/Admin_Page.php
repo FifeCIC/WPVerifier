@@ -23,12 +23,12 @@ use WordPress\Plugin_Check\Checker\Default_Check_Repository;
 final class Admin_Page {
 
 	/**
-	 * Admin AJAX class instance.
+	 * AJAX Handler Manager instance.
 	 *
 	 * @since 1.0.0
-	 * @var Admin_AJAX
+	 * @var AJAX_Handler_Manager
 	 */
-	protected $admin_ajax;
+	protected $ajax_manager;
 
 	/**
 	 * Admin page hook suffix.
@@ -43,10 +43,10 @@ final class Admin_Page {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param Admin_AJAX $admin_ajax Instance of Admin_AJAX.
+	 * @param AJAX_Handler_Manager $ajax_manager Instance of AJAX_Handler_Manager.
 	 */
-	public function __construct( Admin_AJAX $admin_ajax ) {
-		$this->admin_ajax = $admin_ajax;
+	public function __construct( AJAX_Handler_Manager $ajax_manager ) {
+		$this->ajax_manager = $ajax_manager;
 	}
 
 	/**
@@ -60,14 +60,14 @@ final class Admin_Page {
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_jump_to_line_code_editor' ) );
 		add_action( 'admin_post_wp_verifier_save_ai_config', array( $this, 'save_ai_config' ) );
 		add_action( 'admin_action_wp_verifier_setup', array( $this, 'render_setup_wizard' ) );
-		add_action( 'admin_init', array( $this, 'handle_ignore_code_request' ) );
-		add_action( 'admin_post_wpv_add_ignore_rule', array( $this, 'add_ignore_rule' ) );
-		add_action( 'admin_post_wpv_remove_ignore_rule', array( $this, 'remove_ignore_rule' ) );
-		add_action( 'admin_post_wpv_export_ignore_rules', array( $this, 'export_ignore_rules' ) );
-		add_action( 'admin_post_wpv_import_ignore_rules', array( $this, 'import_ignore_rules' ) );
-		add_action( 'admin_post_wpv_mark_fixed', array( $this, 'mark_issue_fixed' ) );
 
-		$this->admin_ajax->add_hooks();
+		// Initialize ignore rules handler
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Ignore_Rules_Handler' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Ignore_Rules_Handler.php';
+		}
+		Ignore_Rules_Handler::add_hooks();
+
+		$this->ajax_manager->add_hooks();
 	}
 
 	/**
@@ -104,289 +104,10 @@ final class Admin_Page {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_footer', array( $this, 'admin_footer' ) );
 
-		$this->add_help_tab();
-	}
-
-	/**
-	 * Adds the plugin help tab.
-	 *
-	 * @since 1.1.0
-	 */
-	public function add_help_tab() {
-		$screen = get_current_screen();
-
-		if ( ! $screen ) {
-			return;
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Help_Tabs' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Help_Tabs.php';
 		}
-
-		$screen->add_help_tab(
-			array(
-				'id'       => 'wp-verifier',
-				'title'    => __( 'Checks', 'wp-verifier' ),
-				'content'  => '',
-				'callback' => array( $this, 'render_help_tab' ),
-			)
-		);
-
-		$screen->add_help_tab(
-			array(
-				'id'       => 'wp-verifier-setup',
-				'title'    => __( 'Setup', 'wp-verifier' ),
-				'content'  => '',
-				'callback' => array( $this, 'render_setup_help_tab' ),
-			)
-		);
-
-		$screen->add_help_tab(
-			array(
-				'id'      => 'wp-verifier-about',
-				'title'   => __( 'FifeCIC', 'wp-verifier' ),
-				'content' => '<!-- FifeCIC About Tab v1.0 --><h2>' . __( 'About FifeCIC', 'wp-verifier' ) . '</h2>' .
-					'<p>' . __( 'This plugins developer is supported by FifeCIC (Fife Community Interest Company), a non-profit organization dedicated to serving our local community through technology and innovation.', 'wp-verifier' ) . '</p>' .
-					'<h3>' . __( 'Our Mission', 'wp-verifier' ) . '</h3>' .
-					'<p>' . __( 'FifeCIC exists to empower communities through accessible digital solutions. We believe that quality software should be available to everyone, regardless of budget, and that technology can be a force for positive social change.', 'wp-verifier' ) . '</p>' .
-					'<h3>' . __( 'Volunteer Development', 'wp-verifier' ) . '</h3>' .
-					'<p>' . __( 'This plugin was lovingly crafted by Ryan Bayne, a volunteer developer committed to FifeCIC\'s vision. Every feature, every line of code, represents hours of unpaid dedication to making WordPress better for everyone.', 'wp-verifier' ) . '</p>' .
-					'<p>' . __( 'As a Community Interest Company, we reinvest everything back into our projects and community initiatives. We don\'t have corporate backing or venture capital—just passionate people who believe in what we\'re doing.', 'wp-verifier' ) . '</p>' .
-					'<h3>' . __( 'How You Can Help', 'wp-verifier' ) . '</h3>' .
-					'<p>💝 <strong>' . __( 'Donate:', 'wp-verifier' ) . '</strong> ' . __( 'Your financial support helps us dedicate more time to development, hosting, and community outreach. Every contribution, no matter how small, makes a real difference.', 'wp-verifier' ) . '</p>' .
-					'<p>🤝 <strong>' . __( 'Get Involved:', 'wp-verifier' ) . '</strong> ' . __( 'Whether you\'re a developer, designer, tester, or just enthusiastic about our mission, we\'d love to have you join us. Check out our GitHub repository or contact us directly.', 'wp-verifier' ) . '</p>' .
-					'<p>⭐ <strong>' . __( 'Spread the Word:', 'wp-verifier' ) . '</strong> ' . __( 'Leave a review, share with colleagues, or simply tell others about FifeCIC. Community support is our lifeblood.', 'wp-verifier' ) . '</p>' .
-					'<p>🐛 <strong>' . __( 'Report Issues:', 'wp-verifier' ) . '</strong> ' . __( 'Help us improve by reporting bugs and suggesting features. Your feedback shapes our roadmap.', 'wp-verifier' ) . '</p>' .
-					'<h3>' . __( 'Connect With Us', 'wp-verifier' ) . '</h3>' .
-					'<p><a href="#" class="button">' . __( 'Website', 'wp-verifier' ) . '</a> ' .
-					'<a href="#" class="button">' . __( 'GitHub', 'wp-verifier' ) . '</a> ' .
-					'<a href="#" class="button">' . __( 'Email', 'wp-verifier' ) . '</a> ' .
-					'<a href="#" class="button button-primary">' . __( 'Donate', 'wp-verifier' ) . '</a></p>'
-			)
-		);
-
-        $screen->add_help_tab( array(
-            'id'        => 'wpseed_faq_tab',
-            'title'     => __( 'FAQ', 'wpseed' ),
-            'content'   => '',
-            'callback'  => array( $this, 'faq' ),
-        ) );
-	}
-
-    
-    public function faq() {
-        $questions = array(
-            0 => __( '-- Select a question --', 'wpseed' ),
-            1 => __( "Do I need to give credit to you (Ryan Bayne) if I create a plugin using the seed?", 'wpseed' ),
-            2 => __( "Can I hire you (Ryan Bayne) to create a plugin for me using the seed?", 'wpseed' ),
-            3 => __( "Is there support for anyone using this boilerplate to create a plugin?", 'wpseed' ),
-        );  
-        
-        wp_add_inline_style( 'wp-admin', '.faq-answers li { background:white; padding:10px 20px; border:1px solid #cacaca; }' );
-        
-        ?>
-
-        <p>
-            <ul id="faq-index">
-                <?php foreach ( $questions as $question_index => $question ): ?>
-                    <li data-answer="<?php echo esc_attr($question_index); ?>"><a href="#q<?php echo esc_attr($question_index); ?>"><?php echo esc_html($question); ?></a></li>
-                <?php endforeach; ?>
-            </ul>
-        </p>
-        
-        <ul class="faq-answers">
-            <li class="faq-answer" id='q1'>
-                <?php esc_html_e('There are multiple developers mentioned in the documentation of this plugin. You must continue to give credit to them all. Removing credits and any reference to repositories will make it difficult for developers to maintain the plugin you create. If you want my support you must also mentioned myself and the WordPress Plugin Seed on your plugins main page.', 'wpseed');?>
-            </li>
-            <li class="faq-answer" id='q2'>
-                <p> <?php esc_html_e('Yes, you can hire me (the plugin author) to create a plugin for you and prices vary but start very low. Technically it takes a only a few minutes to create a new plugin using my boilerplate. You can pay me a small fee to start your plugin and then make separate agreements for doing more work to it.', 'wpseed');?> </p>
-            </li>
-
-            <li class="faq-answer" id='q3'>
-                <p> <?php esc_html_e('There is always some level of free support but I will expect to see some credit giving to myself and the project. Support is only offered when getting started or your plugin is already available on the WordPress.org repository. If you require support for a premium/commercial plugin project then you will have to pay a small consultation fee.', 'wpseed');?> </p>
-            </li>
-     
-        </ul>
-             
-        <?php
-        $faq_script = "
-            jQuery( document).ready( function( $ ) {
-                var selectedQuestion = '';
-
-                function selectQuestion() {
-                    var q = $( '#' + $(this).val() );
-                    if ( selectedQuestion.length ) {
-                        selectedQuestion.hide();
-                    }
-                    q.show();
-                    selectedQuestion = q;
-                }
-
-                var faqAnswers = $('.faq-answer');
-                var faqIndex = $('#faq-index');
-                faqAnswers.hide();
-                faqIndex.hide();
-
-                var indexSelector = $('<select/>')
-                    .attr( 'id', 'question-selector' )
-                    .addClass( 'widefat' );
-                var questions = faqIndex.find( 'li' );
-                var advancedGroup = false;
-                questions.each( function () {
-                    var self = $(this);
-                    var answer = self.data('answer');
-                    var text = self.text();
-                    var option;
-
-                    if ( answer === 39 ) {
-                        advancedGroup = $( '<optgroup />' )
-                            .attr( 'label', '" . esc_js( __( 'Advanced: This part of FAQ requires some knowledge about HTML, PHP and/or WordPress coding.', 'wpseed' ) ) . "' );
-
-                        indexSelector.append( advancedGroup );
-                    }
-
-                    if ( answer !== '' && text !== '' ) {
-                        option = $( '<option/>' )
-                            .val( 'q' + answer )
-                            .text( text );
-                        if ( advancedGroup ) {
-                            advancedGroup.append( option );
-                        }
-                        else {
-                            indexSelector.append( option );
-                        }
-
-                    }
-
-                });
-
-                faqIndex.after( indexSelector );
-                indexSelector.before(
-                    $('<label />')
-                        .attr( 'for', 'question-selector' )
-                        .text( '" . esc_js( __( 'Select a question', 'wpseed' ) ) . "' )
-                        .addClass( 'screen-reader-text' )
-                );
-
-                indexSelector.change( selectQuestion );
-            });
-        ";
-        wp_add_inline_script( 'jquery', $faq_script );
-        ?>        
-
-        <?php 
-    }
-	
-	/**
-	 * Renders the plugin help tab.
-	 *
-	 * @since 1.1.0
-	 */
-	public function render_help_tab() {
-		$check_repo = new Default_Check_Repository();
-		$collection = $check_repo->get_checks( Check_Repository::TYPE_ALL );
-
-		if ( empty( $collection ) ) {
-			return;
-		}
-
-		$category_labels = Check_Categories::get_categories();
-
-		echo '<dl>';
-
-		/**
-		 * All checks to list.
-		 *
-		 * @var Check $check
-		 */
-		foreach ( $collection as $key => $check ) {
-			$categories = array_map(
-				static function ( $category ) use ( $category_labels ) {
-					return $category_labels[ $category ] ?? $category;
-				},
-				$check->get_categories()
-			);
-			$categories = join( ', ', $categories );
-			?>
-			<dt>
-				<code><?php echo esc_html( $key ); ?></code>
-				(<?php echo esc_html( $categories ); ?>)
-			</dt>
-			<dd>
-				<?php echo wp_kses( $check->get_description(), array( 'code' => array() ) ); ?>
-				<br>
-				<a href="<?php echo esc_url( $check->get_documentation_url() ); ?>">
-					<?php esc_html_e( 'Learn more', 'wp-verifier' ); ?>
-				</a>
-			</dd>
-			<?php
-		}
-
-		echo '</dl>';
-	}
-
-	public function render_setup_help_tab() {
-		$settings = get_option( 'plugin_check_settings', array() );
-		$setup_complete = get_option( 'wp_verifier_setup_complete' );
-		$providers = require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/AI_Providers.php';
-		
-		if ( isset( $_GET['ai-config-saved'] ) ) {
-			echo '<div class="notice notice-success"><p>' . esc_html__( 'AI configuration saved successfully.', 'wp-verifier' ) . '</p></div>';
-		}
-		?>
-		<h3><?php esc_html_e( 'Installation Status', 'wp-verifier' ); ?></h3>
-		<p>
-			<strong><?php esc_html_e( 'Setup Status:', 'wp-verifier' ); ?></strong>
-			<?php
-			if ( 'yes' === $setup_complete ) {
-				echo '<span style="color: green;">✓ ' . esc_html__( 'Complete', 'wp-verifier' ) . '</span>';
-			} elseif ( 'skipped' === $setup_complete ) {
-				echo '<span style="color: orange;">⊘ ' . esc_html__( 'Skipped', 'wp-verifier' ) . '</span>';
-			} else {
-				echo '<span style="color: red;">✗ ' . esc_html__( 'Not Complete', 'wp-verifier' ) . '</span>';
-			}
-			?>
-		</p>
-		<?php if ( ! $setup_complete || 'skipped' === $setup_complete ) : ?>
-			<p>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?action=wp_verifier_setup' ) ); ?>" class="button button-primary">
-					<?php esc_html_e( 'Run Setup Wizard', 'wp-verifier' ); ?>
-				</a>
-			</p>
-		<?php endif; ?>
-
-		<h3><?php esc_html_e( 'AI Configuration', 'wp-verifier' ); ?></h3>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<?php wp_nonce_field( 'wp_verifier_save_ai_config', 'wp_verifier_ai_nonce' ); ?>
-			<input type="hidden" name="action" value="wp_verifier_save_ai_config" />
-			<table class="form-table">
-				<tr>
-					<th scope="row"><label for="ai_provider"><?php esc_html_e( 'AI Provider', 'wp-verifier' ); ?></label></th>
-					<td>
-						<select id="ai_provider" name="ai_provider">
-							<option value=""><?php esc_html_e( 'None', 'wp-verifier' ); ?></option>
-							<?php foreach ( $providers as $key => $provider ) : ?>
-								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $settings['ai_provider'] ?? '', $key ); ?>>
-									<?php echo esc_html( $provider['label'] ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="ai_api_key"><?php esc_html_e( 'API Key', 'wp-verifier' ); ?></label></th>
-					<td>
-						<input type="password" id="ai_api_key" name="ai_api_key" class="regular-text" value="<?php echo esc_attr( $settings['ai_api_key'] ?? '' ); ?>" />
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="ai_model"><?php esc_html_e( 'Model', 'wp-verifier' ); ?></label></th>
-					<td>
-						<input type="text" id="ai_model" name="ai_model" class="regular-text" value="<?php echo esc_attr( $settings['ai_model'] ?? '' ); ?>" placeholder="gpt-4" />
-					</td>
-				</tr>
-			</table>
-			<p class="submit">
-				<input type="submit" class="button button-primary" value="<?php esc_attr_e( 'Save Configuration', 'wp-verifier' ); ?>" />
-			</p>
-		</form>
-		<?php
+		Help_Tabs::add_help_tabs();
 	}
 
 	/**
@@ -397,290 +118,12 @@ final class Admin_Page {
 	public function enqueue_scripts() {
 		$current_tab = isset( $_GET['tab'] ) ? sanitize_title( wp_unslash( $_GET['tab'] ) ) : 'verify';
 
-		// Enqueue basic verification scripts if on basic tab
-		if ( 'basic' === $current_tab ) {
-			wp_enqueue_script(
-				'basic-verification',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/basic-verification.js',
-				array('jquery'),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Assets\\Asset_Manager' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/Asset_Manager.php';
 		}
-
-		// Enqueue preparation scripts if on preparation tab
-		if ( 'preparation' === $current_tab ) {
-			wp_enqueue_script(
-				'plugin-check-preparation',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-preparation.js',
-				array('jquery'),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
-		}
-
-		wp_enqueue_script(
-			'plugin-check-admin',
-			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-admin.js',
-			array(
-				'wp-util',
-			),
-			WP_PLUGIN_CHECK_VERSION,
-			true
-		);
-
-		wp_enqueue_script(
-			'wp-verifier-ast',
-			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/wp-verifier-ast.js',
-			array('jquery'),
-			WP_PLUGIN_CHECK_VERSION,
-			true
-		);
-
-		// Enqueue AI Guidance script
-		wp_enqueue_script(
-			'wp-verifier-ai-guidance',
-			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/ai-guidance.js',
-			array('jquery'),
-			WP_PLUGIN_CHECK_VERSION,
-			true
-		);
-
-		wp_enqueue_style(
-			'plugin-check-admin',
-			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/plugin-check-admin.css',
-			array(),
-			WP_PLUGIN_CHECK_VERSION
-		);
-
-		wp_enqueue_style(
-			'wp-verifier-tabs',
-			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/wp-verifier-tabs.css',
-			array(),
-			WP_PLUGIN_CHECK_VERSION
-		);
-
-		wp_enqueue_style(
-			'wp-verifier-ast',
-			WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/wp-verifier-ast.css',
-			array(),
-			WP_PLUGIN_CHECK_VERSION
-		);
-
-		// Enqueue namer scripts if on namer tab
-		if ( 'namer' === $current_tab ) {
-			wp_enqueue_style(
-				'wpv-plugin-namer',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/admin-plugin-namer.css',
-				array(),
-				WP_PLUGIN_CHECK_VERSION
-			);
-
-			wp_enqueue_script(
-				'wpv-plugin-namer',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-plugin-namer.js',
-				array( 'jquery' ),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
-
-			wp_localize_script(
-				'wpv-plugin-namer',
-				'wpvPluginNamer',
-				array(
-					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-					'nonce'   => $this->admin_ajax->get_nonce(),
-					'actions' => array(
-						'checkDomains'    => Admin_AJAX::ACTION_CHECK_DOMAINS,
-						'checkConflicts'  => Admin_AJAX::ACTION_CHECK_CONFLICTS,
-						'analyzeSeo'      => Admin_AJAX::ACTION_ANALYZE_SEO,
-						'checkTrademarks' => Admin_AJAX::ACTION_CHECK_TRADEMARKS,
-						'saveName'        => Admin_AJAX::ACTION_SAVE_NAME,
-						'getSavedNames'   => Admin_AJAX::ACTION_GET_SAVED_NAMES,
-					),
-					'enabledChecks' => $this->get_enabled_namer_checks(),
-					'i18n' => array(
-						'available'   => __( 'Available', 'wp-verifier' ),
-						'taken'       => __( 'Taken', 'wp-verifier' ),
-						'checking'    => __( 'Checking...', 'wp-verifier' ),
-						'error'       => __( 'Error', 'wp-verifier' ),
-						'noConflicts' => __( 'No conflicts found', 'wp-verifier' ),
-						'exactMatch'  => __( 'Exact match found!', 'wp-verifier' ),
-						'similar'     => __( 'Similar plugins found', 'wp-verifier' ),
-						'saved'       => __( 'Evaluation saved successfully', 'wp-verifier' ),
-						'saveFailed'  => __( 'Failed to save evaluation', 'wp-verifier' ),
-					),
-				)
-			);
-		}
-
-		// Enqueue saved results scripts if on saved tab
-		if ( 'saved' === $current_tab || 'results' === $current_tab ) {
-			wp_enqueue_script(
-				'plugin-check-saved',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-saved.js',
-				array('jquery'),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
-			
-			// Add AI Guidance configuration for Results tab
-			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
-				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
-			}
-			$ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
-			wp_add_inline_script(
-				'plugin-check-saved',
-				'const wpvAiGuidance = ' . json_encode( $ai_guidance ) . ';',
-				'before'
-			);
-			
-			wp_localize_script(
-				'plugin-check-saved',
-				'wpvConfig',
-				array(
-					'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
-					'nonce' => $this->admin_ajax->get_nonce(),
-				)
-			);
-		}
-
-		// Enqueue issues tab styles if on issues tab
-		if ( 'issues' === $current_tab ) {
-			wp_enqueue_style(
-				'wpv-issues-tab',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/issues-tab.css',
-				array(),
-				WP_PLUGIN_CHECK_VERSION
-			);
-			
-			wp_enqueue_script(
-				'wpv-issues-tab',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/issues-tab.js',
-				array('jquery'),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
-		}
-
-		// Enqueue monitoring scripts if on monitoring tab
-		if ( 'monitoring' === $current_tab ) {
-			wp_enqueue_style(
-				'plugin-monitoring',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/plugin-monitoring.css',
-				array(),
-				WP_PLUGIN_CHECK_VERSION
-			);
-
-			wp_enqueue_script(
-				'plugin-monitoring',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-monitoring.js',
-				array( 'jquery' ),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
-
-			wp_localize_script(
-				'plugin-monitoring',
-				'PluginMonitorConfig',
-				array(
-					'nonce'              => $this->admin_ajax->get_nonce(),
-					'actionLoadResults'  => Admin_AJAX::ACTION_LOAD_RESULTS,
-					'actionStartMonitor' => Admin_AJAX::ACTION_START_MONITORING,
-					'actionStopMonitor'  => Admin_AJAX::ACTION_STOP_MONITORING,
-					'actionViewLog'      => Admin_AJAX::ACTION_GET_MONITOR_LOG,
-					'verifyTabUrl'       => admin_url( 'plugins.php?page=wp-verifier&tab=verify' ),
-					'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
-				)
-			);
-		}
-
-		// Enqueue settings scripts if on settings tab
-		if ( 'settings' === $current_tab ) {
-			wp_enqueue_script(
-				'plugin-check-admin-settings',
-				WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-settings.js',
-				array(),
-				WP_PLUGIN_CHECK_VERSION,
-				true
-			);
-
-			wp_localize_script(
-				'plugin-check-admin-settings',
-				'pluginCheckSettings',
-				array(
-					'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
-					'nonce'           => wp_create_nonce( 'plugin_check_get_models' ),
-					'loadingText'     => __( 'Loading models...', 'wp-verifier' ),
-					'selectModelText' => __( '-- Select Model --', 'wp-verifier' ),
-					'noModelsText'    => __( 'No models available. Please check your API key.', 'wp-verifier' ),
-					'errorText'       => __( 'Error loading models', 'wp-verifier' ),
-				)
-			);
-		}
-
-		wp_add_inline_script(
-			'plugin-check-admin',
-			'const PLUGIN_CHECK = ' . json_encode(
-				array(
-					'nonce'                           => $this->admin_ajax->get_nonce(),
-					'actionGetChecksToRun'            => Admin_AJAX::ACTION_GET_CHECKS_TO_RUN,
-					'actionSetUpRuntimeEnvironment'   => Admin_AJAX::ACTION_SET_UP_ENVIRONMENT,
-					'actionRunChecks'                 => Admin_AJAX::ACTION_RUN_CHECKS,
-					'actionCleanUpRuntimeEnvironment' => Admin_AJAX::ACTION_CLEAN_UP_ENVIRONMENT,
-					'actionExportResults'             => Admin_AJAX::ACTION_EXPORT_RESULTS,
-					'actionSaveResults'               => Admin_AJAX::ACTION_SAVE_RESULTS,
-					'actionLoadResults'               => Admin_AJAX::ACTION_LOAD_RESULTS,
-					'actionListSavedResults'          => Admin_AJAX::ACTION_LIST_SAVED_RESULTS,
-					'actionAddIgnoreRule'             => Admin_AJAX::ACTION_ADD_IGNORE_RULE,
-					'actionAddIgnoreDirectory'        => Admin_AJAX::ACTION_ADD_IGNORE_DIRECTORY,
-					'autoSaveResults'                 => $this->get_auto_save_setting(),
-					'successMessage'                  => __( 'No errors found.', 'wp-verifier' ),
-					'errorMessage'                    => __( 'Errors were found.', 'wp-verifier' ),
-					'strings'                         => array(
-						'downloadCsv'      => __( 'Download CSV', 'wp-verifier' ),
-						'downloadJson'     => __( 'Download JSON', 'wp-verifier' ),
-						'downloadMarkdown' => __( 'Download Markdown', 'wp-verifier' ),
-						'saveCsv'          => __( 'CSV File', 'wp-verifier' ),
-						'saveJson'         => __( 'JSON File', 'wp-verifier' ),
-						'saveMarkdown'     => __( 'Markdown File', 'wp-verifier' ),
-						'exporting'        => __( 'Preparing export…', 'wp-verifier' ),
-						'saving'           => __( 'Saving…', 'wp-verifier' ),
-						'exportError'      => __( 'Export failed.', 'wp-verifier' ),
-						'saveError'        => __( 'Save failed.', 'wp-verifier' ),
-						'saveSuccess'      => __( 'File saved successfully.', 'wp-verifier' ),
-						'noResults'        => __( 'There are no results to export yet.', 'wp-verifier' ),
-					),
-				)
-			) . '; function getErrorIcon(code) { const meta = wpvErrorMetadata[code]; return meta ? `<span class="dashicons dashicons-${meta.icon}" style="color: ${meta.color};" title="${meta.description}"></span>` : `<span class="dashicons dashicons-warning" style="color: #666;"></span>`; }',
-			'before'
-		);
-
-		$known_libraries = require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/known-libraries.php';
-		wp_add_inline_script(
-			'wp-verifier-ast',
-			'const WPVerifierLibraries = ' . json_encode( $known_libraries ) . '; const wpvPluginUrl = ' . json_encode( WP_PLUGIN_CHECK_PLUGIN_DIR_URL ) . ';',
-			'before'
-		);
 		
-		$ignore_rules = get_option( 'wpv_ignore_rules', array() );
-		wp_add_inline_script(
-			'wp-verifier-ast',
-			'const wpvIgnoreRules = ' . json_encode( $ignore_rules ) . ';',
-			'before'
-		);
-		
-
-		// Add Error Metadata configuration
-		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Error_Metadata' ) ) {
-			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Error_Metadata.php';
-		}
-		$error_metadata = \WordPress\Plugin_Check\Utilities\Error_Metadata::get_all_metadata();
-		wp_add_inline_script(
-			'plugin-check-admin',
-			'const wpvErrorMetadata = ' . json_encode( $error_metadata ) . ';',
-			'before'
-		);
+		$asset_manager = new \WordPress\Plugin_Check\Assets\Asset_Manager( $this->ajax_manager );
+		$asset_manager->enqueue_for_tab( $current_tab );
 	}
 
 	/**
@@ -820,14 +263,14 @@ final class Admin_Page {
 
 		// Render tab content
 		switch ( $current_tab ) {
-			case 'preparation':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-preparation.php';
+			case 'select':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-select-plugin.php';
 				break;
-			case 'basic':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-basic-verification.php';
+			case 'preparation':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-configuration.php';
 				break;
 			case 'verify':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-advanced-verification.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-verification.php';
 				break;
 			case 'results':
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
@@ -840,12 +283,6 @@ final class Admin_Page {
 				break;
 			case 'monitoring':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-monitoring.php';
-				break;
-			case 'namer':
-				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Plugin_Namer_Tab' ) ) {
-					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Plugin_Namer_Tab.php';
-				}
-				Plugin_Namer_Tab::render();
 				break;
 			case 'test-area':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-test-area.php';
@@ -866,8 +303,11 @@ final class Admin_Page {
 			case 'error-codes':
 				$this->render_error_codes_tab();
 				break;
+			case 'architecture':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-architecture.php';
+				break;
 			default:
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-advanced-verification.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-verification.php';
 				break;
 		}
 
@@ -964,29 +404,6 @@ final class Admin_Page {
 			)
 		);
 		?>
-		<style>
-			#plugin-check__results .notice,
-			#plugin-check__results .notice + h4 {
-				margin-top: 20px;
-			}
-			#plugin-check__results h4:first-child {
-				margin-top: 80.5px;
-			}
-			@media ( max-width: 782px ) {
-				#plugin-check__results h4:first-child {
-					margin-top: 88.5px;
-				}
-			}
-			.plugin-check__export-controls {
-				margin-top: 24px;
-				display: flex;
-				gap: 8px;
-				flex-wrap: wrap;
-			}
-			.plugin-check__export-controls.is-hidden {
-				display: none;
-			}
-		</style>
 		<?php
 	}
 
@@ -1023,24 +440,6 @@ final class Admin_Page {
 		$default_categories = (array) apply_filters( 'wp_plugin_check_default_categories', $default_check_categories );
 
 		return $default_categories;
-	}
-
-	/**
-	 * Gets enabled namer checks from settings.
-	 *
-	 * @since 1.9.0
-	 *
-	 * @return array Enabled checks.
-	 */
-	private function get_enabled_namer_checks() {
-		$settings = get_option( 'plugin_check_settings', array() );
-		$checks = isset( $settings['namer_checks'] ) ? $settings['namer_checks'] : array(
-			'domains'    => true,
-			'conflicts'  => true,
-			'seo'        => true,
-			'trademarks' => true,
-		);
-		return $checks;
 	}
 
 	/**
@@ -1081,138 +480,7 @@ final class Admin_Page {
 		$wizard->render();
 	}
 
-	public function handle_ignore_code_request() {
-		if ( ! isset( $_GET['page'] ) || 'wp-verifier' !== $_GET['page'] ) {
-			return;
-		}
-		
-		if ( ! isset( $_GET['action'] ) || 'ignore_code' !== $_GET['action'] ) {
-			return;
-		}
-		
-		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], Admin_AJAX::NONCE_KEY ) ) {
-			wp_die( 'Invalid nonce' );
-		}
-		
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			wp_die( 'Insufficient permissions' );
-		}
-		
-		$plugin = isset( $_GET['plugin'] ) ? sanitize_text_field( wp_unslash( $_GET['plugin'] ) ) : '';
-		$file = isset( $_GET['file'] ) ? sanitize_text_field( wp_unslash( $_GET['file'] ) ) : '';
-		$code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
-		
-		if ( empty( $plugin ) || empty( $file ) || empty( $code ) ) {
-			wp_die( 'Missing required parameters' );
-		}
-		
-		$ignore_rules = get_option( 'wpv_ignore_rules', array() );
-		
-		if ( ! isset( $ignore_rules[ $plugin ] ) ) {
-			$ignore_rules[ $plugin ] = array();
-		}
-		
-		$ignore_rules[ $plugin ][] = array(
-			'file' => $file,
-			'code' => $code,
-			'added' => current_time( 'mysql' ),
-		);
-		
-		update_option( 'wpv_ignore_rules', $ignore_rules );
-		
-		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=results&plugin=' . urlencode( $plugin ) . '&ignored=1' ) );
-		exit;
-	}
 
-	public function add_ignore_rule() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
-		}
-
-		check_admin_referer( 'wpv_add_ignore_rule', 'wpv_nonce' );
-
-		$scope = isset( $_POST['scope'] ) ? sanitize_text_field( wp_unslash( $_POST['scope'] ) ) : '';
-		$path = isset( $_POST['path'] ) ? sanitize_text_field( wp_unslash( $_POST['path'] ) ) : '';
-		$code = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
-		$reason = isset( $_POST['reason'] ) ? sanitize_text_field( wp_unslash( $_POST['reason'] ) ) : 'other';
-		$note = isset( $_POST['note'] ) ? sanitize_text_field( wp_unslash( $_POST['note'] ) ) : '';
-
-		\WordPress\Plugin_Check\Utilities\Ignore_Rules::add_rule( $scope, $path, $reason, $code, $note );
-
-		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=preparation&added=1' ) );
-		exit;
-	}
-
-	public function remove_ignore_rule() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
-		}
-
-		$rule_id = isset( $_GET['rule_id'] ) ? sanitize_text_field( wp_unslash( $_GET['rule_id'] ) ) : '';
-		check_admin_referer( 'wpv_remove_rule_' . $rule_id );
-
-		\WordPress\Plugin_Check\Utilities\Ignore_Rules::remove_rule( $rule_id );
-
-		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=preparation&removed=1' ) );
-		exit;
-	}
-
-	public function export_ignore_rules() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
-		}
-
-		check_admin_referer( 'wpv_export_rules' );
-
-		$json = \WordPress\Plugin_Check\Utilities\Ignore_Rules::export_rules();
-
-		header( 'Content-Type: application/json' );
-		header( 'Content-Disposition: attachment; filename="wpv-ignore-rules.json"' );
-		echo $json;
-		exit;
-	}
-
-	public function import_ignore_rules() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
-		}
-
-		check_admin_referer( 'wpv_import_rules', 'wpv_nonce' );
-
-		if ( ! isset( $_FILES['rules_file'] ) || $_FILES['rules_file']['error'] !== UPLOAD_ERR_OK ) {
-			wp_die( esc_html__( 'File upload failed.', 'wp-verifier' ) );
-		}
-
-		$json = file_get_contents( $_FILES['rules_file']['tmp_name'] );
-		$success = \WordPress\Plugin_Check\Utilities\Ignore_Rules::import_rules( $json );
-
-		if ( ! $success ) {
-			wp_die( esc_html__( 'Invalid rules file.', 'wp-verifier' ) );
-		}
-
-		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=preparation&imported=1' ) );
-		exit;
-	}
-
-	public function mark_issue_fixed() {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
-		}
-
-		check_admin_referer( 'wpv_mark_fixed' );
-
-		$plugin = isset( $_GET['plugin'] ) ? sanitize_text_field( wp_unslash( $_GET['plugin'] ) ) : '';
-		$issue_id = isset( $_GET['issue_id'] ) ? sanitize_text_field( wp_unslash( $_GET['issue_id'] ) ) : '';
-
-		if ( empty( $plugin ) || empty( $issue_id ) ) {
-			wp_die( esc_html__( 'Missing required parameters.', 'wp-verifier' ) );
-		}
-
-		\WordPress\Plugin_Check\Utilities\Issue_Fixes::mark_fixed( $plugin, $issue_id );
-
-		wp_safe_redirect( admin_url( 'plugins.php?page=wp-verifier&tab=results&plugin=' . urlencode( $plugin ) . '&fixed=1' ) );
-		exit;
-	}
 
 	/**
 	 * Render Error Codes tab

@@ -7,7 +7,7 @@
 
 namespace WordPress\Plugin_Check;
 
-use WordPress\Plugin_Check\Admin\Admin_AJAX;
+use WordPress\Plugin_Check\Admin\AJAX_Handler_Manager;
 use WordPress\Plugin_Check\Admin\Admin_Page;
 
 /**
@@ -66,19 +66,16 @@ class Plugin_Main {
 			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'cli.php';
 		}
 
-		$admin_ajax = new Admin_AJAX();
+		$ajax_manager = new AJAX_Handler_Manager();
+		$ajax_manager->add_hooks();
+		
 		// Create the Admin page.
-		$admin_page = new Admin_Page( $admin_ajax );
+		$admin_page = new Admin_Page( $ajax_manager );
 		$admin_page->add_hooks();
 
 		// Create the Settings page.
 		$settings_page_class = '\\WordPress\\Plugin_Check\\Admin\\Settings_Page';
 		$settings_page       = new $settings_page_class();
 		$settings_page->add_hooks();
-
-		// Create the Plugin Check Namer tool page.
-		$namer_page_class = '\\WordPress\\Plugin_Check\\Admin\\Namer_Page';
-		$namer_page       = new $namer_page_class();
-		$namer_page->add_hooks();
 	}
 }
