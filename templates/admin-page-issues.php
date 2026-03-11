@@ -5,12 +5,16 @@
  * @package wp-verifier
  */
 
-// Load wpseed JSON from verifier-results
-$wpseed_file = WP_PLUGIN_DIR . '/wpseed/.wpv-results.json';
-$wpseed_data = array();
-if ( file_exists( $wpseed_file ) ) {
-	$wpseed_json = file_get_contents( $wpseed_file );
-	$wpseed_data = json_decode( $wpseed_json, true );
+// Get current plugin from user meta
+$current_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
+$plugin_folder = $current_plugin ? ( strpos( $current_plugin, '/' ) !== false ? dirname( $current_plugin ) : $current_plugin ) : 'wpseed';
+
+// Load plugin JSON from verifier-results
+$plugin_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+$plugin_data = array();
+if ( file_exists( $plugin_file ) ) {
+	$plugin_json = file_get_contents( $plugin_file );
+	$plugin_data = json_decode( $plugin_json, true );
 }
 
 // Load AI guidance
@@ -19,10 +23,10 @@ if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
 }
 $ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
 
-// Merge AI guidance into wpseed issues
+// Merge AI guidance into plugin issues
 $merged_issues = array();
-if ( ! empty( $wpseed_data['results'] ) ) {
-	foreach ( $wpseed_data['results'] as $file => $issues ) {
+if ( ! empty( $plugin_data['results'] ) ) {
+	foreach ( $plugin_data['results'] as $file => $issues ) {
 		foreach ( $issues as $issue ) {
 			$code = $issue['code'] ?? '';
 			if ( $code && isset( $ai_guidance[ $code ] ) ) {
@@ -104,9 +108,7 @@ usort( $merged_issues, function( $a, $b ) {
 									<button type="button" class="button wpv-copy-prompt" data-prompt="<?php echo esc_attr( $ai_prompt ); ?>">
 										<span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Copy AI Prompt', 'wp-verifier' ); ?>
 									</button>
-									<a href="vscode://file/<?php echo esc_attr( $file_path ); ?>:<?php echo esc_attr( $line ); ?>" class="button">
-										<span class="dashicons dashicons-editor-code"></span> <?php esc_html_e( 'VSCode', 'wp-verifier' ); ?>
-									</a>
+									<?php echo wpv_get_vscode_button( $file_path, $line, 0, $plugin_folder ); ?>
 									<a href="#" class="button button-primary wpv-fixed-link" data-file="<?php echo esc_attr( $file_path ); ?>" data-code="<?php echo esc_attr( $code ); ?>">
 										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Mark As Fixed', 'wp-verifier' ); ?>
 									</a>
@@ -117,7 +119,7 @@ usort( $merged_issues, function( $a, $b ) {
 				</tbody>
 			</table>
 		<?php else : ?>
-			<p><?php esc_html_e( 'No issues found in wpseed.json', 'wp-verifier' ); ?></p>
+			<p><?php esc_html_e( 'No issues found in plugin results', 'wp-verifier' ); ?></p>
 		<?php endif; ?>
 	</div>
 </div>

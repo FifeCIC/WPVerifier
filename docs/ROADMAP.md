@@ -1,93 +1,86 @@
 # WP Verifier Development Roadmap
 
-## 🚨 URGENT: Verification Results & Display Issues
 
-**Current Status**: Verification processing works (300+ issues found) but results not properly saved/displayed
+## PHASE 3: Function-Based Issue Management
 
-### Critical Issues Identified ✅ PARTIALLY RESOLVED
-- [x] **AJAX Communication Working**: Console shows 508KB HTML output, verification finds issues
-- [x] **Progress Bar Added**: Loader shows proper steps and completes
-- [x] **Debug Logging Added**: Comprehensive logging to track data flow
-- [ ] **JSON File Not Updated**: `.wpv-results.json` remains empty despite successful verification
-- [ ] **Readiness Score Hidden**: Original readiness score display not showing after verification
-- [ ] **Empty Export Controls Panel**: `<div id="plugin-check__export-controls">` has no content
+**Objective**: Transform TAB05 from generic "Issues" to function-centric "Functions" tab with enhanced developer workflow.
 
-### Immediate Action Items (HIGH PRIORITY)
-- [ ] **Fix JSON Results Saving**: Add `save_results_to_json()` method call in AJAX handler
-- [ ] **Restore Readiness Score Display**: Show original readiness score container after verification
-- [ ] **Investigate Export Controls**: Determine if empty panel should contain readiness score
-- [ ] **Verify TAB04 (Files) Integrity**: Check if Files tab design was affected by consolidation
-- [ ] **Consider GitHub Backup**: Download original version for reference if major design lost
+### Core Concept
+- **Rename TAB05**: "Issues" → "Functions" 
+- **UI Pattern**: Copy TAB04 accordion design but group by function instead of file
+- **Granular Control**: Function-level ignore/fixed status instead of file-level
+- **Developer Focus**: Organize issues by logical code boundaries (functions/methods)
 
-### Debug Strategy
-- [x] **Enhanced Logging**: Added comprehensive debug logging for verification flow
-- [x] **Console Monitoring**: JavaScript logs show successful AJAX with large HTML payload
-- [ ] **JSON File Monitoring**: Track when/why `.wpv-results.json` isn't being updated
-- [ ] **Template Comparison**: Compare current vs original readiness score implementation
+### Phase 3.1: JSON Schema Enhancement (HIGH PRIORITY)
+- [ ] **Extend `.wpv-results.json` structure**
+	- Add `function_name` field to each issue
+	- Add `function_hash` field for change tracking
+	- Add optional `class_name` field for OOP context
+	- Add `function_signature` for display purposes
+- [ ] **Function Detection System**
+	- Use `token_get_all()` to parse PHP files during scan
+	- Map line numbers to containing function/method
+	- Extract function signatures and boundaries
+	- Generate function-specific hashes for change detection
+- [ ] **Backward Compatibility**
+	- Handle existing results without function data
+	- Graceful degradation for non-PHP files
+	- Migration strategy for existing `.wpv-results.json` files
 
-### Design Integrity Concerns
-- **Issue**: Consolidation may have removed original readiness score display logic
-- **Risk**: TAB04 (Files) and TAB05 (Issues) may have lost original designs
-- **Mitigation**: GitHub backup available as reference for original implementations
+### Phase 3.2: Function-Centric UI (MEDIUM PRIORITY)
+- [ ] **Copy TAB04 Architecture**
+	- Duplicate accordion structure and styling
+	- Adapt JavaScript for function-based grouping
+	- Maintain existing VSCode integration and AI prompts
+- [ ] **Accordion Headers**
+	- Primary: Function signature (e.g., `public function handle_ajax_request()`)
+	- Secondary: File path and line range
+	- Badge: Issue count per function
+- [ ] **Function-Level Actions**
+	- "Mark Function as Fixed" - affects all issues in function
+	- "Ignore Function Issues" - uses function hash for tracking
+	- "Copy Function Prompt" - AI prompt with full function context
+	- VSCode button opens to function definition
 
----
+### Phase 3.3: Enhanced Function Management (MEDIUM PRIORITY)
+- [ ] **Function Status Tracking**
+	- Store function-level ignore/fixed status in `.wpv-verification.json`
+	- Hash-based validation (detect when function changes)
+	- Stale status detection and warnings
+- [ ] **Function Hierarchy Display**
+	- Show class context for methods
+	- Group by class → method structure
+	- Support for nested functions and closures
+- [ ] **Function-Level Statistics**
+	- Issues per function metrics
+	- Function complexity indicators
+	- Most problematic functions ranking
 
-## ✅ PHASE 1 COMPLETE: Code Reduction & Consolidation
+### Phase 3.4: Advanced Function Features (LOW PRIORITY)
+- [ ] **Function Comparison**
+	- Before/after function diff when hash changes
+	- Show what changed to cause stale ignore status
+	- Suggest re-evaluation of ignored issues
+- [ ] **Function Documentation Integration**
+	- Extract and display function docblocks
+	- Show parameter types and return values
+	- Link to internal documentation if available
+- [ ] **Bulk Function Operations**
+	- Select multiple functions for bulk actions
+	- Export function-specific reports
+	- Batch ignore/fixed status updates
 
-**Achievement Summary**: Successfully reduced codebase complexity and eliminated duplicate patterns.
+### Technical Implementation Notes
+- **Function Detection**: Leverage existing hash generation system in `Hash_Generator.php`
+- **UI Consistency**: Maintain TAB04's proven accordion pattern for familiarity
+- **Performance**: Cache function parsing results to avoid re-parsing on each load
+- **Extensibility**: Design for future language support (JavaScript, CSS, etc.)
 
-### Template Consolidation ✅ COMPLETED
-- [x] **Merged similar templates**
-	- ✅ Consolidated admin-page-preparation.php + admin-page-hash-generation.php → admin-page-configuration.php
-	- ✅ Consolidated basic + advanced verification templates → admin-page-verification.php
-	- ✅ Created shared Template_Helper utility class for common functions
-
-### JavaScript Consolidation ✅ COMPLETED  
-- [x] **Merged related JS files**
-	- ✅ Created shared AJAX utility (wpv-ajax.js) with common patterns
-	- ✅ Reduced from 12 JS files to 6 focused files (46% reduction)
-	- ✅ Consolidated preparation + hash generation → admin-configuration.js
-	- ✅ Consolidated basic + advanced verification → admin-verification.js
-
-### Feature Removal ✅ COMPLETED
-- [x] **Removed duplicate/unused features**
-	- ✅ Eliminated "Basic Verification" (TAB13) - duplicate of advanced verification
-	- ✅ Removed "Plugin Namer" (TAB08) - 8 files and associated code eliminated
-	- ✅ Removed TAB03 (Hash Generation) as duplicate of TAB02
-	- ✅ Renumbered remaining tabs for cleaner interface
-
-### AJAX Handler Fixes ✅ COMPLETED
-- [x] **Fixed missing AJAX handlers**
-	- ✅ Added wpv_load_config and wpv_save_config methods
-	- ✅ Added wpv_run_checks AJAX action for verification
-	- ✅ Fixed Asset_Manager localization for current_plugin access
-
-### Architecture Improvements ✅ COMPLETED
-- [x] **Enhanced core systems**
-	- ✅ Updated TAB01 to auto-create missing WPV files
-	- ✅ Enhanced TAB02 with vendor folder detection and detailed feedback
-	- ✅ Updated TAB03 with readiness checklist and conditional verification
-	- ✅ Centralized asset management through Asset_Manager class
-
-**CRITICAL ISSUE IDENTIFIED**: Verification results display was modified beyond consolidation scope, changing original HTML structure and design patterns.
-
----
-
-## SECONDARY PRIORITY: System Simplification & Data Loss Fix
-
-**Primary Issue**: JavaScript shows 288 warnings, PHP receives only 6.
-**Strategy**: Break down verification process into clear, validatable steps.
-
-### Debug Data Loss (URGENT)
-- [ ] Add comprehensive logging to trace 288→6 warning reduction
-	- **Signpost:** `wp-content/plugins/WPVerifier/assets/js/plugin-check-admin.js` (in `runChecks()` function) and `wp-content/plugins/WPVerifier/includes/Admin/Admin_AJAX.php` (in `save_results()` function)
-	- **Clarity:** Enhanced logging to count total warnings before/after transmission
-- [ ] Identify exact point where data is lost
-	- Compare detailed warning counts in JavaScript vs PHP
-	- Check for server limits (`post_max_size`, JSON payload size)
-- [ ] Fix data transmission between JavaScript and PHP
-	- Implement chunking if payload size is the issue
-	- Fix serialization/deserialization problems
+### Success Metrics
+- Function-level ignore/fixed actions working correctly
+- Hash-based change detection preventing stale ignores
+- Developer workflow improvement (faster issue resolution)
+- Maintained performance with function-level granularity
 
 ## Phase 2: Tab Structure Redesign
 
@@ -175,25 +168,10 @@
 - [ ] Separate ignored vs active issues in display
 - [ ] Show stale ignores (hash mismatch, need re-evaluation)
 
-### Phase 4: UI Management (Medium Priority)
-- [ ] List all ignored functions/files
-- [ ] Filter by plugin, file, ignore status
-- [ ] Show ignore health (active/stale/invalid)
-- [ ] Bulk operations (re-ignore, remove ignore)
-- [ ] Search and sort functionality
-- [ ] "Ignore Issue" button in Selected Issue Details
-- [ ] Modal: Enter note, choose scope (this function/entire file)
-- [ ] Preview what will be ignored
-- [ ] Generate hash and save to `.wpv-verification.json`
-- [ ] Track who ignored and when
-- [ ] Show stale ignores (hash no longer matches)
-- [ ] Show ignore coverage per file
-- [ ] Show recently ignored items
-- [ ] Suggest expired ignores for re-evaluation
-
 ---
 
-## Internationalization (i18n)
+## Internationalization Tool (i18n)
+Detect strings yet to be translated and any translation related issues.
 
 ### JavaScript Translation (Medium Priority)
 - [ ] Create translation object in PHP where scripts are enqueued
@@ -216,38 +194,6 @@
 
 ---
 
-## Issues Tab Enhancement
-
-### Phase 1: WP_List_Table Implementation (Medium Priority)
-- [ ] Extend WP_List_Table
-- [ ] Implement required methods: get_columns(), prepare_items(), column_default()
-- [ ] Load merged issues data (wpseed results + AI guidance)
-- [ ] Support severity badges (ERROR/WARNING)
-- [ ] Maintain accordion row expansion functionality
-- [ ] Implement search_box() method
-- [ ] Search across file names, error codes, and messages
-- [ ] Real-time filtering of results
-- [ ] Clear search button
-- [ ] Checkbox column for row selection
-- [ ] Bulk action dropdown (Copy All Prompts, Mark as Reviewed, etc.)
-- [ ] "Select All" functionality
-- [ ] Process bulk actions handler
-- [ ] Make all columns sortable (Severity, File, Line, Code)
-- [ ] Maintain sort state across page loads
-- [ ] Visual sort indicators
-- [ ] Add pagination controls (10, 25, 50, 100 per page)
-- [ ] Screen options for items per page
-- [ ] Total items count display
-
-### Phase 2: Enhanced Features (Low Priority)
-- [ ] Screen options to show/hide columns
-- [ ] Save column preferences per user
-- [ ] Export filtered results to CSV
-- [ ] Export with AI prompts included
-- [ ] Bulk export selected items
-
----
-
 ## Developer Guidance Panel
 
 ### Phase 1: Foundation (High Priority)
@@ -259,16 +205,6 @@
 - [ ] Hook into template loading process to capture file paths
 - [ ] Track view files, layout files, and styling files as they're loaded
 - [ ] Store template hierarchy information (parent/child relationships)
-
-### Phase 2: TAB02 Implementation (High Priority)
-- [ ] Focus initial implementation on TAB02 functionality
-- [ ] Track templates specific to TAB02 operations
-- [ ] Display relevant file paths for TAB02 views and layouts
-- [ ] Show styling files that affect TAB02 presentation
-- [ ] Show full file paths to template files
-- [ ] Organize by file type (Views, Layouts, Styles, Scripts)
-- [ ] Make file paths clickable (if IDE integration possible)
-- [ ] Show file modification timestamps
 
 ---
 
@@ -289,7 +225,3 @@
 - [ ] Require second approver for file-level ignoring
 - [ ] Require approval for ignoring certain severities (e.g. security)
 - [ ] Export verification/ignore history to CSV/JSON for QA/security reviews
-
----
-
-*Last Updated: 2026-03-09*

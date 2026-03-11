@@ -172,37 +172,37 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 			<div class="wpv-arch-flow">
 				<div class="wpv-arch-step">
 					<strong>1. SCAN INITIATION</strong><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Admin/Admin_AJAX.php:264"><code>Admin_AJAX::run_checks()</code></a><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Checker/AJAX_Runner.php"><code>AJAX_Runner::run()</code></a><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php:62"><code>Abstract_PHP_CodeSniffer_Check::run()</code></a>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 264, 0, null, 'Admin_AJAX::run_checks()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 62, 0, null, 'Abstract_PHP_CodeSniffer_Check::run()', 'button-link' ); ?>
 				</div>
 				
 				<div class="wpv-arch-step wpv-arch-step-warning">
 					<strong>2. FILE FILTERING ⚠️</strong><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php:189"><code>get_files_to_scan()</code></a><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php:230"><code>get_php_files()</code></a><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Utilities/Plugin_Request_Utility.php"><code>Plugin_Request_Utility::get_directories_to_ignore()</code></a><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 230, 0, null, 'get_php_files()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'Plugin_Request_Utility::get_directories_to_ignore()', 'button-link' ); ?><br>
 					<span class="wpv-arch-step-issue"><strong>ISSUE LOCATION</strong></span>
 				</div>
 				
 				<div class="wpv-arch-step">
 					<strong>3. PHPCS EXECUTION</strong><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php:285"><code>get_argv_defaults()</code></a><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 285, 0, null, 'get_argv_defaults()', 'button-link' ); ?><br>
 					→ <code>PHP_CodeSniffer\Runner::runPHPCS()</code><br>
 					→ Parse JSON results
 				</div>
 				
 				<div class="wpv-arch-step">
 					<strong>4. HASH GENERATION</strong><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Verification/Hash_Generator.php"><code>Hash_Generator::generate_file_hash()</code></a><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Verification/JSON_Storage.php"><code>JSON_Storage::initialize_verification_file()</code></a><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator::generate_file_hash()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage::initialize_verification_file()', 'button-link' ); ?><br>
 					→ Store in verification tracking
 				</div>
 				
 				<div class="wpv-arch-step">
 					<strong>5. RESULTS PROCESSING</strong><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Admin/Admin_AJAX.php:1050"><code>Admin_AJAX::save_results()</code></a><br>
-					→ <a href="vscode://file/c:/wamp64/www/Ecosystem/wp-content/plugins/WPVerifier/includes/Admin/Admin_AJAX.php:1598"><code>apply_ignored_paths_filter()</code></a><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 1050, 0, null, 'Admin_AJAX::save_results()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?><br>
 					→ Calculate readiness score<br>
 					→ Save to <code>.wpv-results.json</code>
 				</div>

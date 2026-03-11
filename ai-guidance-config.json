@@ -14,5 +14,9 @@
   "WordPress.Security.EscapeOutput.OutputNotEscaped": {
     "message": "All output should be run through an escaping function.",
     "ai_guidance": "Before adding escaping, examine if the variable contains pre-escaped content. Check if values were already escaped when added to arrays or variables. If content is already escaped, use wp_kses_post(). Look beyond the immediate line to understand the data flow and origin of the variable."
+  },
+  "missing_direct_file_access_protection": {
+    "message": "PHP file should prevent direct access. Add a check like: if ( ! defined( 'ABSPATH' ) ) exit;",
+    "ai_guidance": "Add ABSPATH protection to 99.9% of WordPress files. Only skip for: standalone entry points (wp-config.php, index.php), intentional direct access files (webhooks, custom APIs), or documented special cases. For template parts, components, and includes, always add the protection."
   }
 }

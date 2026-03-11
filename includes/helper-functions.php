@@ -6,6 +6,72 @@
  */
 
 /**
+ * Generate VSCode URL for opening a file at specific line
+ *
+ * @param string $file_path Relative path from plugin directory or absolute path
+ * @param int $line Line number (optional)
+ * @param int $column Column number (optional)
+ * @param string $plugin_folder Plugin folder name (optional, will try to detect)
+ * @return string VSCode URL
+ */
+function wpv_get_vscode_url( $file_path, $line = 0, $column = 0, $plugin_folder = null ) {
+	// If file_path is already absolute, use it as-is
+	if ( strpos( $file_path, ':' ) !== false || strpos( $file_path, '/' ) === 0 ) {
+		$absolute_path = $file_path;
+	} else {
+		// For WPVerifier internal files (like Admin_AJAX.php), use WPVerifier directory
+		if ( ! $plugin_folder ) {
+			$absolute_path = WP_PLUGIN_DIR . '/WPVerifier/' . ltrim( $file_path, '/' );
+		} else {
+			// For user plugin files, use the specified plugin folder
+			$absolute_path = WP_PLUGIN_DIR . '/' . $plugin_folder . '/' . ltrim( $file_path, '/' );
+		}
+	}
+	
+	// Normalize path separators
+	$absolute_path = str_replace( '\\', '/', $absolute_path );
+	
+	// Build VSCode URL
+	$vscode_url = 'vscode://file/' . $absolute_path;
+	
+	if ( $line > 0 ) {
+		$vscode_url .= ':' . $line;
+		if ( $column > 0 ) {
+			$vscode_url .= ':' . $column;
+		}
+	}
+	
+	return $vscode_url;
+}
+
+/**
+ * Generate VSCode button HTML
+ *
+ * @param string $file_path Relative path from plugin directory or absolute path
+ * @param int $line Line number (optional)
+ * @param int $column Column number (optional)
+ * @param string $plugin_folder Plugin folder name (optional)
+ * @param string $button_text Button text (optional)
+ * @param string $css_class Additional CSS classes (optional)
+ * @return string Button HTML
+ */
+function wpv_get_vscode_button( $file_path, $line = 0, $column = 0, $plugin_folder = null, $button_text = null, $css_class = '' ) {
+	if ( ! $button_text ) {
+		$button_text = __( 'VSCode', 'wp-verifier' );
+	}
+	
+	$vscode_url = wpv_get_vscode_url( $file_path, $line, $column, $plugin_folder );
+	$css_classes = 'button ' . $css_class;
+	
+	return sprintf(
+		'<a href="%s" class="%s"><span class="dashicons dashicons-editor-code"></span> %s</a>',
+		esc_attr( $vscode_url ),
+		esc_attr( trim( $css_classes ) ),
+		esc_html( $button_text )
+	);
+}
+
+/**
  * Output a header with optional identifier code
  *
  * @param string $text Header text
@@ -53,8 +119,8 @@ function wpverifier_header( $text, $code = '', $inline_only = false ) {
 			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
 			$caller_file = $backtrace[0]['file'] ?? '';
 			$caller_line = $backtrace[0]['line'] ?? '';
-			$vscode_link = 'vscode://file/' . $caller_file . ':' . $caller_line;
-			echo esc_html( $text ) . ' <a href="' . esc_url( $vscode_link ) . '" style="text-decoration: none;"><code style="font-size: 0.7em; color: #666; cursor: pointer; vertical-align: baseline;">' . esc_html( $code ) . '</code></a>';
+			$vscode_url = wpv_get_vscode_url( $caller_file, $caller_line );
+			echo esc_html( $text ) . ' <a href="' . esc_url( $vscode_url ) . '" style="text-decoration: none;"><code style="font-size: 0.7em; color: #666; cursor: pointer; vertical-align: baseline;">' . esc_html( $code ) . '</code></a>';
 		}
 	} else {
 		echo esc_html( $text );

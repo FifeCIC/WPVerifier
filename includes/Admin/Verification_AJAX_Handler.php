@@ -408,6 +408,9 @@ class Verification_AJAX_Handler {
 
 		// Generate HTML output
 		$response['html_output'] = $this->generate_results_html( $errors, $warnings );
+		
+		// Generate export controls
+		$response['export_controls'] = $this->generate_export_controls( $errors, $warnings );
 
 		// Check for rediscovered issues
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -527,13 +530,49 @@ class Verification_AJAX_Handler {
 	}
 
 	/**
+	 * Generate export controls HTML
+	 */
+	private function generate_export_controls( $errors, $warnings ) {
+		$total_issues = $this->count_issues( $errors ) + $this->count_issues( $warnings );
+		
+		if ( $total_issues === 0 ) {
+			return '';
+		}
+		
+		ob_start();
+		?>
+		<div class="export-controls" style="margin: 20px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+			<h4><?php esc_html_e( 'Export Results', 'wp-verifier' ); ?></h4>
+			<p><?php esc_html_e( 'Download or save verification results in different formats:', 'wp-verifier' ); ?></p>
+			<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+				<button type="button" class="button button-secondary plugin-check__export-button" data-export-format="csv" data-export-action="download">
+					<?php esc_html_e( 'Download CSV', 'wp-verifier' ); ?>
+				</button>
+				<button type="button" class="button button-secondary plugin-check__export-button" data-export-format="json" data-export-action="download">
+					<?php esc_html_e( 'Download JSON', 'wp-verifier' ); ?>
+				</button>
+				<button type="button" class="button button-secondary plugin-check__export-button" data-export-format="markdown" data-export-action="download">
+					<?php esc_html_e( 'Download Markdown', 'wp-verifier' ); ?>
+				</button>
+				<button type="button" class="button button-primary plugin-check__save-button" data-export-format="json" data-export-action="save">
+					<?php esc_html_e( 'Save Results', 'wp-verifier' ); ?>
+				</button>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
 	 * Save verification results to JSON file
 	 */
 	private function save_results_to_json( $plugin_slug, $errors, $warnings ) {
 		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
 		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+		$plugin_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
 		
 		error_log( 'WPV Debug: Saving results to: ' . $json_file );
+		error_log( 'WPV Debug: Plugin path: ' . $plugin_path );
 		error_log( 'WPV Debug: Errors count: ' . $this->count_issues( $errors ) );
 		error_log( 'WPV Debug: Warnings count: ' . $this->count_issues( $warnings ) );
 		
@@ -542,14 +581,17 @@ class Verification_AJAX_Handler {
 		
 		// Process errors
 		foreach ( $errors as $file => $lines ) {
+			// Convert absolute path to relative path from plugin directory
+			$relative_file = $this->get_relative_path( $file, $plugin_path );
+			
 			foreach ( $lines as $line => $columns ) {
 				foreach ( $columns as $column => $issues ) {
 					foreach ( $issues as $issue ) {
-						if ( ! isset( $results_by_file[ $file ] ) ) {
-							$results_by_file[ $file ] = array();
+						if ( ! isset( $results_by_file[ $relative_file ] ) ) {
+							$results_by_file[ $relative_file ] = array();
 						}
-						$results_by_file[ $file ][] = array(
-							'issue_id' => 'E-' . substr( md5( $file . $line . $issue['code'] ), 0, 8 ),
+						$results_by_file[ $relative_file ][] = array(
+							'issue_id' => 'E-' . substr( md5( $relative_file . $line . $issue['code'] ), 0, 8 ),
 							'message' => $issue['message'] ?? '',
 							'code' => $issue['code'] ?? '',
 							'type' => 'ERROR',
@@ -565,14 +607,17 @@ class Verification_AJAX_Handler {
 		
 		// Process warnings
 		foreach ( $warnings as $file => $lines ) {
+			// Convert absolute path to relative path from plugin directory
+			$relative_file = $this->get_relative_path( $file, $plugin_path );
+			
 			foreach ( $lines as $line => $columns ) {
 				foreach ( $columns as $column => $issues ) {
 					foreach ( $issues as $issue ) {
-						if ( ! isset( $results_by_file[ $file ] ) ) {
-							$results_by_file[ $file ] = array();
+						if ( ! isset( $results_by_file[ $relative_file ] ) ) {
+							$results_by_file[ $relative_file ] = array();
 						}
-						$results_by_file[ $file ][] = array(
-							'issue_id' => 'W-' . substr( md5( $file . $line . $issue['code'] ), 0, 8 ),
+						$results_by_file[ $relative_file ][] = array(
+							'issue_id' => 'W-' . substr( md5( $relative_file . $line . $issue['code'] ), 0, 8 ),
 							'message' => $issue['message'] ?? '',
 							'code' => $issue['code'] ?? '',
 							'type' => 'WARNING',
@@ -605,7 +650,7 @@ class Verification_AJAX_Handler {
 			'results' => $results_by_file
 		);
 		
-		if ( file_put_contents( $json_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT ) ) ) {
+		if ( file_put_contents( $json_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ) ) {
 			error_log( 'WPV Debug: Results saved successfully' );
 		} else {
 			error_log( 'WPV Debug: Failed to save results file' );
@@ -688,6 +733,23 @@ class Verification_AJAX_Handler {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get relative path from absolute path
+	 */
+	private function get_relative_path( $absolute_path, $plugin_path ) {
+		// Normalize paths to use forward slashes
+		$absolute_path = str_replace( '\\', '/', $absolute_path );
+		$plugin_path = str_replace( '\\', '/', $plugin_path );
+		
+		// Remove plugin path from absolute path
+		if ( strpos( $absolute_path, $plugin_path . '/' ) === 0 ) {
+			return substr( $absolute_path, strlen( $plugin_path ) + 1 );
+		}
+		
+		// If path doesn't start with plugin path, return basename
+		return basename( $absolute_path );
 	}
 
 	/**

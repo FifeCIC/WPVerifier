@@ -46,7 +46,7 @@ if ( isset( $_POST['set_active_plugin'] ) && isset( $_POST['plugin'] ) && ! empt
 	$config_storage = new \WordPress\Plugin_Check\Verification\Config_Storage( $plugin_basename );
 	$config_storage->save_config_data( $config_storage->load_config_data() );
 	
-	$success_message = 'Plugin selected successfully and WPV files initialized!';
+	$success_message = __( 'Plugin selected successfully and WPV files initialized. Go to the Configuration tab to view the results.', 'wp-verifier' );
 }
 
 $available_plugins = array();

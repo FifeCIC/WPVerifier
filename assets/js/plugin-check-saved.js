@@ -5,6 +5,23 @@ jQuery(document).ready(function($) {
 	
 	// Get plugin slug from current page or default to wpseed
 	const pluginSlug = new URLSearchParams(window.location.search).get('plugin') || 'wpseed/wpseed.php';
+	const pluginFolder = pluginSlug.includes('/') ? pluginSlug.split('/')[0] : pluginSlug;
+	
+	// Helper function to generate VSCode URL
+	function getVSCodeURL(filePath, line = 0, column = 0) {
+		// Build absolute path
+		const absolutePath = wpvConfig.pluginDir + '/' + pluginFolder + '/' + filePath;
+		let vscodeURL = 'vscode://file/' + absolutePath;
+		
+		if (line > 0) {
+			vscodeURL += ':' + line;
+			if (column > 0) {
+				vscodeURL += ':' + column;
+			}
+		}
+		
+		return vscodeURL;
+	}
 	
 	let aiGuidanceConfig = {};
 	
@@ -106,7 +123,7 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 				<button type="button" class="button wpv-copy-ai-btn">
 					<span class="dashicons dashicons-clipboard"></span> Copy for AI
 				</button>
-				<a href="vscode://file/${file}:${issue.line}:${issue.column || 0}" class="button">
+				<a href="${getVSCodeURL(file, issue.line, issue.column || 0)}" class="button">
 					<span class="dashicons dashicons-editor-code"></span> VSCode
 				</a>
 				<a href="#" class="button wpv-fixed-btn" data-issue-id="${issue.issue_id || ''}">

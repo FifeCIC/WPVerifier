@@ -239,6 +239,7 @@ class Asset_Manager {
             'wpvConfig',
             array(
                 'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
+                'pluginDir' => WP_PLUGIN_DIR,
                 'nonce' => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
             )
         );
