@@ -1,13 +1,19 @@
 <?php
 /**
- * Testing Tab - Load and merge wpseed JSON with AI guidance
+ * Testing Tab - Load and merge wpverifier JSON with AI guidance
  *
  * @package wp-verifier
  */
 
 // Get current plugin from user meta
 $current_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
-$plugin_folder = $current_plugin ? ( strpos( $current_plugin, '/' ) !== false ? dirname( $current_plugin ) : $current_plugin ) : 'wpseed';
+$plugin_folder = $current_plugin ? ( strpos( $current_plugin, '/' ) !== false ? dirname( $current_plugin ) : $current_plugin ) : null;
+
+// If no plugin selected, show message
+if ( ! $plugin_folder ) {
+	echo '<div class="notice notice-warning"><p>' . esc_html__( 'No plugin selected. Please go to TAB01 to select a plugin first.', 'wp-verifier' ) . '</p></div>';
+	return;
+}
 
 // Load plugin JSON from verifier-results
 $plugin_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
@@ -74,6 +80,10 @@ usort( $merged_issues, function( $a, $b ) {
 						$type = $issue['type'] ?? 'ERROR';
 						$ai_guidance = $issue['ai_guidance'] ?? '';
 						
+						// Generate issue_id (same logic as in Verification_AJAX_Handler)
+						$relative_file = str_replace( WP_PLUGIN_DIR . '/' . $plugin_folder . '/', '', $file_path );
+						$issue_id = ( $type === 'ERROR' ? 'E-' : 'W-' ) . substr( md5( $relative_file . $line . $code ), 0, 8 );
+						
 						// Build AI prompt
 						$ai_prompt = "File: " . basename( $file_path ) . "\n";
 						$ai_prompt .= "Line: " . $line . "\n";
@@ -109,7 +119,7 @@ usort( $merged_issues, function( $a, $b ) {
 										<span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Copy AI Prompt', 'wp-verifier' ); ?>
 									</button>
 									<?php echo wpv_get_vscode_button( $file_path, $line, 0, $plugin_folder ); ?>
-									<a href="#" class="button button-primary wpv-fixed-link" data-file="<?php echo esc_attr( $file_path ); ?>" data-code="<?php echo esc_attr( $code ); ?>">
+									<a href="#" class="button button-primary wpv-fixed-link" data-issue-id="<?php echo esc_attr( $issue_id ); ?>" data-file="<?php echo esc_attr( $file_path ); ?>" data-code="<?php echo esc_attr( $code ); ?>">
 										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Mark As Fixed', 'wp-verifier' ); ?>
 									</a>
 								</div>

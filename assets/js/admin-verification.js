@@ -365,12 +365,12 @@
             this.progressInterval = 0;
             this.progressSteps = [
                 { percent: 10, message: 'Initializing verification environment...' },
-                { percent: 25, message: 'Loading plugin files...' },
-                { percent: 40, message: 'Running security checks...' },
-                { percent: 55, message: 'Analyzing code quality...' },
-                { percent: 70, message: 'Checking performance issues...' },
-                { percent: 85, message: 'Validating accessibility...' },
-                { percent: 95, message: 'Generating report...' }
+                { percent: 15, message: 'Loading plugin files...' },
+                { percent: 37, message: 'Running security checks...' },
+                { percent: 54, message: 'Analyzing code quality...' },
+                { percent: 60, message: 'Checking performance issues...' },
+                { percent: 63, message: 'Validating accessibility...' },
+                { percent: 70, message: 'Generating report...' }
             ];
             this.currentStepIndex = 0;
             
@@ -382,8 +382,8 @@
                     this.updateProgress(step.percent, step.message);
                     this.currentStepIndex++;
                 } else {
-                    // Keep at 95% until completion
-                    this.updateProgress(95, 'Finalizing verification...');
+                    // Keep at 70% until completion
+                    this.updateProgress(70, 'Finalizing verification...');
                 }
             }, 2000); // Update every 2 seconds
         },

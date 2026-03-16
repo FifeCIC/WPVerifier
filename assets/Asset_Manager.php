@@ -260,6 +260,17 @@ class Asset_Manager {
             WP_PLUGIN_CHECK_VERSION,
             true
         );
+        
+        $current_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
+        wp_localize_script(
+            'wpv-issues-tab',
+            'wpv_ajax_object',
+            array(
+                'ajax_url' => admin_url( 'admin-ajax.php' ),
+                'nonce' => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
+                'current_plugin' => $current_plugin,
+            )
+        );
     }
     
     private function enqueue_monitoring_assets() {

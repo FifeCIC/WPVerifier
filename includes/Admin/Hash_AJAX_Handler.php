@@ -29,6 +29,7 @@ class Hash_AJAX_Handler {
 	 */
 	public function add_hooks() {
 		add_action( 'wp_ajax_wpv_generate_hashes', array( $this, 'generate_hashes' ) );
+		add_action( 'wp_ajax_wpv_check_hashes', array( $this, 'check_hashes' ) );
 		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_ignored' ) );
 		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_resolved' ) );
 	}
@@ -93,6 +94,50 @@ class Hash_AJAX_Handler {
 				'message' => sprintf( __( 'Generated hashes for %d files', 'wp-verifier' ), count( $file_hashes ) ),
 				'file_count' => count( $file_hashes ),
 				'function_count' => array_sum( array_map( 'count', $function_hashes ) ),
+			) );
+
+		} catch ( \Exception $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Check if hashes exist for the plugin
+	 */
+	public function check_hashes() {
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			if ( empty( $plugin ) ) {
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+			}
+
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
+			$verification_file = $plugin_dir . '/.wpv-verification.json';
+
+			$has_hashes = false;
+			$hash_count = 0;
+			$function_count = 0;
+
+			if ( file_exists( $verification_file ) ) {
+				$verification_data = json_decode( file_get_contents( $verification_file ), true );
+				if ( $verification_data && isset( $verification_data['file_hashes'] ) && ! empty( $verification_data['file_hashes'] ) ) {
+					$has_hashes = true;
+					$hash_count = count( $verification_data['file_hashes'] );
+					if ( isset( $verification_data['function_hashes'] ) ) {
+						$function_count = array_sum( array_map( 'count', $verification_data['function_hashes'] ) );
+					}
+				}
+			}
+
+			wp_send_json_success( array(
+				'has_hashes' => $has_hashes,
+				'hash_count' => $hash_count,
+				'function_count' => $function_count,
+				'verification_file' => $verification_file
 			) );
 
 		} catch ( \Exception $exception ) {

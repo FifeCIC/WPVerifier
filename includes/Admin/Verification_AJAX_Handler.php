@@ -662,32 +662,59 @@ class Verification_AJAX_Handler {
 	 */
 	private function apply_ignored_paths_filter( $plugin_slug ) {
 		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+		$results_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+		$config_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-config.json';
 		
-		if ( ! file_exists( $json_file ) ) {
+		error_log( 'WPV DEBUG: apply_ignored_paths_filter called for plugin: ' . $plugin_slug );
+		error_log( 'WPV DEBUG: Checking for ignored paths in results file: ' . $results_file );
+		error_log( 'WPV DEBUG: Checking for ignored paths in config file: ' . $config_file );
+		
+		// First try to load from config file (preferred location)
+		$ignored_paths = array();
+		if ( file_exists( $config_file ) ) {
+			error_log( 'WPV DEBUG: Config file exists, loading ignored paths from config' );
+			$ignored_paths = $this->load_ignored_paths_from_config( $config_file );
+		} elseif ( file_exists( $results_file ) ) {
+			error_log( 'WPV DEBUG: Config file not found, trying results file' );
+			$ignored_paths = $this->load_existing_ignored_paths( $results_file );
+		} else {
+			error_log( 'WPV DEBUG: Neither config nor results file found, no ignored paths to apply' );
 			return;
 		}
 		
-		$ignored_paths = $this->load_existing_ignored_paths( $json_file );
 		if ( empty( $ignored_paths ) ) {
+			error_log( 'WPV DEBUG: No ignored paths found in either file' );
 			return;
 		}
+		
+		error_log( 'WPV DEBUG: Found ignored_paths: ' . print_r( $ignored_paths, true ) );
 		
 		$paths_to_ignore = array();
 		foreach ( $ignored_paths as $item ) {
 			if ( isset( $item['path'] ) ) {
 				$paths_to_ignore[] = $item['path'];
+			} elseif ( is_string( $item ) ) {
+				// Handle simple string format
+				$paths_to_ignore[] = $item;
 			}
 		}
 		
 		if ( empty( $paths_to_ignore ) ) {
+			error_log( 'WPV DEBUG: No valid paths found in ignored_paths array' );
 			return;
 		}
+		
+		error_log( 'WPV DEBUG: Applying filter for paths: ' . implode( ', ', $paths_to_ignore ) );
 		
 		add_filter(
 			'wp_plugin_check_ignore_directories',
 			static function ( $dirs ) use ( $paths_to_ignore ) {
-				return array_unique( array_merge( $dirs, $paths_to_ignore ) );
+				error_log( 'WPV DEBUG: wp_plugin_check_ignore_directories filter called' );
+				error_log( 'WPV DEBUG: Original dirs: ' . print_r( $dirs, true ) );
+				error_log( 'WPV DEBUG: Adding paths: ' . print_r( $paths_to_ignore, true ) );
+				$merged_dirs = array_unique( array_merge( $dirs, $paths_to_ignore ) );
+				error_log( 'WPV DEBUG: Final merged dirs: ' . print_r( $merged_dirs, true ) );
+				return $merged_dirs;
 			},
 			10
 		);
@@ -707,6 +734,35 @@ class Verification_AJAX_Handler {
 		}
 
 		return is_array( $existing_data['ignored_paths'] ) ? $existing_data['ignored_paths'] : array();
+	}
+
+	/**
+	 * Load ignored_paths from config file
+	 */
+	private function load_ignored_paths_from_config( $config_file ) {
+		if ( ! file_exists( $config_file ) ) {
+			return array();
+		}
+
+		$config_content = file_get_contents( $config_file );
+		if ( false === $config_content ) {
+			error_log( 'WPV DEBUG: Failed to read config file: ' . $config_file );
+			return array();
+		}
+
+		$config_data = json_decode( $config_content, true );
+		if ( null === $config_data ) {
+			error_log( 'WPV DEBUG: Failed to decode config JSON from: ' . $config_file );
+			return array();
+		}
+
+		if ( ! isset( $config_data['ignored_paths'] ) || ! is_array( $config_data['ignored_paths'] ) ) {
+			error_log( 'WPV DEBUG: No ignored_paths found in config file: ' . $config_file );
+			return array();
+		}
+
+		error_log( 'WPV DEBUG: Successfully loaded ignored_paths from config: ' . print_r( $config_data['ignored_paths'], true ) );
+		return $config_data['ignored_paths'];
 	}
 
 	/**

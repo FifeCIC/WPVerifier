@@ -29,28 +29,28 @@ Metrics: Add execution timers using [TIMER-START-FUNCTION] and [TIMER-END-FUNCTI
 
 Context: Include User ID, Action Type, and Stack Traces in every log entry.
 
-## Enhanced Debugging Protocol (WPSeed Unified Logging)
+## Enhanced Debugging Protocol (WPVerifier Unified Logging)
 
 ### Core Logging Functions
-- `wpseed_log()->start_context('operation_name')` - Begin logging context
-- `wpseed_trace('TYPE', 'message', $data)` - Log individual operations
-- `wpseed_log()->end_context($summary)` - End context with summary
+- `wpverifier_log()->start_context('operation_name')` - Begin logging context
+- `wpverifier_trace('TYPE', 'message', $data)` - Log individual operations
+- `wpverifier_log()->end_context($summary)` - End context with summary
 
 ### Verification Process Debugging
-- `wpseed_verification_log()->log_step($step, $input, $output, $details)` - Track data flow
-- `wpseed_log_js_data($operation, $count, $size)` - Log JavaScript transmissions
-- `wpseed_verification_log()->log_filter($name, $input, $output)` - Track filtering
+- `wpverifier_verification_log()->log_step($step, $input, $output, $details)` - Track data flow
+- `wpverifier_log_js_data($operation, $count, $size)` - Log JavaScript transmissions
+- `wpverifier_verification_log()->log_filter($name, $input, $output)` - Track filtering
 
 ### Loop Debugging (Smart Counting)
-- `wpseed_log()->loop_trace($loop_id, $data)` - Log loop iterations (every 10th)
-- `wpseed_log()->loop_end($loop_id, $summary)` - End loop with total count
+- `wpverifier_log()->loop_trace($loop_id, $data)` - Log loop iterations (every 10th)
+- `wpverifier_log()->loop_end($loop_id, $summary)` - End loop with total count
 
 ### JavaScript Debugging
 ```javascript
-WPSeedLogger.startContext('verification');
-WPSeedLogger.trace('OPERATION', 'message', data);
-WPSeedVerificationLogger.logStep('step_name', inputCount, outputCount);
-WPSeedLogger.endContext();
+WPVerifierLogger.startContext('verification');
+WPVerifierLogger.trace('OPERATION', 'message', data);
+WPVerifierVerificationLogger.logStep('step_name', inputCount, outputCount);
+WPVerifierLogger.endContext();
 ```
 
 ### Data Loss Detection
@@ -59,7 +59,7 @@ WPSeedLogger.endContext();
 - Summary reports showing where data is lost
 
 ### Debug Log Analysis
-1. Check `debug.log` for "WPSeed_Trace" entries
+1. Check `debug.log` for "wpverifier_Trace" entries
 2. Look for "DATA_LOSS" flags
 3. Review "SUMMARY" entries for step-by-step counts
 4. Use "LOOP_END" entries to identify excessive iterations

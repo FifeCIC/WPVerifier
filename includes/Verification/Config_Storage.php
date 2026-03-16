@@ -25,7 +25,7 @@ class Config_Storage {
 	/**
 	 * Constructor
 	 *
-	 * @param string $plugin_basename Plugin basename (e.g., 'wpseed/wpseed.php')
+	 * @param string $plugin_basename Plugin basename (e.g., 'wpverifier/plugin.php')
 	 */
 	public function __construct( $plugin_basename ) {
 		$plugin_folder = dirname( $plugin_basename );
@@ -75,16 +75,22 @@ class Config_Storage {
 	public function save_config_data( $data ) {
 		$file_path = $this->get_config_file_path();
 		
+		// Debug logging
+		error_log( 'WPV DEBUG: Data before JSON encoding: ' . print_r( $data, true ) );
+		
 		// Create backup if file exists
 		if ( file_exists( $file_path ) ) {
 			$backup_path = $file_path . '.backup';
 			copy( $file_path, $backup_path );
 		}
 
-		$json = wp_json_encode( $data, JSON_PRETTY_PRINT );
+		$json = wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 		if ( false === $json ) {
 			return false;
 		}
+		
+		// Debug logging
+		error_log( 'WPV DEBUG: JSON after encoding: ' . $json );
 
 		// Atomic write using temp file
 		$temp_path = $file_path . '.tmp';

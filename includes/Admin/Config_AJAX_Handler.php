@@ -71,6 +71,9 @@ class Config_AJAX_Handler {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			$config_json = isset( $_POST['config_data'] ) ? wp_unslash( $_POST['config_data'] ) : '';
+			
+			// Debug logging
+			error_log( 'WPV DEBUG: Raw config_json from POST: ' . $config_json );
 
 			if ( empty( $plugin ) || empty( $config_json ) ) {
 				throw new InvalidArgumentException( __( 'Plugin and config data are required.', 'wp-verifier' ) );
@@ -80,6 +83,8 @@ class Config_AJAX_Handler {
 			if ( ! $form_config ) {
 				throw new InvalidArgumentException( __( 'Invalid config data.', 'wp-verifier' ) );
 			}
+			
+			error_log( 'WPV DEBUG: Decoded form_config: ' . print_r( $form_config, true ) );
 
 			$config_storage = new Config_Storage( $plugin );
 			$full_config = $config_storage->load_config_data();
@@ -109,14 +114,27 @@ class Config_AJAX_Handler {
 			
 			// Handle vendor folders as ignored paths
 			if ( ! empty( $form_config['vendor_folders'] ) ) {
+				// Debug logging
+				error_log( 'WPV DEBUG: Raw vendor_folders from form: ' . print_r( $form_config['vendor_folders'], true ) );
+				
 				$full_config['ignored_paths'] = array();
 				foreach ( $form_config['vendor_folders'] as $folder ) {
+					error_log( 'WPV DEBUG: Original folder path: ' . $folder );
+					
+					// Remove escaped slashes and normalize path
+					$clean_path = str_replace( '\/', '/', $folder );
+					$normalized_path = wp_normalize_path( $clean_path );
+					error_log( 'WPV DEBUG: Clean path: ' . $clean_path );
+					error_log( 'WPV DEBUG: Normalized path: ' . $normalized_path );
+					
 					$full_config['ignored_paths'][] = array(
-						'path' => $folder,
+						'path' => $normalized_path,
 						'reason' => 'vendor',
 						'added_at' => current_time( 'mysql' )
 					);
 				}
+				
+				error_log( 'WPV DEBUG: Final ignored_paths before save: ' . print_r( $full_config['ignored_paths'], true ) );
 			}
 			
 			$result = $config_storage->save_config_data( $full_config );
@@ -269,8 +287,10 @@ class Config_AJAX_Handler {
 
 			$ignored_paths = array();
 			foreach ( $paths as $path ) {
+				// Normalize path to prevent escaped slashes
+				$normalized_path = wp_normalize_path( $path );
 				$ignored_paths[] = array(
-					'path' => $path,
+					'path' => $normalized_path,
 					'reason' => 'vendor',
 					'added_by' => wp_get_current_user()->user_login,
 					'added_at' => current_time( 'mysql' ),

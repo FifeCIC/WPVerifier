@@ -83,8 +83,8 @@ final class Help_Tabs {
 		);
 
 		$screen->add_help_tab( array(
-			'id'        => 'wpseed_faq_tab',
-			'title'     => __( 'FAQ', 'wpseed' ),
+			'id'        => 'wpverifier_faq_tab',
+			'title'     => __( 'FAQ', 'wpverifier' ),
 			'content'   => '',
 			'callback'  => array( __CLASS__, 'faq' ),
 		) );
@@ -148,10 +148,10 @@ final class Help_Tabs {
 
 	public static function faq() {
 		$questions = array(
-			0 => __( '-- Select a question --', 'wpseed' ),
-			1 => __( "Do I need to give credit to you (Ryan Bayne) if I create a plugin using the seed?", 'wpseed' ),
-			2 => __( "Can I hire you (Ryan Bayne) to create a plugin for me using the seed?", 'wpseed' ),
-			3 => __( "Is there support for anyone using this boilerplate to create a plugin?", 'wpseed' ),
+			0 => __( '-- Select a question --', 'wpverifier' ),
+			1 => __( "Do I need to give credit to you (Ryan Bayne) if I create a plugin using the seed?", 'wpverifier' ),
+			2 => __( "Can I hire you (Ryan Bayne) to create a plugin for me using the seed?", 'wpverifier' ),
+			3 => __( "Is there support for anyone using this boilerplate to create a plugin?", 'wpverifier' ),
 		);  
 		
 		wp_add_inline_style( 'admin-footer', '.faq-answers li { background:white; padding:10px 20px; border:1px solid #cacaca; }' );
@@ -168,14 +168,14 @@ final class Help_Tabs {
 		
 		<ul class="faq-answers">
 			<li class="faq-answer" id='q1'>
-				<?php esc_html_e('There are multiple developers mentioned in the documentation of this plugin. You must continue to give credit to them all. Removing credits and any reference to repositories will make it difficult for developers to maintain the plugin you create. If you want my support you must also mentioned myself and the WordPress Plugin Seed on your plugins main page.', 'wpseed');?>
+				<?php esc_html_e('There are multiple developers mentioned in the documentation of this plugin. You must continue to give credit to them all. Removing credits and any reference to repositories will make it difficult for developers to maintain the plugin you create. If you want my support you must also mentioned myself and the WordPress Plugin Seed on your plugins main page.', 'wpverifier');?>
 			</li>
 			<li class="faq-answer" id='q2'>
-				<p> <?php esc_html_e('Yes, you can hire me (the plugin author) to create a plugin for you and prices vary but start very low. Technically it takes a only a few minutes to create a new plugin using my boilerplate. You can pay me a small fee to start your plugin and then make separate agreements for doing more work to it.', 'wpseed');?> </p>
+				<p> <?php esc_html_e('Yes, you can hire me (the plugin author) to create a plugin for you and prices vary but start very low. Technically it takes a only a few minutes to create a new plugin using my boilerplate. You can pay me a small fee to start your plugin and then make separate agreements for doing more work to it.', 'wpverifier');?> </p>
 			</li>
 
 			<li class="faq-answer" id='q3'>
-				<p> <?php esc_html_e('There is always some level of free support but I will expect to see some credit giving to myself and the project. Support is only offered when getting started or your plugin is already available on the WordPress.org repository. If you require support for a premium/commercial plugin project then you will have to pay a small consultation fee.', 'wpseed');?> </p>
+				<p> <?php esc_html_e('There is always some level of free support but I will expect to see some credit giving to myself and the project. Support is only offered when getting started or your plugin is already available on the WordPress.org repository. If you require support for a premium/commercial plugin project then you will have to pay a small consultation fee.', 'wpverifier');?> </p>
 			</li>
 	 
 		</ul>
@@ -212,7 +212,7 @@ final class Help_Tabs {
 
 					if ( answer === 39 ) {
 						advancedGroup = $( '<optgroup />' )
-							.attr( 'label', '" . esc_js( __( 'Advanced: This part of FAQ requires some knowledge about HTML, PHP and/or WordPress coding.', 'wpseed' ) ) . "' );
+							.attr( 'label', '" . esc_js( __( 'Advanced: This part of FAQ requires some knowledge about HTML, PHP and/or WordPress coding.', 'wpverifier' ) ) . "' );
 
 						indexSelector.append( advancedGroup );
 					}
@@ -236,7 +236,7 @@ final class Help_Tabs {
 				indexSelector.before(
 					$('<label />')
 						.attr( 'for', 'question-selector' )
-						.text( '" . esc_js( __( 'Select a question', 'wpseed' ) ) . "' )
+						.text( '" . esc_js( __( 'Select a question', 'wpverifier' ) ) . "' )
 						.addClass( 'screen-reader-text' )
 				);
 

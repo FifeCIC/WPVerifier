@@ -25,7 +25,7 @@ class Results_Storage {
 	/**
 	 * Constructor
 	 *
-	 * @param string $plugin_basename Plugin basename (e.g., 'wpseed/wpseed.php')
+	 * @param string $plugin_basename Plugin basename (e.g., 'wpverifier/plugin.php')
 	 */
 	public function __construct( $plugin_basename ) {
 		$plugin_folder = dirname( $plugin_basename );

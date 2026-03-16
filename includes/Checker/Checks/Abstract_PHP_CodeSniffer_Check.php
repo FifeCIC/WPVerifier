@@ -256,6 +256,53 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 	}
 
 	/**
+	 * Get ignored paths from plugin config file
+	 *
+	 * @param string $plugin_path Plugin directory path
+	 * @return array Array of ignored paths
+	 */
+	private function get_config_ignored_paths( $plugin_path ) {
+		$ignored_paths = array();
+		$config_file = $plugin_path . '/.wpv-config.json';
+		
+		error_log( 'WPV DEBUG: Looking for config file: ' . $config_file );
+		
+		if ( ! file_exists( $config_file ) ) {
+			error_log( 'WPV DEBUG: Config file not found' );
+			return $ignored_paths;
+		}
+		
+		$config_content = file_get_contents( $config_file );
+		if ( false === $config_content ) {
+			error_log( 'WPV DEBUG: Failed to read config file' );
+			return $ignored_paths;
+		}
+		
+		$config_data = json_decode( $config_content, true );
+		if ( null === $config_data ) {
+			error_log( 'WPV DEBUG: Failed to decode config JSON' );
+			return $ignored_paths;
+		}
+		
+		if ( ! isset( $config_data['ignored_paths'] ) || ! is_array( $config_data['ignored_paths'] ) ) {
+			error_log( 'WPV DEBUG: No ignored_paths found in config' );
+			return $ignored_paths;
+		}
+		
+		error_log( 'WPV DEBUG: Found ignored_paths in config: ' . print_r( $config_data['ignored_paths'], true ) );
+		
+		foreach ( $config_data['ignored_paths'] as $ignored_path_data ) {
+			if ( isset( $ignored_path_data['path'] ) ) {
+				$ignored_paths[] = $ignored_path_data['path'];
+			}
+		}
+		
+		error_log( 'WPV DEBUG: Processed ignored paths: ' . print_r( $ignored_paths, true ) );
+		
+		return $ignored_paths;
+	}
+
+	/**
 	 * Get all PHP files in directory (respecting ignore patterns)
 	 *
 	 * @param string $plugin_path Plugin directory path
@@ -265,6 +312,9 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		$php_files = array();
 		$directories_to_ignore = Plugin_Request_Utility::get_directories_to_ignore();
 		$files_to_ignore = Plugin_Request_Utility::get_files_to_ignore();
+		
+		// Load ignored paths from config file
+		$config_ignored_paths = $this->get_config_ignored_paths( $plugin_path );
 		
 		$iterator = new \RecursiveIteratorIterator(
 			new \RecursiveDirectoryIterator( $plugin_path, \RecursiveDirectoryIterator::SKIP_DOTS )
@@ -278,21 +328,37 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			$file_path = $file->getPathname();
 			$relative_path = str_replace( $plugin_path . '/', '', $file_path );
 			
+			// Debug logging
+			error_log( 'WPV DEBUG: Checking file: ' . $relative_path );
+			
 			// Check ignore patterns
 			$should_ignore = false;
 			
-			// Check directory ignores
+			// Check directory ignores from Plugin_Request_Utility
 			foreach ( $directories_to_ignore as $ignore_dir ) {
 				if ( strpos( $relative_path, $ignore_dir . '/' ) === 0 ) {
+					error_log( 'WPV DEBUG: File ignored by Plugin_Request_Utility directory: ' . $ignore_dir );
 					$should_ignore = true;
 					break;
 				}
 			}
 			
-			// Check file ignores
+			// Check file ignores from Plugin_Request_Utility
 			if ( ! $should_ignore ) {
 				foreach ( $files_to_ignore as $ignore_file ) {
 					if ( basename( $file_path ) === $ignore_file ) {
+						error_log( 'WPV DEBUG: File ignored by Plugin_Request_Utility file: ' . $ignore_file );
+						$should_ignore = true;
+						break;
+					}
+				}
+			}
+			
+			// Check config ignored paths
+			if ( ! $should_ignore ) {
+				foreach ( $config_ignored_paths as $ignored_path ) {
+					if ( strpos( $relative_path, $ignored_path . '/' ) === 0 ) {
+						error_log( 'WPV DEBUG: File ignored by config ignored_paths: ' . $ignored_path );
 						$should_ignore = true;
 						break;
 					}
@@ -300,7 +366,10 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			}
 			
 			if ( ! $should_ignore ) {
+				error_log( 'WPV DEBUG: File will be scanned: ' . $relative_path );
 				$php_files[] = $file_path;
+			} else {
+				error_log( 'WPV DEBUG: File ignored: ' . $relative_path );
 			}
 		}
 		

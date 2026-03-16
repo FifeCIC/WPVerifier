@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
 }
 
 return array(
-    // WPSeed libraries
+    // Boilerplate libraries
     'includes/libraries/action-scheduler',
     'includes/libraries/carbon-fields',
     

@@ -73,6 +73,8 @@ class AJAX_Handler_Manager {
 		add_action( 'wp_ajax_plugin_check_mark_complete', array( $this, 'mark_complete' ) );
 		add_action( 'wp_ajax_plugin_check_add_ignore_rule', array( $this, 'add_ignore_rule' ) );
 		add_action( 'wp_ajax_plugin_check_add_ignore_directory', array( $this, 'add_ignore_directory' ) );
+		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_resolved' ) );
+		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_ignored' ) );
 		
 		// Scan history and reporting
 		add_action( 'wp_ajax_plugin_check_get_scan_history', array( $this, 'get_scan_history' ) );
@@ -682,6 +684,126 @@ class AJAX_Handler_Manager {
 		wp_send_json_success( array(
 			'nonce' => wp_create_nonce( 'wpv_mark_fixed' )
 		) );
+	}
+
+	/**
+	 * Mark an issue as resolved
+	 */
+	public function mark_resolved() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$issue_id = isset( $_POST['issue_id'] ) ? sanitize_text_field( wp_unslash( $_POST['issue_id'] ) ) : '';
+
+			if ( empty( $plugin ) || empty( $issue_id ) ) {
+				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
+			}
+
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+
+			if ( ! file_exists( $json_file ) ) {
+				throw new \InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+			}
+
+			$data = json_decode( file_get_contents( $json_file ), true );
+			if ( ! $data || ! isset( $data['results'] ) ) {
+				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+			}
+
+			// Find and mark the issue as resolved
+			$updated = false;
+			foreach ( $data['results'] as $file => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					if ( $issue['issue_id'] === $issue_id ) {
+						$issue['resolved'] = true;
+						$issue['resolved_at'] = current_time( 'mysql' );
+						$issue['resolved_by'] = wp_get_current_user()->user_login;
+						$updated = true;
+						break 2;
+					}
+				}
+			}
+
+			if ( ! $updated ) {
+				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wp-verifier' ) );
+			}
+
+			// Save updated JSON
+			$data['updated_at'] = current_time( 'mysql' );
+			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+			wp_send_json_success( array(
+				'message' => __( 'Issue marked as resolved.', 'wp-verifier' ),
+			) );
+
+		} catch ( \InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
+	}
+
+	/**
+	 * Mark an issue as ignored
+	 */
+	public function mark_ignored() {
+		$this->check_request_validity();
+
+		try {
+			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$issue_id = isset( $_POST['issue_id'] ) ? sanitize_text_field( wp_unslash( $_POST['issue_id'] ) ) : '';
+
+			if ( empty( $plugin ) || empty( $issue_id ) ) {
+				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
+			}
+
+			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+
+			if ( ! file_exists( $json_file ) ) {
+				throw new \InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+			}
+
+			$data = json_decode( file_get_contents( $json_file ), true );
+			if ( ! $data || ! isset( $data['results'] ) ) {
+				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+			}
+
+			// Find and mark the issue as ignored
+			$updated = false;
+			foreach ( $data['results'] as $file => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					if ( $issue['issue_id'] === $issue_id ) {
+						$issue['ignored'] = true;
+						$issue['ignored_at'] = current_time( 'mysql' );
+						$issue['ignored_by'] = wp_get_current_user()->user_login;
+						$updated = true;
+						break 2;
+					}
+				}
+			}
+
+			if ( ! $updated ) {
+				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wp-verifier' ) );
+			}
+
+			// Save updated JSON
+			$data['updated_at'] = current_time( 'mysql' );
+			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+			wp_send_json_success( array(
+				'message' => __( 'Issue marked as ignored.', 'wp-verifier' ),
+			) );
+
+		} catch ( \InvalidArgumentException $exception ) {
+			wp_send_json_error(
+				array( 'message' => $exception->getMessage() ),
+				400
+			);
+		}
 	}
 
 	/**

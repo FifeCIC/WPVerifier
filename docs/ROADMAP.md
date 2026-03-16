@@ -1,6 +1,5 @@
 # WP Verifier Development Roadmap
 
-
 ## PHASE 3: Function-Based Issue Management
 
 **Objective**: Transform TAB05 from generic "Issues" to function-centric "Functions" tab with enhanced developer workflow.
@@ -82,90 +81,7 @@
 - Developer workflow improvement (faster issue resolution)
 - Maintained performance with function-level granularity
 
-## Phase 2: Tab Structure Redesign
-
-### 1 - Configure Tab (formerly Preparation)
-- [x] Rename "TAB01" from "Preparation" to "Configure"
-- [x] Update references in new "Instructions" area
-- [x] Focus on initial setup and configuration options
-
-### 2 - Hash Generation Tab ✅ COMPLETED
-- [x] Create dedicated "Hash" tab with test steps
-- [x] Move hash generation from main verification process (TAB02)
-- [x] Populate `.wpv-verification.json` as currently done
-- [x] Add validation steps between hash generation phases
-
-### 3 - Exclusions Tab
-- [ ] Create dedicated exclusions management tab
-- [ ] Populate new `.wpv-exclusions.json` file
-- [ ] Move "ignored_files_found" from `.wpv-results.json` to new file
-- [ ] Create new .js files, move logic from Admin_AJAX.php
-
-### 4 - Data Cleanup
-- [ ] Remove duplicate "file_hashes" storage
-- [ ] Stop duplicate storage in `.wpv-results.json`
-- [ ] Keep only in `.wpv-verification.json`
-
-### 5 - Readiness Tab
-- [ ] Create new tab to generate "Readiness Score" from JSON files
-- [ ] Compare with existing Advanced Verification readiness score
-- [ ] Identify discrepancies between calculation methods
-- [ ] Maintain existing end-of-verification score for comparison
-
-### 6 - Advanced Verification Cleanup
-- [ ] Remove "Readiness Score" notice from top of TAB03
-- [ ] Clean up WordPress core styled notices
-
----
-
-## Enhanced Logging System ✅ COMPLETED
-- [x] Created unified logging system with loop counting
-- [x] Added specialized verification logger for data flow tracing
-- [x] Implemented JavaScript logging enhancements
-- [x] Smart counting for repetitive operations (logs every 10th iteration)
-
----
-
-## Hash-Based Issue Ignore System
-
-### Phase 1: Core Tracking System (High Priority)
-- [x] Create `.wpv-verification.json` format specification
-- [x] Schema structure implemented
-- [x] Version field for schema evolution
-- [x] Store in plugin root directory for portability
-- [x] Parse PHP files using `token_get_all()`
-- [x] Extract function/method/class boundaries
-- [x] Generate SHA256 hash of function body, use first 8 chars
-- [x] Generate SHA256 hash of entire file for file-level verification
-- [x] Normalize whitespace before hashing
-- [x] Handle nested functions and closures
-- [ ] Create `is_ignored()` - Check if issue is currently ignored
-- [ ] Match by function name + hash
-- [ ] Match by file-level hash (entire file ignored)
-- [ ] Return ignore status: active/stale/none
-- [ ] Log when hash doesn't match (code changed, ignore expired)
-
-### Phase 2: JSON Storage (High Priority)
-- [x] Read/write `.wpv-verification.json` in plugin root
-- [x] Atomic file writes (prevent corruption)
-- [x] Backup before modifications
-- [x] Initialize verification file for new plugins
-- [x] Validate JSON structure on load
-- [ ] Merge verification data from multiple sources
-
-### Phase 3: Integration with Scanning (High Priority)
-- [x] Generate file hashes during `save_results()`
-- [x] Store hashes in `.wpv-results.json` alongside scan results
-- [x] Hash all files that have issues (errors/warnings)
-- [x] Preserve existing data when re-running scans
-- [ ] Load ignore data before processing results
-- [ ] Check each issue against ignore status
-- [ ] Filter out actively ignored issues from results
-- [ ] Log when hash doesn't match (code changed, ignore expired)
-- [ ] Track ignore coverage (% of issues ignored)
-- [ ] Include ignore status in saved results
-- [ ] Store "ignored_count" in scan metadata
-- [ ] Separate ignored vs active issues in display
+What approach should we take to the following feature?>
 - [ ] Show stale ignores (hash mismatch, need re-evaluation)
 
 ---
@@ -225,3 +141,90 @@ Detect strings yet to be translated and any translation related issues.
 - [ ] Require second approver for file-level ignoring
 - [ ] Require approval for ignoring certain severities (e.g. security)
 - [ ] Export verification/ignore history to CSV/JSON for QA/security reviews
+
+## PHASE 4: Plugin Verification Progress Bar Gets Real-Time Progress Tracking
+
+**Objective**: Replace simulated progress with actual file-based progress tracking for accurate verification progress indication.
+
+### Problem Statement
+Current progress simulation reaches 95% quickly and stays there for most of the verification time on large plugins, creating poor user experience.
+
+### Core Concept
+- **File Count-Based Progress**: Track actual files being processed vs total files to scan
+- **Real-Time Updates**: Use AJAX polling or WebSocket to get actual progress from server
+- **Phase-Aware Progress**: Different progress calculations for different verification phases
+- **Accurate Time Estimates**: Show estimated time remaining based on actual processing speed
+
+### Phase 4.1: Server-Side Progress Tracking (HIGH PRIORITY)
+- [ ] **Progress Storage System**
+	- Create temporary `.wpv-progress.json` file during verification
+	- Store current phase, files processed, total files, start time
+	- Update progress file as each file is processed
+	- Clean up progress file on completion/failure
+- [ ] **File Counting Integration**
+	- Count total files to be scanned before starting verification
+	- Update progress after each file is processed in verification loops
+	- Track progress per verification phase (security, performance, etc.)
+	- Handle ignored files in progress calculations
+- [ ] **Progress API Endpoint**
+	- Create AJAX endpoint to read current progress from `.wpv-progress.json`
+	- Return structured progress data (phase, percentage, files processed, ETA)
+	- Handle cases where progress file doesn't exist or is corrupted
+
+### Phase 4.2: Client-Side Real-Time Updates (HIGH PRIORITY)
+- [ ] **Replace Simulation with Polling**
+	- Remove current `startProgressSimulation()` method
+	- Implement `pollProgressStatus()` with configurable intervals
+	- Update progress bar based on actual server progress
+	- Show current file being processed and phase information
+- [ ] **Enhanced Progress Display**
+	- Show "Processing file X of Y" with current filename
+	- Display current verification phase (Security, Performance, etc.)
+	- Show estimated time remaining based on processing speed
+	- Add cancel verification option during long-running scans
+- [ ] **Error Handling & Fallback**
+	- Fallback to time-based estimation if progress polling fails
+	- Handle server timeouts and connection issues gracefully
+	- Show appropriate error messages if verification stalls
+
+### Phase 4.3: Advanced Progress Features (MEDIUM PRIORITY)
+- [ ] **Phase-Specific Progress Weighting**
+	- Assign different weights to verification phases based on complexity
+	- Security checks might be 40%, Performance 30%, Accessibility 20%, etc.
+	- Adjust overall progress based on phase completion and weighting
+- [ ] **Processing Speed Analytics**
+	- Track files per second processing rate
+	- Show processing speed in UI ("Processing 2.3 files/sec")
+	- Use historical data to improve time estimates
+	- Detect and warn about unusually slow processing
+- [ ] **Detailed Progress Breakdown**
+	- Show progress per category (Security: 45%, Performance: 23%, etc.)
+	- Display file type breakdown (PHP: 80%, JS: 60%, CSS: 90%)
+	- Show ignored files count and percentage
+
+### Phase 4.4: Performance & Optimization (LOW PRIORITY)
+- [ ] **Progress Update Optimization**
+	- Batch progress updates to avoid excessive file I/O
+	- Update progress every N files instead of every file
+	- Use memory-based progress tracking with periodic file writes
+- [ ] **Client-Side Optimization**
+	- Implement exponential backoff for polling intervals
+	- Reduce polling frequency as verification progresses
+	- Cache progress data to reduce server requests
+- [ ] **Large Plugin Handling**
+	- Special handling for plugins with 1000+ files
+	- Show sub-progress for large directories
+	- Implement progress chunking for very large scans
+
+### Technical Implementation Notes
+- **Backward Compatibility**: Maintain fallback to simulation if real-time tracking fails
+- **Performance Impact**: Minimize overhead of progress tracking on verification speed
+- **Concurrency**: Handle multiple simultaneous verifications safely
+- **Cleanup**: Ensure progress files are cleaned up even if verification is interrupted
+
+### Success Metrics
+- Progress bar accurately reflects actual verification progress
+- Users can see meaningful progress updates throughout entire verification
+- Time estimates are within 20% accuracy for most plugins
+- No significant performance impact on verification speed
+- Graceful handling of edge cases and errors

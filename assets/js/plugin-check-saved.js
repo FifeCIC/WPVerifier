@@ -3,8 +3,8 @@ jQuery(document).ready(function($) {
 		return;
 	}
 	
-	// Get plugin slug from current page or default to wpseed
-	const pluginSlug = new URLSearchParams(window.location.search).get('plugin') || 'wpseed/wpseed.php';
+	// Get plugin slug from current page or default to wpverifier
+	const pluginSlug = new URLSearchParams(window.location.search).get('plugin') || 'wpverifier/plugin.php';
 	const pluginFolder = pluginSlug.includes('/') ? pluginSlug.split('/')[0] : pluginSlug;
 	
 	// Helper function to generate VSCode URL
