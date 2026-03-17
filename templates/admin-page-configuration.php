@@ -35,29 +35,29 @@ $rules = Ignore_Rules::get_rules();
                         
                         <!-- Vendor Folders Detection -->
                         <h4><?php esc_html_e('Vendor/Library Folders', 'wp-verifier'); ?></h4>
-                        <p><?php esc_html_e('Select folders to exclude from verification:', 'wp-verifier'); ?></p>
-                        <?php
-                        $vendors = Vendor_Detector::detect_vendors($current_plugin);
-                        if (!empty($vendors)) :
-                        ?>
-                            <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;">
-                                <?php foreach ($vendors as $path => $subdirs) : ?>
-                                    <?php if (!empty($subdirs)) : ?>
-                                        <div style="margin-bottom: 10px;">
-                                            <strong><?php echo esc_html($path); ?>/</strong>
-                                            <?php foreach ($subdirs as $subdir) : ?>
-                                                <label style="display: block; margin: 3px 0 3px 20px;">
-                                                    <input type="checkbox" name="vendor_folders[]" value="<?php echo esc_attr($path . '/' . $subdir); ?>" />
-                                                    <code><?php echo esc_html($subdir); ?></code>
-                                                </label>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                        <p><?php esc_html_e('Drag folders between columns to include or exclude them from verification:', 'wp-verifier'); ?></p>
+                        
+                        <div id="vendor-folders-manager" style="margin: 15px 0;">
+                            <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 10px 0; color: #0073aa;"><?php esc_html_e('Include in Verification', 'wp-verifier'); ?></h5>
+                                    <div id="included-folders" class="folder-drop-zone" style="min-height: 150px; padding: 10px; border: 2px dashed #0073aa; border-radius: 4px; background: #f0f8ff;">
+                                        <p class="drop-hint" style="text-align: center; color: #666; margin: 50px 0;"><?php esc_html_e('Folders to be scanned will appear here', 'wp-verifier'); ?></p>
+                                    </div>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 10px 0; color: #dc3232;"><?php esc_html_e('Exclude from Verification', 'wp-verifier'); ?></h5>
+                                    <div id="excluded-folders" class="folder-drop-zone" style="min-height: 150px; padding: 10px; border: 2px dashed #dc3232; border-radius: 4px; background: #fff5f5;">
+                                        <p class="drop-hint" style="text-align: center; color: #666; margin: 50px 0;"><?php esc_html_e('Folders to be ignored will appear here', 'wp-verifier'); ?></p>
+                                    </div>
+                                </div>
                             </div>
-                        <?php else : ?>
-                            <p><em><?php esc_html_e('No vendor/library folders detected.', 'wp-verifier'); ?></em></p>
-                        <?php endif; ?>
+                            
+                            <div style="text-align: center; margin: 15px 0;">
+                                <button type="button" id="detect-vendors" class="button"><?php esc_html_e('Detect Vendor Folders', 'wp-verifier'); ?></button>
+                                <button type="button" id="reset-folders" class="button"><?php esc_html_e('Reset All', 'wp-verifier'); ?></button>
+                            </div>
+                        </div>
                         
                         <div id="config-form"></div>
                         <p>

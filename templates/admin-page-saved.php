@@ -77,6 +77,12 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 										<?php if ( $ignored_count > 0 ) : ?>
 											<span class="wpv-ast-badge ignored"><?php echo esc_html( $ignored_count ); ?> ignored</span>
 										<?php endif; ?>
+										<?php 
+											$total_issues = $error_count + $warning_count;
+											$resolved_issues = $fixed_count + $ignored_count;
+											$is_complete = $total_issues > 0 && $resolved_issues >= $total_issues;
+										?>
+										<span class="wpv-completion-icon <?php echo $is_complete ? 'complete' : 'incomplete'; ?>" title="<?php echo $is_complete ? esc_attr__( 'All issues resolved', 'wp-verifier' ) : esc_attr__( 'Issues remaining', 'wp-verifier' ); ?>"></span>
 									</div>
 								</div>
 								<div class="accordion-content">

@@ -75,9 +75,6 @@ class Config_Storage {
 	public function save_config_data( $data ) {
 		$file_path = $this->get_config_file_path();
 		
-		// Debug logging
-		error_log( 'WPV DEBUG: Data before JSON encoding: ' . print_r( $data, true ) );
-		
 		// Create backup if file exists
 		if ( file_exists( $file_path ) ) {
 			$backup_path = $file_path . '.backup';
@@ -89,9 +86,6 @@ class Config_Storage {
 			return false;
 		}
 		
-		// Debug logging
-		error_log( 'WPV DEBUG: JSON after encoding: ' . $json );
-
 		// Atomic write using temp file
 		$temp_path = $file_path . '.tmp';
 		$result = file_put_contents( $temp_path, $json, LOCK_EX );

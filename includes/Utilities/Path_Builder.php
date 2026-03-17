@@ -106,6 +106,16 @@ class Path_Builder {
 	}
 	
 	/**
+	 * Get plugin directory path (alias for get_plugin_file_path with no file)
+	 * 
+	 * @param string $plugin_slug Plugin slug
+	 * @return string|false Plugin directory path or false if invalid
+	 */
+	public static function get_plugin_directory_path( $plugin_slug ) {
+		return self::get_plugin_file_path( $plugin_slug );
+	}
+	
+	/**
 	 * Extract plugin folder from plugin slug
 	 * 
 	 * @param string $plugin_slug Plugin slug (e.g., 'makeiteasy-slider/makeiteasy-slider.php')

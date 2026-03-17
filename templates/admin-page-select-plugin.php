@@ -6,6 +6,7 @@
  */
 
 use WordPress\Plugin_Check\Admin\Saved_Results_Handler;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 // Handle form submission
 if ( isset( $_POST['set_active_plugin'] ) && isset( $_POST['plugin'] ) && ! empty( $_POST['plugin'] ) ) {
@@ -22,7 +23,7 @@ if ( isset( $_POST['set_active_plugin'] ) && isset( $_POST['plugin'] ) && ! empt
 	\WordPress\Plugin_Check\Verification\JSON_Storage::initialize_verification_file( $plugin_folder );
 	
 	// Initialize results file
-	$results_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+	$results_file = Path_Builder::get_results_file_path( $plugin_basename );
 	if ( ! file_exists( $results_file ) ) {
 		$default_results = array(
 			'version' => '1.0',
@@ -69,7 +70,7 @@ $selected_plugin = isset( $_POST['plugin'] ) ? sanitize_text_field( $_POST['plug
 
 // Function to check if WPV files exist
 function wpv_check_files_exist( $plugin_basename ) {
-	$plugin_dir = dirname( WP_PLUGIN_DIR . '/' . $plugin_basename );
+	$plugin_dir = Path_Builder::get_plugin_directory_path( $plugin_basename );
 	$results_file = $plugin_dir . '/.wpv-results.json';
 	$verification_file = $plugin_dir . '/.wpv-verification.json';
 	$config_file = $plugin_dir . '/.wpv-config.json';

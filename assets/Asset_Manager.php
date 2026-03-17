@@ -51,6 +51,9 @@ class Asset_Manager {
             case 'settings':
                 $this->enqueue_settings_assets();
                 break;
+            case 'roadmap':
+                $this->enqueue_roadmap_assets();
+                break;
         }
     }
     
@@ -120,6 +123,9 @@ class Asset_Manager {
     }
     
     private function enqueue_preparation_assets() {
+        // Enqueue jQuery UI for drag and drop functionality
+        wp_enqueue_script('jquery-ui-sortable');
+        
         wp_enqueue_script(
             'wpv-ajax',
             WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/wpv-ajax.js',
@@ -131,7 +137,7 @@ class Asset_Manager {
         wp_enqueue_script(
             'admin-configuration',
             WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-configuration.js',
-            array('jquery', 'wpv-ajax'),
+            array('jquery', 'jquery-ui-sortable', 'wpv-ajax'),
             WP_PLUGIN_CHECK_VERSION,
             true
         );
@@ -241,7 +247,6 @@ class Asset_Manager {
                 'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
                 'pluginDir' => WP_PLUGIN_DIR,
                 'nonce' => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
-                'currentPlugin' => $plugin_info ? $plugin_info['slug'] : '',
                 'currentPluginSlug' => $plugin_info ? $plugin_info['slug'] : '',
             )
         );
@@ -327,6 +332,19 @@ class Asset_Manager {
                 'errorText'       => __( 'Error loading models', 'wp-verifier' ),
             )
         );
+    }
+    
+    private function enqueue_roadmap_assets() {
+        wp_enqueue_script(
+            'admin-roadmap',
+            WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-roadmap.js',
+            array('jquery'),
+            WP_PLUGIN_CHECK_VERSION,
+            true
+        );
+        
+        // Roadmap styles are already included in wp-verifier-tabs.css
+        // No additional CSS needed as it's part of the global tab styles
     }
     
     private function add_global_inline_scripts() {

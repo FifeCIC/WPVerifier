@@ -91,11 +91,6 @@ jQuery(document).ready(function($) {
 		const idx = $(this).data('idx');
 		const issue = wpvSavedResults[file][idx];
 		
-		// Debug: Log the file path being used
-		console.log('WPV DEBUG: File path from data-file:', file);
-		console.log('WPV DEBUG: Plugin slug:', pluginSlug);
-		console.log('WPV DEBUG: Generated VSCode URL:', getVSCodeURL(file, issue.line, issue.column || 0));
-		
 		const aiPrompt = `File: ${file}
 Line: ${issue.line}
 Code: ${issue.code}
@@ -223,22 +218,12 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 		
 		$('.wpv-fixed-btn').on('click', function(e) {
 			e.preventDefault();
-			console.log('WPV DEBUG: Saved results Fixed button clicked');
 			
 			const $btn = $(this);
 			const issueId = $btn.data('issue-id');
 			const originalHtml = $btn.html();
 			
-			console.log('WPV DEBUG: Issue ID:', issueId);
-			console.log('WPV DEBUG: Plugin slug:', pluginSlug);
-			console.log('WPV DEBUG: wpvConfig available:', typeof wpvConfig !== 'undefined');
-			if (typeof wpvConfig !== 'undefined') {
-				console.log('WPV DEBUG: wpvConfig:', wpvConfig);
-			}
-			console.log('WPV DEBUG: ajaxurl:', ajaxurl);
-			
 			if (!issueId) {
-				console.error('WPV DEBUG: Issue ID not found');
 				alert('Issue ID not found.');
 				return;
 			}
@@ -252,14 +237,11 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 				nonce: wpvConfig?.nonce || wpvAjax?.nonce || ''
 			};
 			
-			console.log('WPV DEBUG: AJAX data being sent:', ajaxData);
-			
 			$.ajax({
 				url: ajaxurl,
 				type: 'POST',
 				data: ajaxData,
 				success: function(response) {
-					console.log('WPV DEBUG: AJAX success response:', response);
 					if (response.success) {
 						if (response.data.action === 'no_results') {
 							// Handle case where no results file exists
@@ -271,18 +253,11 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 							refreshAST();
 						}
 					} else {
-						console.error('WPV DEBUG: Server returned error:', response.data);
 						alert('Error: ' + (response.data?.message || 'Unknown error'));
 						$btn.prop('disabled', false).html(originalHtml);
 					}
 				},
 				error: function(xhr, status, error) {
-					console.error('WPV DEBUG: AJAX Error Details (Saved Results):');
-					console.error('WPV DEBUG: XHR:', xhr);
-					console.error('WPV DEBUG: Status:', status);
-					console.error('WPV DEBUG: Error:', error);
-					console.error('WPV DEBUG: Response Text:', xhr.responseText);
-					console.error('WPV DEBUG: Response Status:', xhr.status);
 					alert('Failed to mark issue as resolved.');
 					$btn.prop('disabled', false).html(originalHtml);
 				}

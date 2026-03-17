@@ -28,6 +28,7 @@ class Admin_Page_Tabs {
 			'settings'    => array( 'title' => __( 'Settings', 'wp-verifier' ), 'code' => 'TAB09' ),
 			'assets'      => array( 'title' => __( 'Assets', 'wp-verifier' ), 'code' => 'TAB10' ),
 			'architecture' => array( 'title' => __( 'Architecture', 'wp-verifier' ), 'code' => 'TAB11' ),
+			'roadmap'     => array( 'title' => __( 'Roadmap', 'wp-verifier' ), 'code' => 'TAB12' ),
 		);
 	}
 

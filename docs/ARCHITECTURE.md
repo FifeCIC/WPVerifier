@@ -107,27 +107,6 @@ User → Results Tab → Results_AJAX_Handler → Results_Storage → Display
 
 ---
 
-## PENDING Changes (From ROADMAP.md)
-
-### URGENT: JSON Management Consolidation
-- [ ] **Replace direct JSON operations** - 10+ methods in Admin_AJAX.php
-- [ ] **Eliminate config duplication** - Move ALL config to .wpv-config.json only
-- [ ] **Use storage classes** in templates and JavaScript
-
-### URGENT: Admin_AJAX.php Decomposition
-- [ ] **Split into 4 handlers** - Reduce from 3,000+ to ~1,050 total lines
-- [ ] **Single responsibility** - Each handler manages one data type
-
-### HIGH: Template & JavaScript Consolidation
-- [ ] **Merge similar templates** - Reduce template count by 30-40%
-- [ ] **Merge JS files** - Reduce from 12 to 6 focused files
-- [ ] **Shared AJAX utility** - Single wpv-ajax.js for common patterns
-
-### MEDIUM: Remove Unused Features
-- [ ] **Audit and remove** - Multiple verification modes, unused CSS, redundant classes
-
----
-
 ## Clean Usage Patterns (Target)
 
 ### Configuration Management

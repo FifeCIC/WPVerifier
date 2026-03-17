@@ -7,6 +7,7 @@
  */
 
 use WordPress\Plugin_Check\Utilities\Template_Helper;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 $available_plugins = Template_Helper::get_available_plugins();
 $current_plugin = Template_Helper::get_current_plugin();
@@ -52,8 +53,7 @@ foreach ($plugin_dirs as $plugin_dir) {
             <p><strong><?php esc_html_e('Active Plugin:', 'wp-verifier'); ?></strong> <?php echo esc_html($available_plugins[$current_plugin]['Name']); ?></p>
             
             <?php
-            $plugin_folder = strpos($current_plugin, '/') !== false ? dirname($current_plugin) : $current_plugin;
-            $plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
+            $plugin_dir = Path_Builder::get_plugin_directory_path( $current_plugin );
             
             // Check file existence
             $results_exists = file_exists($plugin_dir . '/.wpv-results.json');
@@ -195,7 +195,7 @@ foreach ($plugin_dirs as $plugin_dir) {
                                         </p>
                                     <?php endif; ?>
                                     <p>
-                                        <label><input type="checkbox" value="limit-results" id="plugin-check__limit-results" /> <?php esc_html_e('Limit to 10 issues (testing)', 'wp-verifier'); ?></label>
+                                        <label><input type="checkbox" value="limit-results" id="plugin-check__limit-results" /> <?php esc_html_e('Limit to 20 issues (testing)', 'wp-verifier'); ?></label>
                                     </p>
                                 </div>
                             </div>

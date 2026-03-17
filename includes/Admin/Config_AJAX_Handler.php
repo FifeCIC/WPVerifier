@@ -13,6 +13,7 @@ namespace WordPress\Plugin_Check\Admin;
 use InvalidArgumentException;
 use WordPress\Plugin_Check\Verification\Config_Storage;
 use WordPress\Plugin_Check\Admin\Vendor_Detector;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 /**
  * Handles configuration-related AJAX requests
@@ -224,13 +225,22 @@ class Config_AJAX_Handler {
 			$vendors_raw = Vendor_Detector::detect_vendors( $plugin );
 			$vendors = array();
 
-			// Convert to expected format
+			// Convert to expected format for drag-and-drop interface
 			foreach ( $vendors_raw as $path => $subdirs ) {
-				$vendors[] = array(
-					'path' => $path,
-					'reason' => 'vendor library detected',
-					'subdirs' => $subdirs
-				);
+				if ( ! empty( $subdirs ) ) {
+					$vendors[] = array(
+						'path' => $path,
+						'reason' => 'vendor library detected',
+						'subdirs' => $subdirs
+					);
+				} else {
+					// Handle case where path itself is a vendor folder
+					$vendors[] = array(
+						'path' => $path,
+						'reason' => 'vendor library detected',
+						'subdirs' => array()
+					);
+				}
 			}
 
 			wp_send_json_success( array(
@@ -329,7 +339,7 @@ class Config_AJAX_Handler {
 			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Vendor_Patterns.php';
 		}
 
-		$plugin_dir = WP_PLUGIN_DIR . '/' . dirname( $plugin );
+			$plugin_dir = Path_Builder::get_plugin_directory_path( $plugin );
 		$folders = array();
 		$patterns = \WordPress\Plugin_Check\Utilities\Vendor_Patterns::get_patterns();
 		$check_paths = array();

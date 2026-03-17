@@ -306,6 +306,9 @@ final class Admin_Page {
 			case 'architecture':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-architecture.php';
 				break;
+			case 'roadmap':
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-roadmap.php';
+				break;
 			default:
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-verification.php';
 				break;

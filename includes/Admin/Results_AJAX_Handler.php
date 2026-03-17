@@ -13,9 +13,11 @@ namespace WordPress\Plugin_Check\Admin;
 use InvalidArgumentException;
 use WordPress\Plugin_Check\Verification\Results_Storage;
 use WordPress\Plugin_Check\Utilities\Results_Exporter;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 /**
  * Handles results-related AJAX requests
+ * UPDATED: Now uses Path_Builder for consistent path handling
  */
 class Results_AJAX_Handler {
 
@@ -23,6 +25,19 @@ class Results_AJAX_Handler {
 	 * Nonce key for results actions
 	 */
 	const NONCE_KEY = 'plugin-check-run-checks';
+
+	/**
+	 * Get results file path using Path_Builder
+	 * 
+	 * @param string $plugin_slug Plugin slug
+	 * @return string|false Results file path or false if invalid
+	 */
+	private function get_results_file_path( $plugin_slug ) {
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Path_Builder' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Path_Builder.php';
+		}
+		return Path_Builder::get_results_file_path( $plugin_slug );
+	}
 
 	/**
 	 * Register AJAX hooks for results actions
@@ -57,8 +72,7 @@ class Results_AJAX_Handler {
 				throw new InvalidArgumentException( __( 'Failed to save results.', 'wp-verifier' ) );
 			}
 
-			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			$json_file = $this->get_results_file_path( $plugin_slug );
 			
 			wp_send_json_success( array(
 				'message' => __( 'Results saved successfully.', 'wp-verifier' ),
@@ -98,8 +112,7 @@ class Results_AJAX_Handler {
 			}
 			$data = Saved_Results_Handler::merge_ai_guidance( $data );
 			
-			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			$json_file = $this->get_results_file_path( $plugin_slug );
 			
 			wp_send_json_success( array(
 				'path' => $json_file,
@@ -187,14 +200,12 @@ class Results_AJAX_Handler {
 				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
 			}
 
-			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$verifier_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
-
-			if ( ! file_exists( $verifier_dir ) ) {
-				throw new InvalidArgumentException( __( 'Results folder not found.', 'wp-verifier' ) );
+			$plugin_base_path = Path_Builder::get_plugin_file_path( $plugin_slug );
+			if ( ! $plugin_base_path || ! file_exists( $plugin_base_path ) ) {
+				throw new InvalidArgumentException( __( 'Plugin directory not found.', 'wp-verifier' ) );
 			}
 
-			$this->delete_directory( $verifier_dir );
+			$this->delete_directory( $plugin_base_path );
 
 			wp_send_json_success( array(
 				'message' => __( 'Results deleted successfully.', 'wp-verifier' ),
@@ -463,8 +474,7 @@ class Results_AJAX_Handler {
 	 * Update file results in saved JSON
 	 */
 	private function update_file_results( $plugin, $file, $errors, $warnings ) {
-		$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+		$json_file = $this->get_results_file_path( $plugin );
 
 		if ( ! file_exists( $json_file ) ) {
 			return;

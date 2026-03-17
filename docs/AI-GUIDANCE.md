@@ -1,3 +1,5 @@
+We're creating a tool for quality checking other plugins. The plugin I'm checking during testing is: C:\wamp64\www\Ecosystem\wp-content\plugins\wpseed
+
 # WordPress Development Standards
 ✅ Core Standards: Always adhere to official WordPress PHP Coding Standards.
 ❌ No Inline Assets: No <style> or <script> tags inside .php files. Use enqueuing.

@@ -8,6 +8,7 @@
 namespace WordPress\Plugin_Check\Admin;
 
 use WordPress\Plugin_Check\Utilities\Vendor_Patterns;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 /**
  * Detects vendor/library folders in plugin directories.
@@ -95,12 +96,7 @@ class Vendor_Detector {
 	 * @return string|false Plugin directory path or false.
 	 */
 	private static function get_plugin_directory( $plugin_slug ) {
-		if ( strpos( $plugin_slug, '/' ) !== false ) {
-			$plugin_slug = dirname( $plugin_slug );
-		}
-
-		$plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_slug;
-
+		$plugin_dir = Path_Builder::get_plugin_directory_path( $plugin_slug );
 		return is_dir( $plugin_dir ) ? $plugin_dir : false;
 	}
 }

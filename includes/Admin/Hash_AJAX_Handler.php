@@ -13,6 +13,7 @@ namespace WordPress\Plugin_Check\Admin;
 use InvalidArgumentException;
 use WordPress\Plugin_Check\Verification\Hash_Generator;
 use WordPress\Plugin_Check\Verification\JSON_Storage;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 /**
  * Handles hash-related AJAX requests
@@ -46,8 +47,7 @@ class Hash_AJAX_Handler {
 
 			$hash_generator = new Hash_Generator();
 
-			$plugin_folder = dirname( $plugin );
-			$plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
+			$plugin_dir = Path_Builder::get_plugin_directory_path( $plugin );
 			$verification_file = $plugin_dir . '/.wpv-verification.json';
 
 			// Load existing verification data
@@ -114,8 +114,7 @@ class Hash_AJAX_Handler {
 				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
 			}
 
-			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
+			$plugin_dir = Path_Builder::get_plugin_directory_path( $plugin );
 			$verification_file = $plugin_dir . '/.wpv-verification.json';
 
 			$has_hashes = false;
@@ -162,8 +161,7 @@ class Hash_AJAX_Handler {
 				throw new InvalidArgumentException( __( 'Issue ID and plugin are required.', 'wp-verifier' ) );
 			}
 
-			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			$json_file = Path_Builder::get_results_file_path( $plugin );
 
 			if ( ! file_exists( $json_file ) ) {
 				throw new InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
@@ -219,8 +217,7 @@ class Hash_AJAX_Handler {
 				throw new InvalidArgumentException( __( 'Issue ID and plugin are required.', 'wp-verifier' ) );
 			}
 
-			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			$json_file = Path_Builder::get_results_file_path( $plugin );
 
 			if ( ! file_exists( $json_file ) ) {
 				throw new InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );

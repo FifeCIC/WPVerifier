@@ -25,6 +25,92 @@
     font-weight: 600;
 }
 
+/* Vendor Folders Manager */
+#vendor-folders-manager {
+    margin: 15px 0;
+}
+
+.folder-drop-zone {
+    min-height: 150px;
+    padding: 10px;
+    border: 2px dashed;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#included-folders {
+    border-color: #0073aa;
+    background: #f0f8ff;
+}
+
+#excluded-folders {
+    border-color: #dc3232;
+    background: #fff5f5;
+}
+
+.folder-drop-zone:hover {
+    opacity: 0.8;
+}
+
+.folder-drop-zone.ui-sortable-helper {
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.folder-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 8px 12px;
+    margin: 2px 0;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.folder-item:hover {
+    background: #f9f9f9;
+    border-color: #999;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.folder-item code {
+    font-size: 12px;
+    background: transparent;
+    padding: 0;
+    color: #333;
+}
+
+.folder-item .dashicons {
+    color: #666;
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+.folder-item:hover .dashicons {
+    opacity: 1;
+}
+
+.folder-placeholder {
+    height: 34px;
+    background: #ddd;
+    border-radius: 3px;
+    margin: 2px 0;
+    border: 2px dashed #999;
+}
+
+.drop-hint {
+    text-align: center;
+    color: #666;
+    margin: 50px 0;
+    font-style: italic;
+    pointer-events: none;
+}
+
 /* Configuration Form Styles */
 .config-form .form-table th {
     width: 200px;
@@ -222,5 +308,13 @@
     .button-group {
         flex-direction: column;
         gap: 5px;
+    }
+    
+    #vendor-folders-manager > div {
+        flex-direction: column;
+    }
+    
+    #vendor-folders-manager > div > div {
+        margin-bottom: 20px;
     }
 }

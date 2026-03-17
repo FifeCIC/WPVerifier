@@ -7,6 +7,9 @@
 
 /**
  * Generate VSCode URL for opening a file at specific line
+ * 
+ * UPDATED: Now uses Path_Builder for consistent path handling
+ * Maintains backward compatibility with existing calls
  *
  * @param string $file_path Relative path from plugin directory or absolute path
  * @param int $line Line number (optional)
@@ -15,37 +18,36 @@
  * @return string VSCode URL
  */
 function wpv_get_vscode_url( $file_path, $line = 0, $column = 0, $plugin_folder = null ) {
-	// If file_path is already absolute, use it as-is
-	if ( strpos( $file_path, ':' ) !== false || strpos( $file_path, '/' ) === 0 ) {
-		$absolute_path = $file_path;
+	// Load Path_Builder if not already loaded
+	if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Path_Builder' ) ) {
+		require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Path_Builder.php';
+	}
+	
+	// Determine plugin slug
+	if ( $plugin_folder ) {
+		// Convert folder to slug format (assume main plugin file has same name)
+		$plugin_slug = $plugin_folder . '/' . $plugin_folder . '.php';
+		// Check if this plugin file exists, if not try common patterns
+		if ( ! \WordPress\Plugin_Check\Utilities\Path_Builder::plugin_file_exists( $plugin_slug, '' ) ) {
+			// Try just the folder name as slug
+			$plugin_slug = $plugin_folder;
+		}
 	} else {
-		// For WPVerifier internal files (like Admin_AJAX.php), use WPVerifier directory
-		if ( ! $plugin_folder ) {
-			$absolute_path = WP_PLUGIN_DIR . '/WPVerifier/' . ltrim( $file_path, '/' );
-		} else {
-			// For user plugin files, use the specified plugin folder
-			$absolute_path = WP_PLUGIN_DIR . '/' . $plugin_folder . '/' . ltrim( $file_path, '/' );
+		// Get current plugin if not specified
+		$plugin_slug = \WordPress\Plugin_Check\Utilities\Path_Builder::get_current_plugin_slug();
+		if ( ! $plugin_slug ) {
+			return false;
 		}
 	}
 	
-	// Normalize path separators for VSCode URI
-	$absolute_path = str_replace( DIRECTORY_SEPARATOR, '/', $absolute_path );
-	
-	// Build VSCode URL
-	$vscode_url = 'vscode://file/' . $absolute_path;
-	
-	if ( $line > 0 ) {
-		$vscode_url .= ':' . $line;
-		if ( $column > 0 ) {
-			$vscode_url .= ':' . $column;
-		}
-	}
-	
-	return $vscode_url;
+	// Use Path_Builder for consistent URL generation
+	return \WordPress\Plugin_Check\Utilities\Path_Builder::get_vscode_url( $plugin_slug, $file_path, $line, $column );
 }
 
 /**
  * Generate VSCode button HTML
+ * 
+ * UPDATED: Now uses Path_Builder through wpv_get_vscode_url()
  *
  * @param string $file_path Relative path from plugin directory or absolute path
  * @param int $line Line number (optional)
@@ -61,6 +63,16 @@ function wpv_get_vscode_button( $file_path, $line = 0, $column = 0, $plugin_fold
 	}
 	
 	$vscode_url = wpv_get_vscode_url( $file_path, $line, $column, $plugin_folder );
+	
+	// Handle case where URL generation fails
+	if ( ! $vscode_url ) {
+		return sprintf(
+			'<span class="button button-disabled %s"><span class="dashicons dashicons-editor-code"></span> %s (Error)</span>',
+			esc_attr( trim( 'button ' . $css_class ) ),
+			esc_html( $button_text )
+		);
+	}
+	
 	$css_classes = 'button ' . $css_class;
 	
 	return sprintf(

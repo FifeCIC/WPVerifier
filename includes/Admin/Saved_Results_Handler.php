@@ -7,6 +7,8 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+use WordPress\Plugin_Check\Utilities\Path_Builder;
+
 /**
  * Handles data preparation for saved results page.
  */
@@ -46,7 +48,7 @@ class Saved_Results_Handler {
 	 * @return array|null Results data or null if not found.
 	 */
 	public static function load_plugin_results( $plugin_slug ) {
-		$json_file = WP_PLUGIN_DIR . '/' . $plugin_slug . '/.wpv-results.json';
+		$json_file = Path_Builder::get_results_file_path( $plugin_slug );
 		if ( ! file_exists( $json_file ) ) {
 			return null;
 		}

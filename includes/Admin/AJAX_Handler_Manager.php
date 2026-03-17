@@ -10,6 +10,8 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+use WordPress\Plugin_Check\Utilities\Path_Builder;
+
 /**
  * Manages all AJAX handlers for the plugin
  */
@@ -452,8 +454,7 @@ class AJAX_Handler_Manager {
 			}
 			
 			// Load JSON file
-			$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			$json_file = $this->get_results_file_path( $plugin_slug );
 			
 			if ( ! file_exists( $json_file ) ) {
 				throw new \InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
@@ -729,31 +730,10 @@ class AJAX_Handler_Manager {
 				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
 			}
 
-			// Fix plugin folder path calculation
-			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
+			$json_file = $this->get_results_file_path( $plugin );
 			
-			// Check if the plugin folder exists (case-sensitive)
-			$plugin_dir_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
-			if ( ! is_dir( $plugin_dir_path ) ) {
-				// Try to find the correct case by scanning the plugins directory
-				$plugins_dir = WP_PLUGIN_DIR;
-				if ( is_dir( $plugins_dir ) ) {
-					$dirs = scandir( $plugins_dir );
-					foreach ( $dirs as $dir ) {
-						if ( $dir === '.' || $dir === '..' ) continue;
-						if ( strtolower( $dir ) === strtolower( $plugin_folder ) && is_dir( $plugins_dir . '/' . $dir ) ) {
-							$plugin_folder = $dir;
-							$plugin_dir_path = $plugins_dir . '/' . $dir;
-							break;
-						}
-					}
-				}
-			}
-			
-			$json_file = $plugin_dir_path . '/.wpv-results.json';
-			
-			error_log( 'WPV DEBUG: Plugin folder: ' . $plugin_folder );
-			error_log( 'WPV DEBUG: Plugin dir path: ' . $plugin_dir_path );
+			error_log( 'WPV DEBUG: Plugin folder: ' . dirname( $plugin ) );
+			error_log( 'WPV DEBUG: Plugin dir path: ' . dirname( $json_file ) );
 			error_log( 'WPV DEBUG: JSON file path: ' . $json_file );
 			error_log( 'WPV DEBUG: JSON file exists: ' . ( file_exists( $json_file ) ? 'YES' : 'NO' ) );
 
@@ -847,28 +827,7 @@ class AJAX_Handler_Manager {
 				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
 			}
 
-			// Fix plugin folder path calculation
-			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			
-			// Check if the plugin folder exists (case-sensitive)
-			$plugin_dir_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
-			if ( ! is_dir( $plugin_dir_path ) ) {
-				// Try to find the correct case by scanning the plugins directory
-				$plugins_dir = WP_PLUGIN_DIR;
-				if ( is_dir( $plugins_dir ) ) {
-					$dirs = scandir( $plugins_dir );
-					foreach ( $dirs as $dir ) {
-						if ( $dir === '.' || $dir === '..' ) continue;
-						if ( strtolower( $dir ) === strtolower( $plugin_folder ) && is_dir( $plugins_dir . '/' . $dir ) ) {
-							$plugin_folder = $dir;
-							$plugin_dir_path = $plugins_dir . '/' . $dir;
-							break;
-						}
-					}
-				}
-			}
-			
-			$json_file = $plugin_dir_path . '/.wpv-results.json';
+			$json_file = $this->get_results_file_path( $plugin );
 
 			if ( ! file_exists( $json_file ) ) {
 				// Return success with informative message instead of error
@@ -954,6 +913,13 @@ class AJAX_Handler_Manager {
 			'timestamp'       => current_time( 'Ymd-His' ),
 			'timestamp_human' => current_time( 'mysql' ),
 		);
+	}
+
+	/**
+	 * Get results file path using Path_Builder (helper method)
+	 */
+	private function get_results_file_path( $plugin_slug ) {
+		return Path_Builder::get_results_file_path( $plugin_slug );
 	}
 
 	/**

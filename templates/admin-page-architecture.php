@@ -5,6 +5,8 @@
  * @package wp-verifier
  */
 
+use WordPress\Plugin_Check\Utilities\Path_Builder;
+
 // Get current active plugin for validation
 $current_plugin = null;
 $last_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
@@ -27,7 +29,7 @@ function validate_plugin_files( $plugin_folder ) {
 		return array( array( 'status' => 'error', 'message' => 'No active plugin selected' ) );
 	}
 	
-	$plugin_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
+	$plugin_path = Path_Builder::get_plugin_directory_path( $plugin_folder );
 	$results_file = $plugin_path . '/.wpv-results.json';
 	$verification_file = $plugin_path . '/.wpv-verification.json';
 	
@@ -186,10 +188,33 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				</div>
 				
 				<div class="wpv-arch-step">
-					<strong>3. PHPCS EXECUTION</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 285, 0, null, 'get_argv_defaults()', 'button-link' ); ?><br>
-					→ <code>PHP_CodeSniffer\Runner::runPHPCS()</code><br>
-					→ Parse JSON results
+					<strong>3. PHPCS EXECUTION & EARLY TERMINATION</strong><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?> - Main check orchestrator<br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 60, 0, null, 'run_check_with_result()', 'button-link' ); ?> - Individual check execution<br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 62, 0, null, 'Abstract_PHP_CodeSniffer_Check::run()', 'button-link' ); ?> - PHPCS wrapper<br>
+					<div class="wpv-arch-substep">
+						<strong>✅ NEW: Early Termination Implementation (Option 3):</strong><br>
+						• <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 35, 0, null, 'get_issue_limit_from_request()', 'button-link' ); ?> - Reads limit_results from check_options<br>
+						• <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 50, 0, null, 'count_issues_in_result()', 'button-link' ); ?> - Counts issues after each check<br>
+						• Stops processing when 20 issues reached<br>
+						• Processes checks one by one instead of batch<br>
+						• Provides detailed debug logging<br>
+						<strong>Key Classes & Functions:</strong><br>
+						• <?php echo wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ); ?> - Main execution controller<br>
+						• <?php echo wpv_get_vscode_button( 'includes/Checker/Abstract_Check_Runner.php', 200, 0, null, 'Abstract_Check_Runner::run()', 'button-link' ); ?> - Orchestrates check execution<br>
+						• <code>get_files_to_scan()</code> - Determines which files to process<br>
+						• <code>get_argv_defaults()</code> - Builds PHPCS command arguments<br>
+						• <code>runPHPCS()</code> - External PHPCS execution<br>
+						<strong>Configuration Applied:</strong><br>
+						• Ignored directories from <?php echo wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'get_directories_to_ignore()', 'button-link' ); ?><br>
+						• WordPress coding standards from rulesets<br>
+						• File extensions (.php, .inc, .module)<br>
+						• JSON ignored paths via wp_plugin_check_ignore_directories filter<br>
+						<strong>🟢 SOLUTION IMPLEMENTED:</strong><br>
+						• Early termination now occurs at check execution level<br>
+						• Stops processing additional checks when limit reached<br>
+						• Provides performance benefits for large codebases
+					</div>
 				</div>
 				
 				<div class="wpv-arch-step">
@@ -201,10 +226,26 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				
 				<div class="wpv-arch-step">
 					<strong>5. RESULTS PROCESSING</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 1050, 0, null, 'Admin_AJAX::save_results()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'Verification_AJAX_Handler::run_checks()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?><br>
 					→ Calculate readiness score<br>
-					→ Save to <code>.wpv-results.json</code>
+					→ Save to <code>.wpv-results.json</code><br>
+					<div class="wpv-arch-substep">
+						<strong>🟢 UPDATED: Issue Limiting Implementation:</strong><br>
+						• Early termination now occurs in <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?><br>
+						• <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 180, 0, null, 'limit_issues_to_count()', 'button-link' ); ?> - Still available for display limiting<br>
+						• Processing stops when 20 issues found (not just display)<br>
+						• Prioritizes errors over warnings during execution<br>
+						• Maintains file/line/column structure<br>
+						<strong>🟢 PERFORMANCE BENEFITS:</strong><br>
+						• Stops PHPCS execution early when limit reached<br>
+						• Reduces processing time for large codebases<br>
+						• Saves system resources during testing<br>
+						<strong>Debug Logging:</strong><br>
+						• "Issue limiting enabled - will stop after 20 issues"<br>
+						• "Check [ClassName] found X issues (total: Y)"<br>
+						• "Issue limit reached (20/20) - stopping check execution"
+					</div>
 				</div>
 			</div>
 		</div>
@@ -296,6 +337,62 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 
 	<!-- Issue Analysis -->
 	<div class="wpv-arch-issue-panel">
+		<h3 class="wpv-arch-issue-header"><?php wpverifier_header( 'Issue Analysis: 20 Issue Limit - IMPLEMENTED ✅', 'TAB12-08A' ); ?></h3>
+		
+		<div class="wpv-arch-issue-analysis">
+			<h4>✅ Solution Implemented (Option 3):</h4>
+			<p><strong>What's happening now:</strong> The "Limit to 20 issues" checkbox now stops check execution early when 20 issues are found, providing real performance benefits.</p>
+			
+			<h4>Updated Process Flow:</h4>
+			<ol>
+				<li><strong>User clicks "Run Verification"</strong> with "Limit to 20 issues" checked</li>
+				<li><strong>JavaScript sends</strong> <code>limit_results: true</code> to backend</li>
+				<li><strong>Checks::run_checks() reads limit</strong> from check_options JSON</li>
+				<li><strong>Checks run one by one</strong> with issue counting after each check</li>
+				<li><strong>Execution stops</strong> when 20 issues are reached</li>
+				<li><strong>User sees</strong> faster processing and only relevant issues</li>
+			</ol>
+			
+			<h4>Implementation Details:</h4>
+			<div class="wpv-arch-termination-points">
+				<div class="wpv-arch-termination-option wpv-arch-termination-recommended">
+					<strong>✅ Implemented: Check Execution Level</strong><br>
+					<code>Checks::run_checks()</code><br>
+					• Replaced array_walk() with foreach loop<br>
+					• Counts issues after each check execution<br>
+					• Breaks loop when limit reached<br>
+					• Provides detailed debug logging
+				</div>
+				
+				<div class="wpv-arch-termination-option">
+					<strong>Key Methods Added:</strong><br>
+					<code>get_issue_limit_from_request()</code><br>
+					• Reads check_options from POST data<br>
+					• Extracts limit_results boolean<br>
+					• Returns true if limiting enabled
+				</div>
+				
+				<div class="wpv-arch-termination-option">
+					<strong>Issue Counting:</strong><br>
+					<code>count_issues_in_result()</code><br>
+					• Counts errors and warnings in Check_Result<br>
+					• Handles nested array structure<br>
+					• Tracks cumulative issue count
+				</div>
+			</div>
+			
+			<h4>Expected Debug Output:</h4>
+			<div class="wpv-arch-debug-output">
+				<code>WPV Debug: Issue limiting enabled - will stop after 20 issues</code><br>
+				<code>WPV Debug: Check "WordPress\Plugin_Check\Checker\Checks\Plugin_Header_Check" found 3 issues (total: 3)</code><br>
+				<code>WPV Debug: Check "WordPress\Plugin_Check\Checker\Checks\PHP_CodeSniffer_Check" found 17 issues (total: 20)</code><br>
+				<code>WPV Debug: Issue limit reached (20/20) - stopping check execution</code><br>
+				<code>WPV Debug: Check execution completed with 20 total issues (limit was 20)</code>
+			</div>
+		</div>
+	</div>
+
+	<div class="wpv-arch-issue-panel">
 		<h3 class="wpv-arch-issue-header"><?php wpverifier_header( 'Current Issue: ActionScheduler.php Being Scanned', 'TAB12-08' ); ?></h3>
 		
 		<p><strong>Problem:</strong> Files in ignored paths (action-scheduler, carbon-fields) are appearing in scan results despite being configured as ignored.</p>
@@ -315,7 +412,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 		
 		<?php if ( $current_plugin ) : ?>
 			<?php 
-			$plugin_path = WP_PLUGIN_DIR . '/' . $current_plugin['folder'];
+			$plugin_path = Path_Builder::get_plugin_directory_path( $current_plugin['folder'] );
 			$results_file = $plugin_path . '/.wpv-results.json';
 			$ignored_files_found = array();
 			

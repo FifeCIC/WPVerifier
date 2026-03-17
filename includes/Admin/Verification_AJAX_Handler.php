@@ -16,6 +16,7 @@ use WordPress\Plugin_Check\Checker\AJAX_Runner;
 use WordPress\Plugin_Check\Checker\Runtime_Check;
 use WordPress\Plugin_Check\Checker\Runtime_Environment_Setup;
 use WordPress\Plugin_Check\Utilities\Plugin_Request_Utility;
+use WordPress\Plugin_Check\Utilities\Path_Builder;
 use WP_Error;
 
 /**
@@ -153,8 +154,14 @@ class Verification_AJAX_Handler {
 		$types = filter_input( INPUT_POST, 'types', FILTER_DEFAULT, FILTER_FORCE_ARRAY );
 		$types = is_null( $types ) ? array( 'error', 'warning' ) : $types;
 
+		// Get limit_results option from check_options JSON
+		$check_options_json = filter_input( INPUT_POST, 'check_options', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$check_options = $check_options_json ? json_decode( $check_options_json, true ) : array();
+		$limit_results = isset( $check_options['limit_results'] ) ? (bool) $check_options['limit_results'] : false;
+
 		// Debug logging
 		error_log( 'WPV Debug: Starting verification with types: ' . print_r( $types, true ) );
+		error_log( 'WPV Debug: Limit results enabled: ' . ( $limit_results ? 'YES' : 'NO' ) );
 
 		try {
 			$config = $this->configure_runner( $runner );
@@ -170,18 +177,28 @@ class Verification_AJAX_Handler {
 			$warnings = $results->get_warnings();
 			error_log( 'WPV Debug: Found ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
 			
+			// Apply issue limiting if requested
+			if ( $limit_results ) {
+				error_log( 'WPV Debug: Applying 20 issue limit' );
+				$limited_results = $this->limit_issues_to_count( $errors, $warnings, 20 );
+				$errors = $limited_results['errors'];
+				$warnings = $limited_results['warnings'];
+				error_log( 'WPV Debug: After limiting - ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
+			}
+			
 			// Filter WordPress.org specific rules if not preparing for WordPress.org
 			$wporg_prep = filter_input( INPUT_POST, 'wporg_preparation', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( '0' === $wporg_prep ) {
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\WPOrg_Rules' ) ) {
 					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/WPOrg_Rules.php';
 				}
-				$results = $this->filter_wporg_results( $results );
+				$filtered_errors = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $errors );
+				$filtered_warnings = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $warnings );
+				$errors = $filtered_errors;
+				$warnings = $filtered_warnings;
 				
 				// Debug filtered results
-				$filtered_errors = $results->get_errors();
-				$filtered_warnings = $results->get_warnings();
-				error_log( 'WPV Debug: After filtering - ' . $this->count_issues( $filtered_errors ) . ' errors and ' . $this->count_issues( $filtered_warnings ) . ' warnings' );
+				error_log( 'WPV Debug: After WPOrg filtering - ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
 			}
 		} catch ( Exception $error ) {
 			error_log( 'WPV Debug: Exception during verification: ' . $error->getMessage() );
@@ -191,13 +208,13 @@ class Verification_AJAX_Handler {
 			);
 		}
 
-		$response_data = $this->prepare_results_response( $results, $types );
+		$response_data = $this->prepare_results_response_with_arrays( $errors, $warnings, $types, $limit_results );
 		error_log( 'WPV Debug: Response data keys: ' . implode( ', ', array_keys( $response_data ) ) );
 		
 		// Save results to JSON file
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		if ( $plugin ) {
-			$this->save_results_to_json( $plugin, $response_data['errors'], $response_data['warnings'] );
+			$this->save_results_to_json( $plugin, $errors, $warnings );
 		}
 
 		wp_send_json_success( $response_data );
@@ -567,9 +584,8 @@ class Verification_AJAX_Handler {
 	 * Save verification results to JSON file
 	 */
 	private function save_results_to_json( $plugin_slug, $errors, $warnings ) {
-		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-		$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
-		$plugin_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
+		$json_file = Path_Builder::get_results_file_path( $plugin_slug );
+		$plugin_path = Path_Builder::get_plugin_directory_path( $plugin_slug );
 		
 		error_log( 'WPV Debug: Saving results to: ' . $json_file );
 		error_log( 'WPV Debug: Plugin path: ' . $plugin_path );
@@ -661,9 +677,8 @@ class Verification_AJAX_Handler {
 	 * Apply ignored_paths from JSON to directory filter for Advanced Verification
 	 */
 	private function apply_ignored_paths_filter( $plugin_slug ) {
-		$plugin_folder = strpos( $plugin_slug, '/' ) !== false ? dirname( $plugin_slug ) : $plugin_slug;
-		$results_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
-		$config_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-config.json';
+		$results_file = Path_Builder::get_results_file_path( $plugin_slug );
+		$config_file = Path_Builder::get_plugin_directory_path( $plugin_slug ) . '/.wpv-config.json';
 		
 		error_log( 'WPV DEBUG: apply_ignored_paths_filter called for plugin: ' . $plugin_slug );
 		error_log( 'WPV DEBUG: Checking for ignored paths in results file: ' . $results_file );
@@ -709,11 +724,7 @@ class Verification_AJAX_Handler {
 		add_filter(
 			'wp_plugin_check_ignore_directories',
 			static function ( $dirs ) use ( $paths_to_ignore ) {
-				error_log( 'WPV DEBUG: wp_plugin_check_ignore_directories filter called' );
-				error_log( 'WPV DEBUG: Original dirs: ' . print_r( $dirs, true ) );
-				error_log( 'WPV DEBUG: Adding paths: ' . print_r( $paths_to_ignore, true ) );
 				$merged_dirs = array_unique( array_merge( $dirs, $paths_to_ignore ) );
-				error_log( 'WPV DEBUG: Final merged dirs: ' . print_r( $merged_dirs, true ) );
 				return $merged_dirs;
 			},
 			10
@@ -806,6 +817,212 @@ class Verification_AJAX_Handler {
 		
 		// If path doesn't start with plugin path, return basename
 		return basename( $absolute_path );
+	}
+
+	/**
+	 * Limit issues to a specific count, prioritizing errors over warnings
+	 *
+	 * @param array $errors Error results array
+	 * @param array $warnings Warning results array
+	 * @param int $max_issues Maximum number of issues to return
+	 * @return array Limited results with 'errors' and 'warnings' keys
+	 */
+	private function limit_issues_to_count( $errors, $warnings, $max_issues ) {
+		$limited_errors = array();
+		$limited_warnings = array();
+		$issue_count = 0;
+		
+		// First, add errors (higher priority)
+		foreach ( $errors as $file => $lines ) {
+			if ( $issue_count >= $max_issues ) {
+				break;
+			}
+			
+			foreach ( $lines as $line => $columns ) {
+				if ( $issue_count >= $max_issues ) {
+					break;
+				}
+				
+				foreach ( $columns as $column => $issue_list ) {
+					if ( $issue_count >= $max_issues ) {
+						break;
+					}
+					
+					foreach ( $issue_list as $issue ) {
+						if ( $issue_count >= $max_issues ) {
+							break;
+						}
+						
+						if ( ! isset( $limited_errors[ $file ] ) ) {
+							$limited_errors[ $file ] = array();
+						}
+						if ( ! isset( $limited_errors[ $file ][ $line ] ) ) {
+							$limited_errors[ $file ][ $line ] = array();
+						}
+						if ( ! isset( $limited_errors[ $file ][ $line ][ $column ] ) ) {
+							$limited_errors[ $file ][ $line ][ $column ] = array();
+						}
+						
+						$limited_errors[ $file ][ $line ][ $column ][] = $issue;
+						$issue_count++;
+					}
+				}
+			}
+		}
+		
+		// Then add warnings if we haven't reached the limit
+		foreach ( $warnings as $file => $lines ) {
+			if ( $issue_count >= $max_issues ) {
+				break;
+			}
+			
+			foreach ( $lines as $line => $columns ) {
+				if ( $issue_count >= $max_issues ) {
+					break;
+				}
+				
+				foreach ( $columns as $column => $issue_list ) {
+					if ( $issue_count >= $max_issues ) {
+						break;
+					}
+					
+					foreach ( $issue_list as $issue ) {
+						if ( $issue_count >= $max_issues ) {
+							break;
+						}
+						
+						if ( ! isset( $limited_warnings[ $file ] ) ) {
+							$limited_warnings[ $file ] = array();
+						}
+						if ( ! isset( $limited_warnings[ $file ][ $line ] ) ) {
+							$limited_warnings[ $file ][ $line ] = array();
+						}
+						if ( ! isset( $limited_warnings[ $file ][ $line ][ $column ] ) ) {
+							$limited_warnings[ $file ][ $line ][ $column ] = array();
+						}
+						
+						$limited_warnings[ $file ][ $line ][ $column ][] = $issue;
+						$issue_count++;
+					}
+				}
+			}
+		}
+		
+		error_log( 'WPV Debug: Limited to ' . $issue_count . ' issues out of ' . $max_issues . ' requested' );
+		
+		return array(
+			'errors' => $limited_errors,
+			'warnings' => $limited_warnings
+		);
+	}
+
+	/**
+	 * Prepare the results response with array-based errors and warnings
+	 */
+	private function prepare_results_response_with_arrays( $errors, $warnings, array $types, $is_limited = false ) {
+		$response = array(
+			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
+			'errors'   => array(),
+			'warnings' => array(),
+			'html_output' => '',
+			'limited' => $is_limited
+		);
+
+		if ( in_array( 'error', $types, true ) ) {
+			$response['errors'] = $errors;
+		}
+
+		if ( in_array( 'warning', $types, true ) ) {
+			$response['warnings'] = $warnings;
+		}
+
+		// Generate HTML output with limitation notice
+		$response['html_output'] = $this->generate_results_html_with_limit_notice( $errors, $warnings, $is_limited );
+		
+		// Generate export controls
+		$response['export_controls'] = $this->generate_export_controls( $errors, $warnings );
+
+		// Check for rediscovered issues
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		if ( $plugin ) {
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Issue_Tracker' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Issue_Tracker.php';
+			}
+			$response['rediscovered'] = \WordPress\Plugin_Check\Utilities\Issue_Tracker::find_rediscovered( $plugin, $errors, $warnings );
+			$response['completed'] = \WordPress\Plugin_Check\Utilities\Issue_Tracker::get_completed( $plugin );
+		}
+
+		// Save to history and add comparison data
+		if ( $plugin ) {
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Scan_History.php';
+			}
+
+			$last_scan = \WordPress\Plugin_Check\Utilities\Scan_History::get_last_scan( $plugin );
+			$comparison = \WordPress\Plugin_Check\Utilities\Scan_History::compare_scans( $errors, $warnings, $last_scan );
+			$response['comparison'] = $comparison;
+
+			\WordPress\Plugin_Check\Utilities\Scan_History::save_scan( $plugin, $errors, $warnings );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Generate HTML output for verification results with limitation notice
+	 */
+	private function generate_results_html_with_limit_notice( $errors, $warnings, $is_limited = false ) {
+		$total_errors = $this->count_issues( $errors );
+		$total_warnings = $this->count_issues( $warnings );
+		$total_issues = $total_errors + $total_warnings;
+
+		if ( $total_issues === 0 ) {
+			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong></p></div>';
+		}
+
+		ob_start();
+		?>
+		<div class="plugin-check-results">
+			<?php if ( $is_limited ) : ?>
+				<div class="notice notice-info" style="margin-bottom: 20px;">
+					<p><strong><?php esc_html_e( 'Limited Results:', 'wp-verifier' ); ?></strong> <?php esc_html_e( 'Showing first 20 issues only. Uncheck "Limit to 20 issues" to see all results.', 'wp-verifier' ); ?></p>
+				</div>
+			<?php endif; ?>
+			
+			<div class="results-summary" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
+				<h3><?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?></h3>
+				<div style="display: flex; gap: 20px; margin: 15px 0;">
+					<div style="flex: 1; text-align: center; padding: 15px; background: #dc3232; color: white; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_errors ); ?></div>
+						<div><?php esc_html_e( 'Errors', 'wp-verifier' ); ?><?php echo $is_limited ? ' (limited)' : ''; ?></div>
+					</div>
+					<div style="flex: 1; text-align: center; padding: 15px; background: #ffb900; color: white; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_warnings ); ?></div>
+						<div><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?><?php echo $is_limited ? ' (limited)' : ''; ?></div>
+					</div>
+					<div style="flex: 1; text-align: center; padding: 15px; background: #666; color: white; border-radius: 4px;">
+						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_issues ); ?></div>
+						<div><?php esc_html_e( 'Total Issues', 'wp-verifier' ); ?><?php echo $is_limited ? ' (limited)' : ''; ?></div>
+					</div>
+				</div>
+			</div>
+
+			<?php if ( ! empty( $errors ) ) : ?>
+				<div class="errors-section" style="margin-bottom: 30px;">
+					<h3 style="color: #dc3232;"><?php esc_html_e( 'Errors', 'wp-verifier' ); ?> (<?php echo esc_html( $total_errors ); ?>)</h3>
+					<?php echo $this->render_issues_table( $errors, 'error' ); ?>
+				</div>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $warnings ) ) : ?>
+				<div class="warnings-section" style="margin-bottom: 30px;">
+					<h3 style="color: #ffb900;"><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?> (<?php echo esc_html( $total_warnings ); ?>)</h3>
+					<?php echo $this->render_issues_table( $warnings, 'warning' ); ?>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**

@@ -1,22 +1,28 @@
 <?php
 /**
- * Testing Tab - Load and merge wpverifier JSON with AI guidance
+ * Issues Tab - Load and merge wpverifier JSON with AI guidance
  *
  * @package wp-verifier
  */
 
-// Get current plugin from user meta
-$current_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
-$plugin_folder = $current_plugin ? ( strpos( $current_plugin, '/' ) !== false ? dirname( $current_plugin ) : $current_plugin ) : null;
+// Load Path_Builder for new path building approach
+if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Path_Builder' ) ) {
+	require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/Path_Builder.php';
+}
+
+use WordPress\Plugin_Check\Utilities\Path_Builder;
+
+// Get current plugin slug
+$current_plugin_slug = Path_Builder::get_current_plugin_slug();
 
 // If no plugin selected, show message
-if ( ! $plugin_folder ) {
+if ( ! $current_plugin_slug ) {
 	echo '<div class="notice notice-warning"><p>' . esc_html__( 'No plugin selected. Please go to TAB01 to select a plugin first.', 'wp-verifier' ) . '</p></div>';
 	return;
 }
 
-// Load plugin JSON from verifier-results
-$plugin_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+// Load plugin JSON from verifier-results using Path_Builder
+$plugin_file = Path_Builder::get_results_file_path( $current_plugin_slug );
 $plugin_data = array();
 if ( file_exists( $plugin_file ) ) {
 	$plugin_json = file_get_contents( $plugin_file );
@@ -80,8 +86,9 @@ usort( $merged_issues, function( $a, $b ) {
 						$type = $issue['type'] ?? 'ERROR';
 						$ai_guidance = $issue['ai_guidance'] ?? '';
 						
-						// Generate issue_id (same logic as in Verification_AJAX_Handler)
-						$relative_file = str_replace( WP_PLUGIN_DIR . '/' . $plugin_folder . '/', '', $file_path );
+						// Generate issue_id using Path_Builder approach
+						$plugin_base_path = Path_Builder::get_plugin_file_path( $current_plugin_slug );
+						$relative_file = str_replace( $plugin_base_path . '/', '', $file_path );
 						$issue_id = ( $type === 'ERROR' ? 'E-' : 'W-' ) . substr( md5( $relative_file . $line . $code ), 0, 8 );
 						
 						// Build AI prompt
@@ -97,7 +104,7 @@ usort( $merged_issues, function( $a, $b ) {
 					?>
 						<tr class="wpv-issue-row" data-index="<?php echo esc_attr( $index ); ?>" data-severity="<?php echo esc_attr( $type ); ?>" style="cursor: pointer;">
 							<td><span class="wpv-ast-badge <?php echo esc_attr( strtolower( $type ) ); ?>"><?php echo esc_html( $type ); ?></span></td>
-							<td><code><?php echo esc_html( basename( $file_path ) ); ?></code></td>
+							<td><code><?php echo esc_html( $file_path ); ?></code></td>
 							<td><?php echo esc_html( $line ); ?></td>
 							<td><code><?php echo esc_html( $code ); ?></code></td>
 							<td><?php echo esc_html( $message ); ?></td>
@@ -118,7 +125,19 @@ usort( $merged_issues, function( $a, $b ) {
 									<button type="button" class="button wpv-copy-prompt" data-prompt="<?php echo esc_attr( $ai_prompt ); ?>">
 										<span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Copy AI Prompt', 'wp-verifier' ); ?>
 									</button>
-									<?php echo wpv_get_vscode_button( $file_path, $line, 0, $plugin_folder ); ?>
+									<?php 
+									// Generate VSCode button using Path_Builder
+									$vscode_url = Path_Builder::get_vscode_url( $current_plugin_slug, $file_path, $line );
+									if ( $vscode_url ) :
+									?>
+										<a href="<?php echo esc_attr( $vscode_url ); ?>" class="button">
+											<span class="dashicons dashicons-editor-code"></span> <?php esc_html_e( 'VSCode', 'wp-verifier' ); ?>
+										</a>
+									<?php else : ?>
+										<span class="button button-disabled">
+											<span class="dashicons dashicons-editor-code"></span> <?php esc_html_e( 'VSCode (Error)', 'wp-verifier' ); ?>
+										</span>
+									<?php endif; ?>
 									<a href="#" class="button button-primary wpv-fixed-link" data-issue-id="<?php echo esc_attr( $issue_id ); ?>" data-file="<?php echo esc_attr( $file_path ); ?>" data-code="<?php echo esc_attr( $code ); ?>">
 										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Mark As Fixed', 'wp-verifier' ); ?>
 									</a>

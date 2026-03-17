@@ -20,3 +20,571 @@
     background: #fff;
     color: #2271b1;
 }
+
+/* Architecture Tab Styles */
+.wpv-arch-substep {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-left: 3px solid #0073aa;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.wpv-arch-substep strong {
+    color: #0073aa;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.wpv-arch-substep .button-link {
+    font-size: 11px;
+    text-decoration: none;
+    color: #2271b1;
+}
+
+.wpv-arch-substep .button-link:hover {
+    color: #135e96;
+}
+
+.wpv-arch-step {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.wpv-arch-step-warning {
+    border-left: 4px solid #ffb900;
+    background: #fffbf0;
+}
+
+.wpv-arch-step-issue {
+    color: #d63638;
+    font-weight: bold;
+    display: block;
+    margin-top: 5px;
+}
+
+/* Issue Analysis Styles */
+.wpv-arch-issue-analysis {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.wpv-arch-issue-analysis h4 {
+    color: #d63638;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.wpv-arch-issue-analysis h4:first-child {
+    margin-top: 0;
+}
+
+.wpv-arch-termination-points {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.wpv-arch-termination-option {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #f9f9f9;
+}
+
+.wpv-arch-termination-option strong {
+    color: #0073aa;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.wpv-arch-termination-option code {
+    background: #f1f1f1;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 11px;
+}
+
+.wpv-arch-termination-recommended {
+    border-color: #46b450;
+    background: #f0f8f0;
+}
+
+.wpv-arch-termination-recommended strong {
+    color: #46b450;
+}
+
+.wpv-arch-debug-output {
+    background: #2c3338;
+    color: #50c878;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 15px;
+    overflow-x: auto;
+}
+
+.wpv-arch-debug-output code {
+    background: transparent;
+    color: #50c878;
+    padding: 0;
+    display: block;
+    margin-bottom: 2px;
+}
+
+@media (max-width: 768px) {
+    .wpv-arch-termination-points {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Roadmap Tab Styles */
+.wpv-roadmap-intro {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border-left: 4px solid #2271b1;
+}
+
+.wpv-roadmap-intro p {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.wpv-roadmap-intro p:last-child {
+    margin-bottom: 0;
+}
+
+/* Phase Status Overview */
+.wpv-roadmap-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.wpv-roadmap-status-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-top: 4px solid #ddd;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wpv-roadmap-status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.wpv-roadmap-status-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.wpv-status-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1d2327;
+    margin-bottom: 12px;
+}
+
+.wpv-status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.wpv-status-details {
+    font-size: 13px;
+    color: #646970;
+    line-height: 1.4;
+}
+
+/* Status Card Variants */
+.wpv-status-completed {
+    border-top-color: #46b450;
+}
+
+.wpv-status-completed .wpv-status-badge {
+    background: #46b450;
+    color: #fff;
+}
+
+.wpv-status-active {
+    border-top-color: #f56e28;
+}
+
+.wpv-status-active .wpv-status-badge {
+    background: #f56e28;
+    color: #fff;
+}
+
+.wpv-status-pending {
+    border-top-color: #646970;
+}
+
+.wpv-status-pending .wpv-status-badge {
+    background: #646970;
+    color: #fff;
+}
+
+/* Phase Sections */
+.wpv-roadmap-phase {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.wpv-roadmap-phase-active {
+    border-color: #f56e28;
+    box-shadow: 0 0 0 1px #f56e28;
+}
+
+.wpv-roadmap-phase-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px 25px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    transition: background 0.2s ease;
+}
+
+.wpv-roadmap-phase-header:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+}
+
+.wpv-roadmap-phase-active .wpv-roadmap-phase-header {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b3 100%);
+    border-bottom-color: #f56e28;
+}
+
+.wpv-roadmap-phase-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.wpv-roadmap-phase-toggle {
+    font-size: 18px;
+    font-weight: bold;
+    color: #646970;
+    transition: transform 0.2s ease;
+}
+
+.wpv-roadmap-phase-content {
+    padding: 25px;
+}
+
+.wpv-roadmap-objective {
+    background: #f0f6ff;
+    border: 1px solid #c3d9ff;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 25px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.wpv-roadmap-objective strong {
+    color: #0073aa;
+}
+
+/* Section Headers */
+.wpv-roadmap-section {
+    margin-bottom: 30px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.wpv-roadmap-section-header {
+    background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wpv-roadmap-section-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+/* Priority Badges */
+.wpv-priority-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.wpv-priority-high {
+    background: #dc3545;
+    color: #fff;
+}
+
+.wpv-priority-medium {
+    background: #fd7e14;
+    color: #fff;
+}
+
+.wpv-priority-low {
+    background: #6c757d;
+    color: #fff;
+}
+
+/* Tasks Grid */
+.wpv-roadmap-tasks-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    padding: 20px;
+}
+
+.wpv-roadmap-tasks-column h4,
+.wpv-roadmap-architecture-column h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.wpv-roadmap-tasks-column h4 {
+    border-bottom-color: #2271b1;
+}
+
+.wpv-roadmap-architecture-column h4 {
+    border-bottom-color: #46b450;
+}
+
+/* Task Items */
+.wpv-roadmap-task {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.wpv-roadmap-task:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 8px rgba(34, 113, 177, 0.1);
+}
+
+.wpv-roadmap-task label {
+    display: block;
+    font-weight: 500;
+    color: #1d2327;
+    margin-bottom: 8px;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.wpv-task-checkbox {
+    margin-right: 10px;
+    transform: scale(1.1);
+}
+
+.wpv-task-details {
+    font-size: 12px;
+    color: #646970;
+    line-height: 1.4;
+    margin-left: 25px;
+    font-style: italic;
+}
+
+.wpv-roadmap-task code {
+    background: #f1f3f4;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #d73502;
+    font-weight: 500;
+}
+
+/* Architecture Items */
+.wpv-roadmap-arch-item {
+    background: #f8fff8;
+    border: 1px solid #d4edda;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.wpv-roadmap-arch-item strong {
+    color: #155724;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.wpv-roadmap-arch-item .button-link {
+    font-size: 12px;
+    text-decoration: none;
+    color: #2271b1;
+    font-weight: 500;
+}
+
+.wpv-roadmap-arch-item .button-link:hover {
+    color: #135e96;
+    text-decoration: underline;
+}
+
+/* Progress Summary */
+.wpv-roadmap-summary {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.wpv-roadmap-summary h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.wpv-roadmap-progress-bars {
+    display: grid;
+    gap: 15px;
+}
+
+.wpv-progress-item {
+    display: grid;
+    grid-template-columns: 200px 1fr 120px;
+    gap: 15px;
+    align-items: center;
+}
+
+.wpv-progress-item label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1d2327;
+}
+
+.wpv-progress-bar {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.wpv-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2271b1 0%, #46b450 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.wpv-progress-text {
+    font-size: 12px;
+    color: #646970;
+    text-align: right;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .wpv-roadmap-tasks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wpv-progress-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .wpv-progress-text {
+        text-align: left;
+    }
+}
+
+@media (max-width: 768px) {
+    .wpv-roadmap-status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wpv-roadmap-phase-header {
+        padding: 15px 20px;
+    }
+    
+    .wpv-roadmap-phase-header h2 {
+        font-size: 18px;
+    }
+    
+    .wpv-roadmap-phase-content {
+        padding: 20px;
+    }
+    
+    .wpv-roadmap-tasks-grid {
+        padding: 15px;
+    }
+}
+
+/* Interactive Elements */
+.wpv-roadmap-phase-header[data-phase] {
+    user-select: none;
+}
+
+.wpv-roadmap-phase-content {
+    transition: all 0.3s ease;
+}
+
+.wpv-task-checkbox:checked + label {
+    color: #46b450;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.wpv-task-checkbox:checked ~ .wpv-task-details {
+    opacity: 0.5;
+}
+
+/* Animation for phase toggles */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wpv-roadmap-phase-content[style*="block"] {
+    animation: fadeIn 0.3s ease;
+}
