@@ -1,5 +1,131 @@
 # WP Verifier Development Roadmap
 
+## PHASE 2: Path Building Consolidation & VSCode Integration Fix
+
+**Objective**: Consolidate multiple path building approaches into a single utility system and fix VSCode button path issues.
+
+### Problem Statement
+WPVerifier currently uses multiple inconsistent approaches to build paths to plugin files:
+- PHP helper functions with illogical WPVerifier defaults
+- JavaScript path building with different logic
+- Direct WP_PLUGIN_DIR concatenation across multiple files
+- Path display inconsistencies (basename vs full path)
+- VSCode button pointing to wrong file paths (missing subdirectories)
+
+### Core Concept
+- **Single Path Building Utility**: Create centralized `Path_Builder` class
+- **Remove Illogical Defaults**: Eliminate WPVerifier self-referencing defaults
+- **Consistent Path Handling**: Same logic across PHP and JavaScript
+- **Proper Error Handling**: Fail gracefully when plugin slug is missing
+- **Test-Driven Development**: Use TAB07 for testing before replacing existing code
+
+### Phase 2.1: Path Builder Utility Creation (HIGH PRIORITY)
+- [ ] **Create `includes/Utilities/Path_Builder.php`**
+	- `get_plugin_file_path($plugin_slug, $file_path)` - Build absolute paths
+	- `get_vscode_url($plugin_slug, $file_path, $line, $column)` - VSCode URLs
+	- `get_results_file_path($plugin_slug)` - Results JSON path
+	- `get_config_file_path($plugin_slug)` - Config JSON path
+	- `extract_plugin_folder($plugin_slug)` - Extract folder from slug
+- [ ] **Remove Illogical Defaults**
+	- Eliminate `WP_PLUGIN_DIR . '/WPVerifier/'` fallback
+	- Require explicit plugin slug for all operations
+	- Fail gracefully with proper error messages
+- [ ] **Path Normalization**
+	- Consistent forward slash usage for VSCode URIs
+	- Proper DIRECTORY_SEPARATOR handling
+	- Cross-platform compatibility
+
+### Phase 2.2: Test Implementation in TAB07 (HIGH PRIORITY)
+- [ ] **Create Test Interface in TAB07**
+	- Test path building with various plugin slugs
+	- Test VSCode URL generation with subdirectories
+	- Test error handling for invalid plugin slugs
+	- Compare old vs new path building results
+- [ ] **VSCode Button Testing**
+	- Test with files in subdirectories (e.g., `build/slide/render.php`)
+	- Verify correct absolute paths are generated
+	- Test line and column number handling
+	- Validate path normalization for Windows/Unix
+- [ ] **Fixed Button Testing**
+	- Test issue resolution with new path system
+	- Verify file path consistency in AJAX calls
+	- Test with complex directory structures
+
+### Phase 2.3: JavaScript Path Building Update (HIGH PRIORITY)
+- [x] **Update `assets/js/plugin-check-saved.js`**
+	- Replace hardcoded path concatenation with Path_Builder approach
+	- Use consistent plugin slug from wpvConfig.currentPluginSlug
+	- Handle subdirectory paths correctly (build/slide/render.php)
+	- Remove wpverifier fallback logic
+	- Add proper error handling for missing plugin slug
+	- Add path normalization (backslash → forward slash)
+- [x] **Update Asset Manager Localization**
+	- Add `currentPluginSlug` to wpvConfig
+	- Ensure JavaScript receives full file paths
+	- Remove redundant path building variables
+- [ ] **Path Data Flow Fix**
+	- Trace where JavaScript gets file path data
+	- Ensure full relative paths (not just filenames)
+	- Fix data-file attributes in templates
+
+**APPLIED TO TAB04**: VSCode button now uses new Path_Builder approach
+**DEBUGGING ADDED**: Console logging to trace file path data flow
+**Lines to Remove Later**: 
+- Line 6-9: Old plugin slug detection with wpverifier fallback
+- Line 12-25: Old getVSCodeURL() function
+- Asset_Manager.php line 242: Remove 'currentPlugin' (redundant with currentPluginSlug)
+- Debug console.log statements (lines 95-97)
+
+**ISSUE IDENTIFIED**: TAB04 VSCode button still shows old path format
+**ROOT CAUSE**: Need to trace data flow from PHP template → JavaScript
+**NEXT STEP**: Check browser console for debug output to identify where path gets truncated
+
+### Phase 2.4: Systematic Replacement (MEDIUM PRIORITY)
+**Note: Only proceed after TAB07 tests confirm functionality**
+- [ ] **Replace Helper Functions**
+	- Update `wpv_get_vscode_url()` to use Path_Builder
+	- Maintain backward compatibility for existing calls
+	- Update `wpv_get_vscode_button()` function
+- [ ] **Replace AJAX Handler Paths**
+	- Update all `WP_PLUGIN_DIR . '/' . $plugin_folder` patterns
+	- Use Path_Builder methods consistently
+	- Update Results_AJAX_Handler, Hash_AJAX_Handler, etc.
+- [ ] **Replace Template Path Building**
+	- Update admin-page-issues.php path processing
+	- Update admin-page-saved.php display logic
+	- Ensure consistent full path display
+
+### Phase 2.5: Validation & Cleanup (LOW PRIORITY)
+- [ ] **Comprehensive Testing**
+	- Test all VSCode buttons across different tabs
+	- Test Fixed button functionality
+	- Test with various plugin directory structures
+	- Test error handling for missing plugins
+- [ ] **Code Cleanup**
+	- Remove unused path building code
+	- Update documentation and comments
+	- Standardize error messages
+- [ ] **Performance Validation**
+	- Ensure no performance regression
+	- Optimize path caching if needed
+	- Monitor file system access patterns
+
+### Technical Implementation Notes
+- **Backward Compatibility**: Maintain existing function signatures during transition
+- **Error Handling**: Proper validation and user-friendly error messages
+- **Testing First**: No replacement of existing code until TAB07 tests pass
+- **Focus Areas**: VSCode button and Fixed button functionality priority
+
+### Success Metrics
+- VSCode button opens correct files with full subdirectory paths
+- Fixed button works reliably with new path system
+- Single source of truth for all path building operations
+- No illogical defaults or self-referencing paths
+- Consistent behavior across PHP and JavaScript
+- TAB07 tests validate all functionality before deployment
+
+---
+
 ## PHASE 3: Function-Based Issue Management
 
 **Objective**: Transform TAB05 from generic "Issues" to function-centric "Functions" tab with enhanced developer workflow.

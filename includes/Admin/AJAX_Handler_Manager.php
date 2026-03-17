@@ -84,6 +84,7 @@ class AJAX_Handler_Manager {
 		// Utility functions
 		add_action( 'wp_ajax_save_user_meta', array( $this, 'save_user_meta' ) );
 		add_action( 'wp_ajax_wpv_get_mark_fixed_nonce', array( $this, 'get_mark_fixed_nonce' ) );
+		add_action( 'wp_ajax_wpv_test_ajax', array( $this, 'test_ajax' ) );
 	}
 
 	/**
@@ -687,36 +688,104 @@ class AJAX_Handler_Manager {
 	}
 
 	/**
+	 * Test AJAX endpoint
+	 */
+	public function test_ajax() {
+		error_log( 'WPV DEBUG: test_ajax() called successfully' );
+		wp_send_json_success( array(
+			'message' => 'AJAX system is working',
+			'timestamp' => current_time( 'mysql' )
+		) );
+	}
+
+	/**
 	 * Mark an issue as resolved
 	 */
 	public function mark_resolved() {
-		$this->check_request_validity();
+		error_log( 'WPV DEBUG: mark_resolved() called' );
+		error_log( 'WPV DEBUG: POST data: ' . print_r( $_POST, true ) );
+		
+		try {
+			$this->check_request_validity();
+			error_log( 'WPV DEBUG: Request validity check passed' );
+		} catch ( Exception $e ) {
+			error_log( 'WPV DEBUG: Request validity check failed: ' . $e->getMessage() );
+			wp_send_json_error(
+				array( 'message' => 'Request validity failed: ' . $e->getMessage() ),
+				403
+			);
+			return;
+		}
 
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			$issue_id = isset( $_POST['issue_id'] ) ? sanitize_text_field( wp_unslash( $_POST['issue_id'] ) ) : '';
+			
+			error_log( 'WPV DEBUG: Plugin: ' . $plugin );
+			error_log( 'WPV DEBUG: Issue ID: ' . $issue_id );
 
 			if ( empty( $plugin ) || empty( $issue_id ) ) {
+				error_log( 'WPV DEBUG: Missing required parameters - Plugin: ' . $plugin . ', Issue ID: ' . $issue_id );
 				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
 			}
 
+			// Fix plugin folder path calculation
 			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			
+			// Check if the plugin folder exists (case-sensitive)
+			$plugin_dir_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
+			if ( ! is_dir( $plugin_dir_path ) ) {
+				// Try to find the correct case by scanning the plugins directory
+				$plugins_dir = WP_PLUGIN_DIR;
+				if ( is_dir( $plugins_dir ) ) {
+					$dirs = scandir( $plugins_dir );
+					foreach ( $dirs as $dir ) {
+						if ( $dir === '.' || $dir === '..' ) continue;
+						if ( strtolower( $dir ) === strtolower( $plugin_folder ) && is_dir( $plugins_dir . '/' . $dir ) ) {
+							$plugin_folder = $dir;
+							$plugin_dir_path = $plugins_dir . '/' . $dir;
+							break;
+						}
+					}
+				}
+			}
+			
+			$json_file = $plugin_dir_path . '/.wpv-results.json';
+			
+			error_log( 'WPV DEBUG: Plugin folder: ' . $plugin_folder );
+			error_log( 'WPV DEBUG: Plugin dir path: ' . $plugin_dir_path );
+			error_log( 'WPV DEBUG: JSON file path: ' . $json_file );
+			error_log( 'WPV DEBUG: JSON file exists: ' . ( file_exists( $json_file ) ? 'YES' : 'NO' ) );
 
 			if ( ! file_exists( $json_file ) ) {
-				throw new \InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+				error_log( 'WPV DEBUG: Results file not found at: ' . $json_file );
+				error_log( 'WPV DEBUG: Available results files: ' . print_r( glob( WP_PLUGIN_DIR . '/*/.wpv-results.json' ), true ) );
+				// Return success with informative message instead of error
+				wp_send_json_success( array(
+					'message' => __( 'No verification results found for this plugin. Please run a verification scan first.', 'wp-verifier' ),
+					'action' => 'no_results'
+				) );
+				return;
 			}
 
-			$data = json_decode( file_get_contents( $json_file ), true );
+			$json_content = file_get_contents( $json_file );
+			error_log( 'WPV DEBUG: JSON file content length: ' . strlen( $json_content ) );
+			
+			$data = json_decode( $json_content, true );
 			if ( ! $data || ! isset( $data['results'] ) ) {
+				error_log( 'WPV DEBUG: Invalid JSON data or missing results key' );
+				error_log( 'WPV DEBUG: JSON decode error: ' . json_last_error_msg() );
 				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
 			}
+			
+			error_log( 'WPV DEBUG: Results structure: ' . print_r( array_keys( $data['results'] ), true ) );
 
 			// Find and mark the issue as resolved
 			$updated = false;
 			foreach ( $data['results'] as $file => &$issues ) {
-				foreach ( $issues as &$issue ) {
+				foreach ( $issues as $index => &$issue ) {
 					if ( $issue['issue_id'] === $issue_id ) {
+						error_log( 'WPV DEBUG: Found matching issue in file: ' . $file . ' at index: ' . $index );
 						$issue['resolved'] = true;
 						$issue['resolved_at'] = current_time( 'mysql' );
 						$issue['resolved_by'] = wp_get_current_user()->user_login;
@@ -727,21 +796,39 @@ class AJAX_Handler_Manager {
 			}
 
 			if ( ! $updated ) {
+				error_log( 'WPV DEBUG: Issue not found in results. Searched for issue_id: ' . $issue_id );
+				// Log all issue IDs for debugging
+				foreach ( $data['results'] as $file => $issues ) {
+					foreach ( $issues as $index => $issue ) {
+						error_log( 'WPV DEBUG: Available issue_id in ' . $file . '[' . $index . ']: ' . ( $issue['issue_id'] ?? 'NO_ID' ) );
+					}
+				}
 				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wp-verifier' ) );
 			}
 
 			// Save updated JSON
 			$data['updated_at'] = current_time( 'mysql' );
-			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+			$json_result = file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+			
+			error_log( 'WPV DEBUG: JSON file write result: ' . ( $json_result !== false ? 'SUCCESS (' . $json_result . ' bytes)' : 'FAILED' ) );
 
+			error_log( 'WPV DEBUG: Issue marked as resolved successfully' );
 			wp_send_json_success( array(
 				'message' => __( 'Issue marked as resolved.', 'wp-verifier' ),
 			) );
 
 		} catch ( \InvalidArgumentException $exception ) {
+			error_log( 'WPV DEBUG: InvalidArgumentException: ' . $exception->getMessage() );
 			wp_send_json_error(
 				array( 'message' => $exception->getMessage() ),
 				400
+			);
+		} catch ( \Exception $exception ) {
+			error_log( 'WPV DEBUG: General Exception: ' . $exception->getMessage() );
+			error_log( 'WPV DEBUG: Exception trace: ' . $exception->getTraceAsString() );
+			wp_send_json_error(
+				array( 'message' => 'Unexpected error: ' . $exception->getMessage() ),
+				500
 			);
 		}
 	}
@@ -760,11 +847,36 @@ class AJAX_Handler_Manager {
 				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
 			}
 
+			// Fix plugin folder path calculation
 			$plugin_folder = strpos( $plugin, '/' ) !== false ? dirname( $plugin ) : $plugin;
-			$json_file = WP_PLUGIN_DIR . '/' . $plugin_folder . '/.wpv-results.json';
+			
+			// Check if the plugin folder exists (case-sensitive)
+			$plugin_dir_path = WP_PLUGIN_DIR . '/' . $plugin_folder;
+			if ( ! is_dir( $plugin_dir_path ) ) {
+				// Try to find the correct case by scanning the plugins directory
+				$plugins_dir = WP_PLUGIN_DIR;
+				if ( is_dir( $plugins_dir ) ) {
+					$dirs = scandir( $plugins_dir );
+					foreach ( $dirs as $dir ) {
+						if ( $dir === '.' || $dir === '..' ) continue;
+						if ( strtolower( $dir ) === strtolower( $plugin_folder ) && is_dir( $plugins_dir . '/' . $dir ) ) {
+							$plugin_folder = $dir;
+							$plugin_dir_path = $plugins_dir . '/' . $dir;
+							break;
+						}
+					}
+				}
+			}
+			
+			$json_file = $plugin_dir_path . '/.wpv-results.json';
 
 			if ( ! file_exists( $json_file ) ) {
-				throw new \InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+				// Return success with informative message instead of error
+				wp_send_json_success( array(
+					'message' => __( 'No verification results found for this plugin. Please run a verification scan first.', 'wp-verifier' ),
+					'action' => 'no_results'
+				) );
+				return;
 			}
 
 			$data = json_decode( file_get_contents( $json_file ), true );

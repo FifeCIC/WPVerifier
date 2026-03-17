@@ -241,6 +241,8 @@ class Asset_Manager {
                 'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
                 'pluginDir' => WP_PLUGIN_DIR,
                 'nonce' => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
+                'currentPlugin' => $plugin_info ? $plugin_info['slug'] : '',
+                'currentPluginSlug' => $plugin_info ? $plugin_info['slug'] : '',
             )
         );
     }

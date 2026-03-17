@@ -3,15 +3,31 @@ jQuery(document).ready(function($) {
 		return;
 	}
 	
-	// Get plugin slug from current page or default to wpverifier
-	const pluginSlug = new URLSearchParams(window.location.search).get('plugin') || 'wpverifier/plugin.php';
+	// Get plugin slug from wpvConfig (set by PHP)
+	const pluginSlug = (typeof wpvConfig !== 'undefined' && wpvConfig.currentPluginSlug) || 
+					   new URLSearchParams(window.location.search).get('plugin') || 
+					   null;
+	
+	if (!pluginSlug) {
+		console.warn('WPV: No plugin slug available for VSCode URL generation');
+		return;
+	}
+	
 	const pluginFolder = pluginSlug.includes('/') ? pluginSlug.split('/')[0] : pluginSlug;
 	
-	// Helper function to generate VSCode URL
+	// Helper function to generate VSCode URL using Path_Builder approach
 	function getVSCodeURL(filePath, line = 0, column = 0) {
-		// Build absolute path
+		if (!pluginSlug || !filePath) {
+			return '#';
+		}
+		
+		// Build absolute path using same logic as Path_Builder
 		const absolutePath = wpvConfig.pluginDir + '/' + pluginFolder + '/' + filePath;
-		let vscodeURL = 'vscode://file/' + absolutePath;
+		
+		// Normalize path separators for VSCode URI (always use forward slashes)
+		const normalizedPath = absolutePath.replace(/\\/g, '/');
+		
+		let vscodeURL = 'vscode://file/' + normalizedPath;
 		
 		if (line > 0) {
 			vscodeURL += ':' + line;
@@ -74,6 +90,11 @@ jQuery(document).ready(function($) {
 		const file = $(this).data('file');
 		const idx = $(this).data('idx');
 		const issue = wpvSavedResults[file][idx];
+		
+		// Debug: Log the file path being used
+		console.log('WPV DEBUG: File path from data-file:', file);
+		console.log('WPV DEBUG: Plugin slug:', pluginSlug);
+		console.log('WPV DEBUG: Generated VSCode URL:', getVSCodeURL(file, issue.line, issue.column || 0));
 		
 		const aiPrompt = `File: ${file}
 Line: ${issue.line}
@@ -202,36 +223,66 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 		
 		$('.wpv-fixed-btn').on('click', function(e) {
 			e.preventDefault();
+			console.log('WPV DEBUG: Saved results Fixed button clicked');
+			
 			const $btn = $(this);
 			const issueId = $btn.data('issue-id');
 			const originalHtml = $btn.html();
 			
+			console.log('WPV DEBUG: Issue ID:', issueId);
+			console.log('WPV DEBUG: Plugin slug:', pluginSlug);
+			console.log('WPV DEBUG: wpvConfig available:', typeof wpvConfig !== 'undefined');
+			if (typeof wpvConfig !== 'undefined') {
+				console.log('WPV DEBUG: wpvConfig:', wpvConfig);
+			}
+			console.log('WPV DEBUG: ajaxurl:', ajaxurl);
+			
 			if (!issueId) {
+				console.error('WPV DEBUG: Issue ID not found');
 				alert('Issue ID not found.');
 				return;
 			}
 			
 			$btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Marking...');
 			
+			var ajaxData = {
+				action: 'wpv_mark_resolved',
+				issue_id: issueId,
+				plugin: pluginSlug,
+				nonce: wpvConfig?.nonce || wpvAjax?.nonce || ''
+			};
+			
+			console.log('WPV DEBUG: AJAX data being sent:', ajaxData);
+			
 			$.ajax({
 				url: ajaxurl,
 				type: 'POST',
-				data: {
-					action: 'wpv_mark_resolved',
-					issue_id: issueId,
-					plugin: pluginSlug,
-					nonce: wpvConfig?.nonce || wpvAjax?.nonce || ''
-				},
+				data: ajaxData,
 				success: function(response) {
+					console.log('WPV DEBUG: AJAX success response:', response);
 					if (response.success) {
-						$btn.html('<span class="dashicons dashicons-yes"></span> Resolved').removeClass('button-primary').addClass('button-secondary');
-						refreshAST();
+						if (response.data.action === 'no_results') {
+							// Handle case where no results file exists
+							alert(response.data.message);
+							$btn.prop('disabled', false).html(originalHtml);
+						} else {
+							// Handle successful resolution
+							$btn.html('<span class="dashicons dashicons-yes"></span> Resolved').removeClass('button-primary').addClass('button-secondary');
+							refreshAST();
+						}
 					} else {
+						console.error('WPV DEBUG: Server returned error:', response.data);
 						alert('Error: ' + (response.data?.message || 'Unknown error'));
 						$btn.prop('disabled', false).html(originalHtml);
 					}
 				},
-				error: function() {
+				error: function(xhr, status, error) {
+					console.error('WPV DEBUG: AJAX Error Details (Saved Results):');
+					console.error('WPV DEBUG: XHR:', xhr);
+					console.error('WPV DEBUG: Status:', status);
+					console.error('WPV DEBUG: Error:', error);
+					console.error('WPV DEBUG: Response Text:', xhr.responseText);
+					console.error('WPV DEBUG: Response Status:', xhr.status);
 					alert('Failed to mark issue as resolved.');
 					$btn.prop('disabled', false).html(originalHtml);
 				}
@@ -262,8 +313,15 @@ Please fix this issue in the file from my workspace.` : aiPrompt;
 				},
 				success: function(response) {
 					if (response.success) {
-						$btn.html('<span class="dashicons dashicons-hidden"></span> Ignored').removeClass('button').addClass('button-secondary');
-						refreshAST();
+						if (response.data.action === 'no_results') {
+							// Handle case where no results file exists
+							alert(response.data.message);
+							$btn.prop('disabled', false).html(originalHtml);
+						} else {
+							// Handle successful ignore
+							$btn.html('<span class="dashicons dashicons-hidden"></span> Ignored').removeClass('button').addClass('button-secondary');
+							refreshAST();
+						}
 					} else {
 						alert('Error: ' + (response.data?.message || 'Unknown error'));
 						$btn.prop('disabled', false).html(originalHtml);

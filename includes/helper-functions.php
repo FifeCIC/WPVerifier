@@ -28,8 +28,8 @@ function wpv_get_vscode_url( $file_path, $line = 0, $column = 0, $plugin_folder 
 		}
 	}
 	
-	// Normalize path separators
-	$absolute_path = str_replace( '\\', '/', $absolute_path );
+	// Normalize path separators for VSCode URI
+	$absolute_path = str_replace( DIRECTORY_SEPARATOR, '/', $absolute_path );
 	
 	// Build VSCode URL
 	$vscode_url = 'vscode://file/' . $absolute_path;

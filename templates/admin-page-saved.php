@@ -63,7 +63,7 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 						?>
 							<div class="accordion-row">
 								<div class="accordion-header">
-									<div class="wpv-ast-file-name"><?php echo esc_html( basename( $file ) ); ?></div>
+									<div class="wpv-ast-file-name"><?php echo esc_html( $file ); ?></div>
 									<div class="wpv-ast-severity">
 										<?php if ( $error_count > 0 ) : ?>
 											<span class="wpv-ast-badge error"><?php echo esc_html( $error_count ); ?> errors</span>
