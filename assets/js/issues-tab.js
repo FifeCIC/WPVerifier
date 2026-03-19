@@ -115,13 +115,11 @@ jQuery(document).ready(function($) {
 				if (response.success) {
 					$button.html('<span class="dashicons dashicons-yes"></span> Fixed!');
 					$button.removeClass('button-primary').addClass('button-secondary');
+					// Show success message and reload page to reflect changes
 					setTimeout(function() {
-						// Hide the entire issue row
-						var $row = $button.closest('.wpv-issue-details').prev('.wpv-issue-row');
-						var $details = $button.closest('.wpv-issue-details');
-						$row.fadeOut();
-						$details.fadeOut();
-					}, 1500);
+						alert('Issue marked as fixed and removed from results.');
+						location.reload();
+					}, 1000);
 				} else {
 					console.error('WPV DEBUG: Server returned error:', response.data);
 					alert('Failed to mark issue as resolved: ' + (response.data?.message || 'Unknown error'));

@@ -41,6 +41,8 @@ class Verification_AJAX_Handler {
 		add_action( 'wp_ajax_plugin_check_basic_check', array( $this, 'basic_check' ) );
 		add_action( 'wp_ajax_plugin_check_validate_structure', array( $this, 'validate_structure' ) );
 		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_issue_as_fixed' ) );
+		
+		error_log( 'WPV DEBUG: Verification_AJAX_Handler registered wpv_mark_resolved action' );
 	}
 
 	/**
@@ -599,8 +601,7 @@ class Verification_AJAX_Handler {
 							'type' => 'ERROR',
 							'line' => (int) $line,
 							'column' => (int) $column,
-							'ignored' => false,
-							'resolved' => false
+							'ignored' => false
 						);
 					}
 				}
@@ -625,8 +626,7 @@ class Verification_AJAX_Handler {
 							'type' => 'WARNING',
 							'line' => (int) $line,
 							'column' => (int) $column,
-							'ignored' => false,
-							'resolved' => false
+							'ignored' => false
 						);
 					}
 				}
@@ -1011,6 +1011,12 @@ class Verification_AJAX_Handler {
 
 		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		// Debug output
+		error_log( 'WPV DEBUG: mark_issue_as_fixed called' );
+		error_log( 'WPV DEBUG: POST data: ' . print_r( $_POST, true ) );
+		error_log( 'WPV DEBUG: issue_id: ' . $issue_id );
+		error_log( 'WPV DEBUG: plugin: ' . $plugin );
 
 		if ( empty( $issue_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );

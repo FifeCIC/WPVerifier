@@ -172,13 +172,7 @@ window.WPVerifierAjax = (function() {
      * Run verification checks
      */
     function runChecks(plugin, checkOptions = {}, options = {}) {
-        console.log('WPVerifierAjax.runChecks called with:');
-        console.log('- plugin:', plugin);
-        console.log('- checkOptions:', checkOptions);
-        console.log('- options:', options);
-        
         const checkOptionsJson = JSON.stringify(checkOptions);
-        console.log('- checkOptions JSON:', checkOptionsJson);
         
         return makeRequest('wpv_run_checks', { 
             plugin,

@@ -5,6 +5,28 @@
  * @package wp-verifier
  */
 
+/*
+ * CRITICAL FOR AI: TAB STRUCTURE CLARIFICATION
+ * 
+ * TAB04 (Files) vs TAB05 (Issues) - BOTH USE AST BUT COMPLETELY DIFFERENT!
+ * 
+ * TAB04 (Files Tab):
+ * - Template: admin-page-saved.php
+ * - JavaScript: Uses AST templates (wp-verifier-ast.js)
+ * - UI: File accordion + sidebar with panels (PAN00, PAN01, PAN02)
+ * - Fixed Button Location: In PAN01 sidebar panel
+ * - Data Flow: Click file → show in sidebar → click issue → show details in PAN01
+ * 
+ * TAB05 (Issues Tab):
+ * - Template: admin-page-issues.php  
+ * - JavaScript: issues-tab.js (NOT AST)
+ * - UI: Flat table of all issues, no sidebar
+ * - Fixed Button Location: In expandable row details
+ * - Data Flow: Click row → expand details → show Fixed button
+ * 
+ * NEVER CONFUSE THESE TWO TABS - THEY ARE COMPLETELY DIFFERENT INTERFACES!
+ */
+
 use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 // Get current active plugin for validation
@@ -156,6 +178,26 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 	<h2><?php wpverifier_header( 'Plugin Check Architecture', 'TAB12-01' ); ?></h2>
 	
 	<div class="wpv-arch-intro">
+		<div class="wpv-arch-tab-warning">
+			<h4>🚨 CRITICAL: Tab Structure for AI Development</h4>
+			<div class="wpv-arch-tab-structure">
+				<div class="wpv-arch-tab-item">
+					<strong>TAB04 (Files)</strong> - FILE-GROUPED VIEW<br>
+					• Template: <code>admin-page-saved.php</code><br>
+					• JavaScript: Uses AST templates<br>
+					• UI: File accordion + sidebar (PAN00/PAN01/PAN02)<br>
+					• Fixed Button: In PAN01 sidebar panel
+				</div>
+				<div class="wpv-arch-tab-item">
+					<strong>TAB05 (Issues)</strong> - FLAT LIST VIEW<br>
+					• Template: <code>admin-page-issues.php</code><br>
+					• JavaScript: <code>issues-tab.js</code> (NOT AST)<br>
+					• UI: Flat table, no sidebar<br>
+					• Fixed Button: In expandable row details
+				</div>
+			</div>
+			<p><strong>NEVER CONFUSE THESE - THEY ARE COMPLETELY DIFFERENT!</strong></p>
+		</div>
 		<p><?php esc_html_e( 'This tab shows the complete plugin verification process flow and validates the current active plugin configuration.', 'wp-verifier' ); ?></p>
 		<?php if ( $current_plugin ) : ?>
 			<p><strong><?php esc_html_e( 'Active Plugin:', 'wp-verifier' ); ?></strong> <?php echo esc_html( $current_plugin['name'] ); ?> (<?php echo esc_html( $current_plugin['folder'] ); ?>)</p>
@@ -477,7 +519,179 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 
 	<!-- Development Guidance -->
 	<div class="wpv-arch-guidance-panel">
-		<h3><?php wpverifier_header( 'Development Guidance', 'TAB12-10' ); ?></h3>
+		<h3><?php wpverifier_header( 'Testing Workflow & Tab Operations', 'TAB12-10' ); ?></h3>
+		
+		<div class="wpv-arch-testing-workflow">
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 1: TAB01 - Plugin Selection & Initial Scan</h5>
+				<ul>
+					<li><strong>Function:</strong> Initiates verification process for selected plugin</li>
+					<li><strong>Key Files:</strong> 
+						<ul>
+							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ); ?> - Main verification interface</li>
+							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ); ?> - Handles scan requests</li>
+							<li><?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 0, 0, null, 'Checks.php', 'button-link' ); ?> - Orchestrates all verification checks</li>
+						</ul>
+					</li>
+					<li><strong>Output:</strong> Creates 3 JSON files:
+						<ul>
+							<li><code>.wpv-config.json</code> - Scan configuration and ignored paths</li>
+							<li><code>.wpv-results.json</code> - All coding standards issues found</li>
+							<li><code>.wpv-verification.json</code> - File hashes for change detection</li>
+						</ul>
+					</li>
+					<li><strong>Test Checkpoints:</strong> Verify all 3 JSON files created with correct structure</li>
+				</ul>
+			</div>
+			
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 2: TAB02 - Configure Ignored Paths</h5>
+				<ul>
+					<li><strong>Function:</strong> Manages vendor folders and ignored paths via drag-and-drop interface</li>
+					<li><strong>Key Files:</strong>
+						<ul>
+							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-configuration.php', 0, 0, null, 'admin-page-configuration.php', 'button-link' ); ?> - Configuration interface</li>
+							<li><?php echo wpv_get_vscode_button( 'assets/js/admin-configuration.js', 0, 0, null, 'admin-configuration.js', 'button-link' ); ?> - Drag-and-drop functionality</li>
+							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Configuration_AJAX_Handler.php', 0, 0, null, 'Configuration_AJAX_Handler.php', 'button-link' ); ?> - Saves configuration</li>
+						</ul>
+					</li>
+					<li><strong>Updates:</strong> Modifies <code>.wpv-config.json</code> with new ignored paths</li>
+					<li><strong>Test Checkpoints:</strong> 
+						<ul>
+							<li>✅ Vendor libraries detected automatically</li>
+							<li>✅ Drag-and-drop interface functional</li>
+							<li>✅ Save button updates .wpv-config.json correctly</li>
+							<li>Verify ignored paths are respected in subsequent scans</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 2b: TAB02b - Hash Generation (Future Enhancement)</h5>
+				<ul>
+					<li><strong>Current Status:</strong> Hash Generation panel currently located on TAB02 Configure</li>
+					<li><strong>Planned Enhancement:</strong> Move to dedicated TAB02b between Configure and Verification</li>
+					<li><strong>Function:</strong> Generates file hashes for incremental scanning and change detection</li>
+					<li><strong>Key Files:</strong>
+						<ul>
+							<li><?php echo wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ); ?> - Hash generation logic</li>
+							<li><?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?> - Stores hashes in verification file</li>
+							<li><strong>Future:</strong> <code>templates/admin-page-hash-generation.php</code> - Dedicated template</li>
+						</ul>
+					</li>
+					<li><strong>Updates:</strong> Creates/updates <code>.wpv-verification.json</code> with file hashes</li>
+					<li><strong>Test Checkpoints:</strong> 
+						<ul>
+							<li>✅ Hash generation completes successfully</li>
+							<li>✅ Verification JSON file created/updated</li>
+							<li>✅ File count matches expected plugin files</li>
+							<li>✅ Ignored paths excluded from hash generation</li>
+						</ul>
+					</li>
+					<li><strong>Benefits of Separate Tab:</strong>
+						<ul>
+							<li>Clearer workflow separation between configuration and file tracking</li>
+							<li>Better user experience with focused functionality per tab</li>
+							<li>Easier to find and manage hash generation independently</li>
+							<li>Preparation for advanced hash management features</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 3: TAB03 - Verification Execution</h5>
+				<ul>
+					<li><strong>Function:</strong> Runs PHPCS verification and generates results</li>
+					<li><strong>Key Files:</strong>
+						<ul>
+							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ); ?> - Verification interface</li>
+							<li><?php echo wpv_get_vscode_button( 'assets/js/admin-verification.js', 0, 0, null, 'admin-verification.js', 'button-link' ); ?> - Frontend verification logic</li>
+							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'run_checks()', 'button-link' ); ?> - Backend verification handler</li>
+						</ul>
+					</li>
+					<li><strong>Updates:</strong> Populates <code>.wpv-results.json</code> with scan results and readiness scores</li>
+					<li><strong>Test Checkpoints:</strong> 
+						<ul>
+							<li>✅ Verification process completes successfully</li>
+							<li>✅ Issues detected and displayed in results</li>
+							<li>✅ Ignored paths respected (vendor folders excluded)</li>
+							<li>✅ Results JSON populated with issues and readiness scores</li>
+							<li>✅ Console output cleaned up for production</li>
+						</ul>
+					</li>
+					<li><strong>Known Issues Fixed:</strong>
+						<ul>
+							<li>✅ Removed "ignored_paths" duplication from results JSON (now only in config JSON)</li>
+							<li>✅ Cleaned up excessive console logging from verification scripts</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 4: TAB04 (Files) - FILE-GROUPED VIEW WITH SIDEBAR ❌ CURRENT FOCUS</h5>
+				<ul>
+					<li><strong>Function:</strong> Shows files with accordion expansion and sidebar panels</li>
+					<li><strong>Key Files:</strong>
+						<ul>
+							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-saved.php', 0, 0, null, 'admin-page-saved.php', 'button-link' ); ?> - File accordion template</li>
+							<li><?php echo wpv_get_vscode_button( 'assets/js/wp-verifier-ast.js', 0, 0, null, 'wp-verifier-ast.js', 'button-link' ); ?> - AST JavaScript for sidebar</li>
+							<li><?php echo wpv_get_vscode_button( 'templates/results-ast.php', 0, 0, null, 'results-ast.php', 'button-link' ); ?> - AST template for PAN01</li>
+						</ul>
+					</li>
+					<li><strong>UI Flow:</strong> Click file → sidebar shows file details → click issue → PAN01 shows issue details with Fixed button</li>
+					<li><strong>❌ CURRENT ISSUE:</strong> User reports Fixed button not working - no changes visible after clicking</li>
+					<li><strong>Investigation Needed:</strong>
+						<ul>
+							<li>Check if AST JavaScript correctly handles issue IDs in TAB04 context</li>
+							<li>Verify AJAX calls from TAB04 sidebar use correct endpoints</li>
+							<li>Confirm Fixed button in PAN01 panel works properly</li>
+							<li>Check for browser/WordPress caching preventing updates</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 5: TAB05 (Issues) - FLAT LIST VIEW ✅ WORKING</h5>
+				<ul>
+					<li><strong>Function:</strong> Displays all issues in flat table without grouping</li>
+					<li><strong>Key Files:</strong>
+						<ul>
+							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 0, 0, null, 'admin-page-issues.php', 'button-link' ); ?> - Issues table template</li>
+							<li><?php echo wpv_get_vscode_button( 'assets/js/issues-tab.js', 0, 0, null, 'issues-tab.js', 'button-link' ); ?> - Table interaction JavaScript</li>
+							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 2100, 0, null, 'mark_issue_as_fixed()', 'button-link' ); ?> - Fixed button handler</li>
+						</ul>
+					</li>
+					<li><strong>UI Flow:</strong> Click row → expand details → show Fixed button in expanded row</li>
+					<li><strong>✅ STATUS:</strong> Working correctly - Fixed button removes issues properly</li>
+				</ul>
+			</div>
+			
+			<div class="wpv-arch-workflow-step">
+				<h5>Step 6: Re-scan Testing</h5>
+				<ul>
+					<li><strong>Function:</strong> Verify that fixed issues don't reappear and ignored paths work</li>
+					<li><strong>Test Process:</strong>
+						<ol>
+							<li>Mark several issues as "Fixed"</li>
+							<li>Run new verification scan</li>
+							<li>Confirm fixed issues don't reappear</li>
+							<li>Verify ignored paths are respected</li>
+						</ol>
+					</li>
+				</ul>
+			</div>
+			
+			<h4>Key Functions & Their Roles:</h4>
+			<ul>
+				<li><strong>mark_issue_as_fixed():</strong> Removes entire issue from .wpv-results.json</li>
+				<li><strong>process_files():</strong> File-by-file processing with early termination</li>
+				<li><strong>should_ignore_path():</strong> Path filtering logic for ignored directories</li>
+				<li><strong>generate_issue_id():</strong> Creates unique identifiers for each issue</li>
+			</ul>
+		</div>
 		
 		<p><strong>For AI Development:</strong></p>
 		<ul>
@@ -489,5 +703,240 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 		</ul>
 		
 		<p><strong>See:</strong> <code>@ROADMAP.md</code> for complete development roadmap and implementation priorities.</p>
+	</div>
+
+	<!-- JSON Files & Button Behavior Diagram -->
+	<div class="wpv-arch-json-panel">
+		<h3><?php wpverifier_header( 'JSON Files & Button Behavior', 'TAB12-11' ); ?></h3>
+		
+		<div class="wpv-arch-json-flow">
+			<h4>📁 JSON File Structure & Usage</h4>
+			
+			<div class="wpv-arch-json-files">
+				<div class="wpv-arch-json-file">
+					<h5><code>.wpv-results.json</code> - Main Results Storage</h5>
+					<div class="wpv-arch-json-content">
+						<strong>Purpose:</strong> Stores all scan results, readiness scores, and issue data<br>
+						<strong>Created by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1400, 0, null, 'save_results_to_json()', 'button-link' ); ?><br>
+						<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 25, 0, null, 'TAB05 Issues Display', 'button-link' ); ?><br>
+						<strong>Structure:</strong>
+						<pre>{
+  "generated_at": "2024-01-01 12:00:00",
+  "plugin": "plugin-name/plugin-name.php",
+  "readiness": {
+    "overall": 85,
+    "errors": 2,
+    "warnings": 5
+  },
+  "results": {
+    "file.php": [
+      {
+        "issue_id": "W-b59cea4b",
+        "message": "Global variable issue",
+        "code": "WordPress.NamingConventions.PrefixAllGlobals",
+        "type": "WARNING",
+        "line": 327,
+        "column": 5,
+        "ignored": false,
+        "resolved": false
+      }
+    ]
+  }
+}</pre>
+					</div>
+				</div>
+				
+				<div class="wpv-arch-json-file">
+					<h5><code>.wpv-config.json</code> - Configuration Storage</h5>
+					<div class="wpv-arch-json-content">
+						<strong>Purpose:</strong> Stores ignored paths and plugin configuration<br>
+						<strong>Created by:</strong> TAB02 Configuration interface<br>
+						<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?><br>
+						<strong>Structure:</strong>
+						<pre>{
+  "ignored_paths": [
+    {
+      "path": "vendor/action-scheduler",
+      "reason": "Third-party library"
+    }
+  ],
+  "configuration": {
+    "wporg_preparation": true,
+    "skipped_rules": []
+  }
+}</pre>
+					</div>
+				</div>
+				
+				<div class="wpv-arch-json-file">
+					<h5><code>.wpv-verification.json</code> - Tracking Storage</h5>
+					<div class="wpv-arch-json-content">
+						<strong>Purpose:</strong> Tracks file hashes and verification status<br>
+						<strong>Created by:</strong> Hash generation process<br>
+						<strong>Used for:</strong> Incremental scanning and change detection
+					</div>
+				</div>
+			</div>
+			
+			<h4>🔘 Button Behavior & Data Flow</h4>
+			
+			<div class="wpv-arch-button-flow">
+				<div class="wpv-arch-button-section">
+					<h5>TAB04 (Verification) - AST Interface</h5>
+					
+					<div class="wpv-arch-button-item wpv-arch-button-fixed">
+						<div class="wpv-arch-button-header">
+							<span class="wpv-arch-button-icon">✅</span>
+							<strong>"Fixed" Button</strong>
+							<span class="wpv-arch-button-tooltip">Permanently removes issue from results</span>
+						</div>
+						<div class="wpv-arch-button-details">
+							<strong>Function:</strong> <?php echo wpv_get_vscode_button( 'assets/js/wp-verifier-ast.js', 400, 0, null, 'markComplete()', 'button-link' ); ?><br>
+							<strong>AJAX Action:</strong> <code>plugin_check_mark_complete</code><br>
+							<strong>Data Modified:</strong> Removes entire issue from <code>.wpv-results.json</code><br>
+							<strong>Use Case:</strong> When you've actually fixed the code issue<br>
+							<strong>Result:</strong> Issue disappears from all displays, readiness score recalculated
+						</div>
+					</div>
+					
+					<div class="wpv-arch-button-item wpv-arch-button-ignore">
+						<div class="wpv-arch-button-header">
+							<span class="wpv-arch-button-icon">👁️</span>
+							<strong>"Ignore" Button</strong>
+							<span class="wpv-arch-button-tooltip">Marks as ignored but keeps in results</span>
+						</div>
+						<div class="wpv-arch-button-details">
+							<strong>Function:</strong> URL redirect to ignore action<br>
+							<strong>AJAX Action:</strong> <code>ignore_code</code> (URL parameter)<br>
+							<strong>Data Modified:</strong> Sets <code>"ignored": true</code> in <code>.wpv-results.json</code><br>
+							<strong>Use Case:</strong> For false positives or acceptable violations<br>
+							<strong>Result:</strong> Issue remains but marked as ignored, excluded from readiness score
+						</div>
+					</div>
+				</div>
+				
+				<div class="wpv-arch-button-section">
+					<h5>TAB05 (Issues) - Table Interface</h5>
+					
+					<div class="wpv-arch-button-item wpv-arch-button-fixed">
+						<div class="wpv-arch-button-header">
+							<span class="wpv-arch-button-icon">✅</span>
+							<strong>"Fixed" Button</strong>
+							<span class="wpv-arch-button-tooltip">Permanently removes issue from results</span>
+						</div>
+						<div class="wpv-arch-button-details">
+							<strong>Function:</strong> <?php echo wpv_get_vscode_button( 'assets/js/issues-tab.js', 0, 0, null, 'wpv-fixed-link handler', 'button-link' ); ?><br>
+							<strong>AJAX Action:</strong> <code>wpv_mark_resolved</code><br>
+							<strong>Handler:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 2100, 0, null, 'mark_issue_as_fixed()', 'button-link' ); ?><br>
+							<strong>Data Modified:</strong> Removes entire issue from <code>.wpv-results.json</code><br>
+							<strong>Use Case:</strong> When you've actually fixed the code issue<br>
+							<strong>Result:</strong> Issue disappears from all displays, readiness score recalculated
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<h4>🔄 Data Flow Diagram</h4>
+			
+			<div class="wpv-arch-data-flow">
+				<div class="wpv-arch-flow-step">
+					<div class="wpv-arch-flow-number">1</div>
+					<div class="wpv-arch-flow-content">
+						<strong>Scan Execution</strong><br>
+						PHPCS finds issues → Results saved to <code>.wpv-results.json</code>
+					</div>
+				</div>
+				
+				<div class="wpv-arch-flow-arrow">↓</div>
+				
+				<div class="wpv-arch-flow-step">
+					<div class="wpv-arch-flow-number">2</div>
+					<div class="wpv-arch-flow-content">
+						<strong>Display Loading</strong><br>
+						TAB04 & TAB05 read from <code>.wpv-results.json</code> → Show issues in UI
+					</div>
+				</div>
+				
+				<div class="wpv-arch-flow-arrow">↓</div>
+				
+				<div class="wpv-arch-flow-step wpv-arch-flow-decision">
+					<div class="wpv-arch-flow-number">3</div>
+					<div class="wpv-arch-flow-content">
+						<strong>User Action</strong><br>
+						User clicks "Fixed" or "Ignore" button
+					</div>
+				</div>
+				
+				<div class="wpv-arch-flow-split">
+					<div class="wpv-arch-flow-branch wpv-arch-flow-fixed">
+						<div class="wpv-arch-flow-arrow">↙</div>
+						<div class="wpv-arch-flow-step">
+							<div class="wpv-arch-flow-number">4a</div>
+							<div class="wpv-arch-flow-content">
+								<strong>"Fixed" Button</strong><br>
+								AJAX call → <code>mark_issue_as_fixed()</code><br>
+								→ Issue <strong>REMOVED</strong> from JSON<br>
+								→ Readiness score recalculated
+							</div>
+						</div>
+					</div>
+					
+					<div class="wpv-arch-flow-branch wpv-arch-flow-ignore">
+						<div class="wpv-arch-flow-arrow">↘</div>
+						<div class="wpv-arch-flow-step">
+							<div class="wpv-arch-flow-number">4b</div>
+							<div class="wpv-arch-flow-content">
+								<strong>"Ignore" Button</strong><br>
+								URL redirect → ignore handler<br>
+								→ Issue <strong>FLAGGED</strong> as ignored<br>
+								→ Remains in JSON with <code>"ignored": true</code>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="wpv-arch-flow-arrow">↓</div>
+				
+				<div class="wpv-arch-flow-step">
+					<div class="wpv-arch-flow-number">5</div>
+					<div class="wpv-arch-flow-content">
+						<strong>Next Page Load</strong><br>
+						TAB04 & TAB05 reload → Read updated <code>.wpv-results.json</code><br>
+						→ Fixed issues: <strong>Gone completely</strong><br>
+						→ Ignored issues: <strong>Shown but marked</strong>
+					</div>
+				</div>
+			</div>
+			
+			<h4>⚠️ Current Issue Investigation</h4>
+			
+			<div class="wpv-arch-issue-investigation">
+				<div class="wpv-arch-issue-problem">
+					<strong>Problem:</strong> Issue <code>W-b59cea4b</code> exists in JSON but not displayed in TAB05
+				</div>
+				
+				<div class="wpv-arch-issue-suspects">
+					<strong>Possible Causes:</strong>
+					<ul>
+						<li><strong>Template filtering:</strong> <?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 35, 0, null, 'Issue merging logic', 'button-link' ); ?> may be filtering out issues</li>
+						<li><strong>ID mismatch:</strong> Generated <code>issue_id</code> in template doesn't match stored <code>issue_id</code> in JSON</li>
+						<li><strong>JSON structure:</strong> Issue may be in wrong file path key or malformed</li>
+						<li><strong>Caching:</strong> Browser or server-side caching of JSON file</li>
+						<li><strong>Path normalization:</strong> File path format differences (Windows vs Unix)</li>
+					</ul>
+				</div>
+				
+				<div class="wpv-arch-issue-debug">
+					<strong>Debug Steps:</strong>
+					<ol>
+						<li>Check <code>$plugin_data['results']</code> array in <?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 25, 0, null, 'admin-page-issues.php', 'button-link' ); ?></li>
+						<li>Verify <code>$merged_issues</code> array contains the missing issue</li>
+						<li>Compare generated <code>issue_id</code> with stored <code>issue_id</code></li>
+						<li>Check file path key matching between JSON and template</li>
+						<li>Add debug output to trace data flow</li>
+					</ol>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>

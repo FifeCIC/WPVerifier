@@ -11,16 +11,12 @@
     const VerificationManager = {
         
         init() {
-            console.log('VerificationManager initialized');
-            console.log('wpv_ajax_object:', typeof wpv_ajax_object !== 'undefined' ? wpv_ajax_object : 'undefined');
             this.bindEvents();
         },
 
         bindEvents() {
-            console.log('Binding verification events');
             // Form submission
             $('#plugin-check__submit').on('click', this.runVerification.bind(this));
-            console.log('Submit button found:', $('#plugin-check__submit').length);
             
             // Plugin selection (legacy - may not exist)
             $('#plugin-check__plugins-dropdown').on('change', this.handlePluginChange.bind(this));
@@ -61,9 +57,7 @@
         },
 
         runAdvancedVerification() {
-            console.log('runAdvancedVerification called');
             const plugin = this.getSelectedPlugin();
-            console.log('Selected plugin:', plugin);
             
             if (!plugin) {
                 alert('Please select a plugin first.');
@@ -85,12 +79,6 @@
                 limit_results: $('#plugin-check__limit-results').is(':checked')
             };
 
-            console.log('Verification options:', options);
-            console.log('Limit results checkbox checked:', $('#plugin-check__limit-results').is(':checked'));
-            console.log('Limit results checkbox exists:', $('#plugin-check__limit-results').length);
-            console.log('Limit results checkbox value:', $('#plugin-check__limit-results').val());
-            console.log('Limit results checkbox element:', $('#plugin-check__limit-results')[0]);
-
             // Start progress simulation
             this.startProgressSimulation();
 
@@ -98,20 +86,16 @@
                 showSpinner: 'plugin-check__spinner',
                 timeout: 120000, // 2 minutes for advanced verification
                 onSuccess: (result) => {
-                    console.log('AJAX Success - Full result:', result);
                     this.stopProgressSimulation();
                     this.hideProgress();
                     
                     if (result.success) {
-                        console.log('Result data:', result.data);
                         this.displayAdvancedResults(result.data);
                     } else {
-                        console.log('Result failed:', result.data);
                         this.displayAdvancedError(result.data || 'Advanced verification failed');
                     }
                 },
                 onError: (error) => {
-                    console.log('AJAX Error:', error);
                     this.stopProgressSimulation();
                     this.hideProgress();
                     this.displayAdvancedError('Error: ' + error.message);
@@ -142,26 +126,20 @@
                 types.push('error', 'warning');
             }
             
-            console.log('Selected types:', types);
             return types;
         },
 
         displayAdvancedResults(data) {
             this.hideProgress();
             
-            console.log('displayAdvancedResults called with data:', data);
-            
             // Show the readiness score display after verification
             $('#readiness-score-display').show();
             
             if (data.html_output) {
-                console.log('Displaying HTML output, length:', data.html_output.length);
                 $('#plugin-check__results').html(data.html_output);
                 
                 // Check if readiness score is in the JSON file and render it
                 this.loadAndDisplayReadinessScore();
-            } else {
-                console.log('No html_output in response data');
             }
 
             if (data.ignored_files && data.ignored_files.length > 0) {
@@ -202,7 +180,7 @@
                     }
                 })
                 .catch(error => {
-                    console.log('Could not load readiness score:', error);
+                    // Silently handle missing readiness score
                 });
         },
 

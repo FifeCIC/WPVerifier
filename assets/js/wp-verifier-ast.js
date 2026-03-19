@@ -231,10 +231,17 @@
 										   issue.ignored ? '<span class="wpv-ast-badge ignored">Ignored</span>' : 
 										   '<span class="wpv-ast-badge pending">Pending</span>';
 					issueList.append(`
-						<li class="wpv-ast-issue-item" data-issue-id="${idx}">
+						<li class="wpv-ast-issue-item" 
+							data-issue-id="${issue.issue_id || idx}" 
+							data-file="${this.escapeHtml(file)}"
+							data-issue-code="${this.escapeHtml(issue.code || '')}"
+							data-issue-line="${issue.line || ''}"
+							data-issue-message="${this.escapeHtml(messageText)}"
+							data-issue-type="${issue.type || ''}">
 							${issue.icon}
 							<span class="wpv-ast-badge ${issue.type.toLowerCase()}">${issue.type}</span>
 							${statusBadge}
+							<span class="wpv-issue-id">[${issue.issue_id || 'NO-ID'}]</span>
 							Line ${issue.line}: ${this.escapeHtml(messageText)}
 							${issue.docs ? `<a href="${issue.docs}" target="_blank" class="wpv-issue-docs">↗</a>` : ''}
 						</li>
@@ -266,12 +273,99 @@
 					return;
 				}
 				e.stopPropagation();
-				const file = $(this).closest('.accordion-row').data('file');
-				const issueId = $(this).data('issue-id');
-				const files = WPVerifierAST.groupByFile(WPVerifierAST.results);
-				const issue = files[file][issueId];
-				WPVerifierAST.showDetails(file, issue);
+				const $item = $(this);
+				const issueId = $item.data('issue-id');
+				const file = $item.data('file');
+				const issueCode = $item.data('issue-code');
+				const issueLine = $item.data('issue-line');
+				const issueMessage = $item.data('issue-message');
+				const issueType = $item.data('issue-type');
+				
+				WPVerifierAST.showDetailsInSidebar(issueId, file, issueCode, issueLine, issueMessage, issueType);
 			});
+			
+			// Handle Fixed button clicks in sidebar
+			$(document).off('click', '.wpv-fixed-btn').on('click', '.wpv-fixed-btn', function(e) {
+				e.preventDefault();
+				const issueId = $(this).data('issue-id');
+				const file = $(this).data('file');
+				const code = $(this).data('code');
+				WPVerifierAST.markComplete(issueId, file, null, code);
+			});
+			
+			// Handle copy prompt button
+			$(document).off('click', '.wpv-copy-prompt').on('click', '.wpv-copy-prompt', function(e) {
+				e.preventDefault();
+				const targetId = $(this).data('target');
+				const textarea = document.getElementById(targetId);
+				if (textarea) {
+					navigator.clipboard.writeText(textarea.value).then(() => {
+						const $btn = $(this);
+						const originalText = $btn.html();
+						$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
+						setTimeout(() => $btn.html(originalText), 2000);
+					});
+				}
+			});
+		},
+
+		showDetailsInSidebar: function(issueId, file, code, line, message, type) {
+			this.log('Showing details in sidebar for issue:', issueId);
+			
+			// Update PAN01 - Issue Details with simple DOM updates
+			$('#wpv-current-issue-id').text(issueId || 'N/A');
+			$('#wpv-current-issue-type').text(type || 'UNKNOWN').attr('class', 'wpv-ast-badge ' + (type || 'unknown').toLowerCase());
+			$('#wpv-current-issue-file').text(file || 'Unknown file');
+			$('#wpv-current-issue-line').text(line || 'N/A');
+			$('#wpv-current-issue-code').text(code || 'N/A');
+			$('#wpv-current-issue-message').html(message || 'No message');
+			
+			// Update button data attributes
+			$('#wpv-current-fixed-btn').attr({
+				'data-issue-id': issueId || '',
+				'data-file': file || '',
+				'data-code': code || ''
+			});
+			$('#wpv-current-ignore-btn').attr({
+				'data-issue-id': issueId || '',
+				'data-file': file || '',
+				'data-code': code || ''
+			});
+			$('#wpv-current-vscode-btn').attr('href', 'vscode://file/' + this.getVSCodePath(file) + ':' + (line || 1));
+			
+			// Update PAN02 - AI Prompt
+			$('#wpv-ai-issue-id').text(issueId || 'N/A');
+			const aiGuidance = this.getAIGuidance(code);
+			const aiPrompt = `Issue ID: ${issueId || 'N/A'}
+File: ${file || 'Unknown file'}
+Line: ${line || 'N/A'}
+Code: ${code || 'N/A'}
+Type: ${type || 'UNKNOWN'}
+Message: ${message || 'No message'}
+
+Instructions for AI:
+Please review this WordPress coding standards issue and provide a fix. The issue ID is ${issueId || 'N/A'} for reference.${aiGuidance}`;
+			$('#wpv-ai-prompt-text').val(aiPrompt);
+			
+			// Show the panels
+			$('#pan01-content').show();
+			$('#pan02-content').show();
+			$('.wpv-accordion-header[data-target="pan01-content"]').addClass('active');
+			$('.wpv-accordion-header[data-target="pan02-content"]').addClass('active');
+		},
+		
+		getVSCodePath: function(file) {
+			// Convert file path to VSCode-compatible path
+			// This is a simplified version - you may need to adjust based on your setup
+			return file.replace(/\\/g, '/');
+		},
+		
+		getAIGuidance: function(code) {
+			const guidance = this.aiGuidanceConfig[code];
+			if (guidance && guidance.ai_guidance) {
+				return '\n\nAI Guidance for ' + code + ':\n' + guidance.ai_guidance;
+			}
+			return '';
 		},
 
 		showDetails: function(file, issue) {
@@ -314,11 +408,11 @@
 					<p>${this.escapeHtml($('<div>').html(issue.message).text())}</p>
 				</div>
 				<div class="wpv-ast-detail-actions">
-					<button type="button" class="button button-primary wpv-mark-complete" data-file="${this.escapeHtml(file)}" data-line="${issue.line}" data-code="${this.escapeHtml(issue.code)}">
-						<span class="dashicons dashicons-yes"></span> Mark Complete
+					<button type="button" class="button button-primary wpv-mark-complete" data-issue-id="${this.escapeHtml(issue.issue_id || '')}" data-file="${this.escapeHtml(file)}" data-line="${issue.line}" data-code="${this.escapeHtml(issue.code)}" title="Permanently removes this issue from results (use when code is actually fixed)">
+						<span class="dashicons dashicons-yes"></span> Fixed
 					</button>
-					${!isIgnored ? `<a href="${ignoreUrl}" class="button">
-						<span class="dashicons dashicons-hidden"></span> Ignore Code
+					${!isIgnored ? `<a href="${ignoreUrl}" class="button" title="Marks issue as ignored but keeps it in results (use for false positives)">
+						<span class="dashicons dashicons-hidden"></span> Ignore
 					</a>` : '<span style="color: #999;">✓ Ignored</span>'}
 					${issue.docs ? `<a href="${issue.docs}" target="_blank" class="button">Learn More</a>` : ''}
 					${issue.link ? `<a href="${issue.link}" target="_blank" class="button">View in Editor</a>` : ''}
@@ -331,26 +425,38 @@
 			details.show();
 			
 			$('.wpv-mark-complete').off('click').on('click', function() {
+				const issueId = $(this).data('issue-id');
 				const file = $(this).data('file');
 				const line = $(this).data('line');
 				const code = $(this).data('code');
-				WPVerifierAST.markComplete(file, line, code);
+				WPVerifierAST.markComplete(issueId, file, line, code);
 			});
 		},
 
-		markComplete: function(file, line, code) {
+		markComplete: function(issueId, file, line, code) {
 			if (!window.PLUGIN_CHECK || !window.PLUGIN_CHECK.nonce) {
 				alert('Configuration error.');
 				return;
 			}
 			
+			// Use the correct AJAX action and send issue_id
 			const payload = new FormData();
 			payload.append('nonce', window.PLUGIN_CHECK.nonce);
-			payload.append('action', 'plugin_check_mark_complete');
+			payload.append('action', 'wpv_mark_resolved');
 			payload.append('plugin', this.currentPlugin);
+			payload.append('issue_id', issueId);
 			payload.append('file', file);
 			payload.append('line', line);
 			payload.append('code', code);
+			
+			console.log('Sending Fixed request:', {
+				action: 'wpv_mark_resolved',
+				plugin: this.currentPlugin,
+				issue_id: issueId,
+				file: file,
+				line: line,
+				code: code
+			});
 			
 			fetch(ajaxurl, {
 				method: 'POST',
@@ -359,16 +465,17 @@
 			})
 			.then(response => response.json())
 			.then(data => {
+				console.log('Fixed response:', data);
 				if (data.success) {
-					alert('Issue marked as complete.');
+					alert('Issue marked as fixed and removed from results.');
 					location.reload();
 				} else {
-					alert('Failed to mark complete: ' + (data.data?.message || 'Unknown error'));
+					alert('Failed to mark as fixed: ' + (data.data?.message || 'Unknown error'));
 				}
 			})
 			.catch(error => {
-				console.error(error);
-				alert('Failed to mark complete.');
+				console.error('Fixed request error:', error);
+				alert('Failed to mark as fixed.');
 			});
 		},
 
@@ -427,13 +534,125 @@
 			const includeErrors = document.querySelector('input[name="types"][value="error"]')?.checked !== false;
 			const includeWarnings = document.querySelector('input[name="types"][value="warning"]')?.checked !== false;
 			
+			// Try to load actual issue IDs from JSON file
+			this.loadActualIssueIds().then(jsonResults => {
+				if (jsonResults && jsonResults.results) {
+					// Use actual issue IDs from JSON file
+					Object.entries(jsonResults.results).forEach(([file, issues]) => {
+						if (!files[file]) files[file] = [];
+						issues.forEach(issue => {
+							if ((includeErrors && issue.type === 'ERROR') || (includeWarnings && issue.type === 'WARNING')) {
+								const metadata = window.wpvErrorMetadata && window.wpvErrorMetadata[issue.code];
+								const icon = metadata ? 
+									`<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>` :
+									`<span class="dashicons dashicons-warning" style="color: #666; margin-right: 5px;"></span>`;
+								files[file].push({...issue, icon: icon});
+							}
+						});
+					});
+					// Re-render with correct issue IDs
+					this.renderWithActualData(files);
+					return;
+				}
+				
+				// Fallback to old method if JSON loading fails
+				this.groupByFileOldMethod(results, files, includeErrors, includeWarnings);
+			});
+			
+			return files;
+		},
+		
+		loadActualIssueIds: function() {
+			const plugin = this.currentPlugin;
+			if (!plugin) return Promise.resolve(null);
+			
+			const pluginFolder = plugin.indexOf('/') !== -1 ? plugin.split('/')[0] : plugin;
+			const currentUrl = window.location.href;
+			const wpContentBase = currentUrl.substring(0, currentUrl.indexOf('/wp-admin/')) + '/wp-content/';
+			const jsonUrl = wpContentBase + 'plugins/' + pluginFolder + '/.wpv-results.json';
+			
+			return fetch(jsonUrl)
+				.then(response => response.json())
+				.catch(error => {
+					console.log('Could not load JSON file:', error);
+					return null;
+				});
+		},
+		
+		renderWithActualData: function(files) {
+			const container = $('#wpv-ast-results');
+			container.empty();
+			
+			if (Object.keys(files).length === 0) {
+				container.html('<p style="padding: 20px; color: #666;">No issues found in verification results.</p>');
+				return;
+			}
+			
+			Object.keys(files).forEach(file => {
+				const issues = files[file];
+				const errorCount = issues.filter(i => i.type === 'ERROR').length;
+				const warningCount = issues.filter(i => i.type === 'WARNING').length;
+				const fixedCount = issues.filter(i => i.resolved === true).length;
+				const ignoredCount = issues.filter(i => i.ignored === true).length;
+				const isLibrary = this.isLibraryFile(file);
+
+				const row = $(`
+					<div class="accordion-row" data-file="${this.escapeHtml(file)}">
+						<div class="accordion-header">
+							<div class="wpv-ast-file-name">${this.escapeHtml(file)}</div>
+							<div class="wpv-ast-library">${isLibrary ? '<span class="wpv-ast-badge library">Library</span>' : ''}</div>
+							<div class="wpv-ast-issue-count">${errorCount + warningCount} issues</div>
+							<div class="wpv-ast-severity">
+								${errorCount > 0 ? `<span class="wpv-ast-badge error">${errorCount} errors</span>` : ''}
+								${warningCount > 0 ? `<span class="wpv-ast-badge warning">${warningCount} warnings</span>` : ''}
+								${fixedCount > 0 ? `<span class="wpv-ast-badge fixed">${fixedCount} fixed</span>` : ''}
+								${ignoredCount > 0 ? `<span class="wpv-ast-badge ignored">${ignoredCount} ignored</span>` : ''}
+							</div>
+						</div>
+						<div class="accordion-content">
+							<ul class="wpv-ast-issue-list"></ul>
+						</div>
+					</div>
+				`);
+
+				const issueList = row.find('.wpv-ast-issue-list');
+				issues.forEach((issue, idx) => {
+					const messageText = $('<div>').html(issue.message).text();
+					const statusBadge = issue.resolved ? '<span class="wpv-ast-badge fixed">Fixed</span>' : 
+										   issue.ignored ? '<span class="wpv-ast-badge ignored">Ignored</span>' : 
+										   '<span class="wpv-ast-badge pending">Pending</span>';
+					issueList.append(`
+						<li class="wpv-ast-issue-item" 
+							data-issue-id="${issue.issue_id || idx}" 
+							data-file="${this.escapeHtml(file)}"
+							data-issue-code="${this.escapeHtml(issue.code || '')}"
+							data-issue-line="${issue.line || ''}"
+							data-issue-message="${this.escapeHtml(messageText)}"
+							data-issue-type="${issue.type || ''}">
+							${issue.icon}
+							<span class="wpv-ast-badge ${issue.type.toLowerCase()}">${issue.type}</span>
+							${statusBadge}
+							<span class="wpv-issue-id">[${issue.issue_id || 'NO-ID'}]</span>
+							Line ${issue.line}: ${this.escapeHtml(messageText)}
+							${issue.docs ? `<a href="${issue.docs}" target="_blank" class="wpv-issue-docs">↗</a>` : ''}
+						</li>
+					`);
+				});
+
+				container.append(row);
+			});
+		},
+		
+		groupByFileOldMethod: function(results, files, includeErrors, includeWarnings) {
+			// Fallback to old method
 			if (includeErrors && results.errors) {
 				Object.entries(results.errors).forEach(([file, lines]) => {
 					if (!files[file]) files[file] = [];
 					Object.entries(lines).forEach(([lineNum, columns]) => {
 						Object.entries(columns).forEach(([colNum, issues]) => {
 							issues.forEach(issue => {
-								const issueId = 'E-' + this.generateIssueHash(file, lineNum);
+								// Generate issue_id to match server-side logic: md5(file + line + code)
+								const issueId = 'E-' + this.generateServerIssueHash(file, lineNum, issue.code);
 								const metadata = window.wpvErrorMetadata && window.wpvErrorMetadata[issue.code];
 								const icon = metadata ? 
 									`<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>` :
@@ -451,7 +670,8 @@
 					Object.entries(lines).forEach(([lineNum, columns]) => {
 						Object.entries(columns).forEach(([colNum, issues]) => {
 							issues.forEach(issue => {
-								const issueId = 'W-' + this.generateIssueHash(file, lineNum);
+								// Generate issue_id to match server-side logic: md5(file + line + code)
+								const issueId = 'W-' + this.generateServerIssueHash(file, lineNum, issue.code);
 								const metadata = window.wpvErrorMetadata && window.wpvErrorMetadata[issue.code];
 								const icon = metadata ? 
 									`<span class="dashicons dashicons-${metadata.icon}" style="color: ${metadata.color}; margin-right: 5px;" title="${metadata.description || ''}"></span>` :
@@ -462,13 +682,25 @@
 					});
 				});
 			}
-			
-			return files;
 		},
 
 		generateIssueHash: function(file, line) {
 			const basename = file.split(/[\\\/]/).pop();
 			const str = basename + '-' + line;
+			let hash = 0;
+			for (let i = 0; i < str.length; i++) {
+				const char = str.charCodeAt(i);
+				hash = ((hash << 5) - hash) + char;
+				hash = hash & hash;
+			}
+			return Math.abs(hash).toString(16).substring(0, 8).padStart(8, '0');
+		},
+
+		// Generate issue hash to match server-side logic: md5(file + line + code)
+		generateServerIssueHash: function(file, line, code) {
+			// Simple hash function to approximate MD5 behavior
+			// Server uses: md5($relative_file . $line . $issue['code'])
+			const str = file + line + code;
 			let hash = 0;
 			for (let i = 0; i < str.length; i++) {
 				const char = str.charCodeAt(i);

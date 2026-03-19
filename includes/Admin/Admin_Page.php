@@ -276,7 +276,7 @@ final class Admin_Page {
 				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
 					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Saved_Results_Handler.php';
 				}
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-saved.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-issues-byfile.php';
 				break;
 			case 'issues':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-issues.php';

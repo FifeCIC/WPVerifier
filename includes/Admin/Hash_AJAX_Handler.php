@@ -32,7 +32,7 @@ class Hash_AJAX_Handler {
 		add_action( 'wp_ajax_wpv_generate_hashes', array( $this, 'generate_hashes' ) );
 		add_action( 'wp_ajax_wpv_check_hashes', array( $this, 'check_hashes' ) );
 		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_ignored' ) );
-		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_resolved' ) );
+		// Removed wpv_mark_resolved - now handled by Verification_AJAX_Handler
 	}
 
 	/**

@@ -194,6 +194,7 @@ class Plugin_Request_Utility {
 			'.wpv-config.json',
 			'.wpv-config.json.backup',
 			'.wpv-results.json',
+			'.wpv-verification.json',
 		);
 
 		/**
