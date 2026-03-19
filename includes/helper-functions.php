@@ -100,7 +100,7 @@ function wpverifier_header( $text, $code = '', $inline_only = false ) {
 		// Tab Headers (TABxx)
 		'TAB01'         => 'Select Plugin tab main header',
 		'TAB02'         => 'Hash Generation tab main header',
-		'TAB02-IGNORED' => 'Files Actually Ignored During Processing (Advanced Verification)',
+		'TAB02-IGNORED' => 'Files Ignored During Processing (Advanced Verification)',
 		'TAB12-01'      => 'Plugin Check Architecture main header',
 		'TAB12-02'      => 'Verification Process Flow',
 		'TAB12-03'      => 'Live Configuration Validation',
@@ -109,7 +109,7 @@ function wpverifier_header( $text, $code = '', $inline_only = false ) {
 		'TAB12-06'      => 'File Location table header',
 		'TAB12-07'      => 'Purpose & Configuration table header',
 		'TAB12-08'      => 'Current Issue: ActionScheduler.php Being Scanned',
-		'TAB12-09A'     => 'Files Actually Ignored During Processing (Architecture)',
+		'TAB12-09A'     => 'Files Actually Ignored In Processing (Architecture)',
 		'TAB12-09B'     => 'Investigation Steps',
 		'TAB12-10'      => 'Development Guidance',
 

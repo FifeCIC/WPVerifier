@@ -40,6 +40,7 @@ class Verification_AJAX_Handler {
 		add_action( 'wp_ajax_plugin_check_run_checks', array( $this, 'run_checks' ) );
 		add_action( 'wp_ajax_plugin_check_basic_check', array( $this, 'basic_check' ) );
 		add_action( 'wp_ajax_plugin_check_validate_structure', array( $this, 'validate_structure' ) );
+		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_issue_as_fixed' ) );
 	}
 
 	/**
@@ -155,13 +156,14 @@ class Verification_AJAX_Handler {
 		$types = is_null( $types ) ? array( 'error', 'warning' ) : $types;
 
 		// Get limit_results option from check_options JSON
-		$check_options_json = filter_input( INPUT_POST, 'check_options', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$check_options_json = filter_input( INPUT_POST, 'check_options', FILTER_UNSAFE_RAW );
+		// Handle double-escaped JSON and HTML entities
+		if ( $check_options_json ) {
+			$check_options_json = stripslashes( $check_options_json );
+			$check_options_json = html_entity_decode( $check_options_json, ENT_QUOTES, 'UTF-8' );
+		}
 		$check_options = $check_options_json ? json_decode( $check_options_json, true ) : array();
 		$limit_results = isset( $check_options['limit_results'] ) ? (bool) $check_options['limit_results'] : false;
-
-		// Debug logging
-		error_log( 'WPV Debug: Starting verification with types: ' . print_r( $types, true ) );
-		error_log( 'WPV Debug: Limit results enabled: ' . ( $limit_results ? 'YES' : 'NO' ) );
 
 		try {
 			$config = $this->configure_runner( $runner );
@@ -169,22 +171,11 @@ class Verification_AJAX_Handler {
 			// Apply ignored_paths from JSON for Advanced Verification
 			$this->apply_ignored_paths_filter( $config['plugin'] );
 			
-			error_log( 'WPV Debug: Running checks for plugin: ' . $config['plugin'] );
 			$results = $runner->run();
 			
 			// Debug results
 			$errors = $results->get_errors();
 			$warnings = $results->get_warnings();
-			error_log( 'WPV Debug: Found ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
-			
-			// Apply issue limiting if requested
-			if ( $limit_results ) {
-				error_log( 'WPV Debug: Applying 20 issue limit' );
-				$limited_results = $this->limit_issues_to_count( $errors, $warnings, 20 );
-				$errors = $limited_results['errors'];
-				$warnings = $limited_results['warnings'];
-				error_log( 'WPV Debug: After limiting - ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
-			}
 			
 			// Filter WordPress.org specific rules if not preparing for WordPress.org
 			$wporg_prep = filter_input( INPUT_POST, 'wporg_preparation', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -196,12 +187,8 @@ class Verification_AJAX_Handler {
 				$filtered_warnings = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $warnings );
 				$errors = $filtered_errors;
 				$warnings = $filtered_warnings;
-				
-				// Debug filtered results
-				error_log( 'WPV Debug: After WPOrg filtering - ' . $this->count_issues( $errors ) . ' errors and ' . $this->count_issues( $warnings ) . ' warnings' );
 			}
 		} catch ( Exception $error ) {
-			error_log( 'WPV Debug: Exception during verification: ' . $error->getMessage() );
 			wp_send_json_error(
 				new WP_Error( 'invalid-request', $error->getMessage() ),
 				400
@@ -209,7 +196,6 @@ class Verification_AJAX_Handler {
 		}
 
 		$response_data = $this->prepare_results_response_with_arrays( $errors, $warnings, $types, $limit_results );
-		error_log( 'WPV Debug: Response data keys: ' . implode( ', ', array_keys( $response_data ) ) );
 		
 		// Save results to JSON file
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -677,32 +663,19 @@ class Verification_AJAX_Handler {
 	 * Apply ignored_paths from JSON to directory filter for Advanced Verification
 	 */
 	private function apply_ignored_paths_filter( $plugin_slug ) {
-		$results_file = Path_Builder::get_results_file_path( $plugin_slug );
 		$config_file = Path_Builder::get_plugin_directory_path( $plugin_slug ) . '/.wpv-config.json';
 		
-		error_log( 'WPV DEBUG: apply_ignored_paths_filter called for plugin: ' . $plugin_slug );
-		error_log( 'WPV DEBUG: Checking for ignored paths in results file: ' . $results_file );
-		error_log( 'WPV DEBUG: Checking for ignored paths in config file: ' . $config_file );
-		
-		// First try to load from config file (preferred location)
+		// Load ignored paths from config file only
 		$ignored_paths = array();
 		if ( file_exists( $config_file ) ) {
-			error_log( 'WPV DEBUG: Config file exists, loading ignored paths from config' );
 			$ignored_paths = $this->load_ignored_paths_from_config( $config_file );
-		} elseif ( file_exists( $results_file ) ) {
-			error_log( 'WPV DEBUG: Config file not found, trying results file' );
-			$ignored_paths = $this->load_existing_ignored_paths( $results_file );
 		} else {
-			error_log( 'WPV DEBUG: Neither config nor results file found, no ignored paths to apply' );
 			return;
 		}
 		
 		if ( empty( $ignored_paths ) ) {
-			error_log( 'WPV DEBUG: No ignored paths found in either file' );
 			return;
 		}
-		
-		error_log( 'WPV DEBUG: Found ignored_paths: ' . print_r( $ignored_paths, true ) );
 		
 		$paths_to_ignore = array();
 		foreach ( $ignored_paths as $item ) {
@@ -715,11 +688,21 @@ class Verification_AJAX_Handler {
 		}
 		
 		if ( empty( $paths_to_ignore ) ) {
-			error_log( 'WPV DEBUG: No valid paths found in ignored_paths array' );
 			return;
 		}
 		
-		error_log( 'WPV DEBUG: Applying filter for paths: ' . implode( ', ', $paths_to_ignore ) );
+		// Only log if we have our test directories
+		$has_test_dirs = false;
+		foreach ( $paths_to_ignore as $path ) {
+			if ( strpos( $path, 'carbon-fields' ) !== false || strpos( $path, 'action-scheduler' ) !== false ) {
+				$has_test_dirs = true;
+				break;
+			}
+		}
+		
+		if ( $has_test_dirs ) {
+			error_log( 'WPV TEST DEBUG: Config loaded paths to ignore: ' . implode( ', ', $paths_to_ignore ) );
+		}
 		
 		add_filter(
 			'wp_plugin_check_ignore_directories',
@@ -732,22 +715,6 @@ class Verification_AJAX_Handler {
 	}
 
 	/**
-	 * Load existing ignored_paths from JSON file
-	 */
-	private function load_existing_ignored_paths( $file_path ) {
-		if ( ! file_exists( $file_path ) ) {
-			return array();
-		}
-
-		$existing_data = json_decode( file_get_contents( $file_path ), true );
-		if ( ! $existing_data || ! isset( $existing_data['ignored_paths'] ) ) {
-			return array();
-		}
-
-		return is_array( $existing_data['ignored_paths'] ) ? $existing_data['ignored_paths'] : array();
-	}
-
-	/**
 	 * Load ignored_paths from config file
 	 */
 	private function load_ignored_paths_from_config( $config_file ) {
@@ -757,22 +724,18 @@ class Verification_AJAX_Handler {
 
 		$config_content = file_get_contents( $config_file );
 		if ( false === $config_content ) {
-			error_log( 'WPV DEBUG: Failed to read config file: ' . $config_file );
 			return array();
 		}
 
 		$config_data = json_decode( $config_content, true );
 		if ( null === $config_data ) {
-			error_log( 'WPV DEBUG: Failed to decode config JSON from: ' . $config_file );
 			return array();
 		}
 
 		if ( ! isset( $config_data['ignored_paths'] ) || ! is_array( $config_data['ignored_paths'] ) ) {
-			error_log( 'WPV DEBUG: No ignored_paths found in config file: ' . $config_file );
 			return array();
 		}
 
-		error_log( 'WPV DEBUG: Successfully loaded ignored_paths from config: ' . print_r( $config_data['ignored_paths'], true ) );
 		return $config_data['ignored_paths'];
 	}
 
@@ -1038,5 +1001,107 @@ class Verification_AJAX_Handler {
 			}
 		}
 		return $count;
+	}
+
+	/**
+	 * Mark an issue as fixed by removing it from the results JSON file
+	 */
+	public function mark_issue_as_fixed() {
+		$this->check_request_validity();
+
+		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		if ( empty( $issue_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
+		}
+
+		if ( empty( $plugin ) ) {
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wp-verifier' ) ), 400 );
+		}
+
+		try {
+			// Get the results file path
+			$results_file = Path_Builder::get_results_file_path( $plugin );
+			
+			if ( ! file_exists( $results_file ) ) {
+				wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
+			}
+
+			// Load current results
+			$results_content = file_get_contents( $results_file );
+			if ( false === $results_content ) {
+				wp_send_json_error( array( 'message' => __( 'Failed to read results file.', 'wp-verifier' ) ), 500 );
+			}
+
+			$results_data = json_decode( $results_content, true );
+			if ( null === $results_data ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid results file format.', 'wp-verifier' ) ), 500 );
+			}
+
+			// Find and remove the issue
+			$issue_found = false;
+			if ( isset( $results_data['results'] ) && is_array( $results_data['results'] ) ) {
+				foreach ( $results_data['results'] as $file_path => &$issues ) {
+					if ( is_array( $issues ) ) {
+						foreach ( $issues as $index => $issue ) {
+							if ( isset( $issue['issue_id'] ) && $issue['issue_id'] === $issue_id ) {
+								// Remove the issue
+								unset( $issues[ $index ] );
+								$issue_found = true;
+								break 2; // Break out of both loops
+							}
+						}
+						// Re-index array after removal
+						$issues = array_values( $issues );
+						
+						// Remove file entry if no issues left
+						if ( empty( $issues ) ) {
+							unset( $results_data['results'][ $file_path ] );
+						}
+					}
+				}
+			}
+
+			if ( ! $issue_found ) {
+				wp_send_json_error( array( 'message' => __( 'Issue not found in results.', 'wp-verifier' ) ), 404 );
+			}
+
+			// Update readiness scores
+			if ( isset( $results_data['readiness'] ) ) {
+				$total_errors = 0;
+				$total_warnings = 0;
+				
+				foreach ( $results_data['results'] as $issues ) {
+					foreach ( $issues as $issue ) {
+						if ( isset( $issue['type'] ) ) {
+							if ( $issue['type'] === 'ERROR' ) {
+								$total_errors++;
+							} elseif ( $issue['type'] === 'WARNING' ) {
+								$total_warnings++;
+							}
+						}
+					}
+				}
+				
+				$results_data['readiness']['errors'] = $total_errors;
+				$results_data['readiness']['warnings'] = $total_warnings;
+				$results_data['readiness']['overall'] = min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) );
+			}
+
+			// Save updated results
+			$updated_json = wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+			if ( false === file_put_contents( $results_file, $updated_json ) ) {
+				wp_send_json_error( array( 'message' => __( 'Failed to save updated results.', 'wp-verifier' ) ), 500 );
+			}
+
+			wp_send_json_success( array(
+				'message' => __( 'Issue marked as fixed and removed from results.', 'wp-verifier' ),
+				'issue_id' => $issue_id
+			) );
+
+		} catch ( Exception $e ) {
+			wp_send_json_error( array( 'message' => $e->getMessage() ), 500 );
+		}
 	}
 }

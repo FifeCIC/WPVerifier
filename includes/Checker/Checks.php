@@ -43,16 +43,11 @@ final class Checks {
 		$limit_results = $this->get_issue_limit_from_request();
 		$issue_limit = $limit_results ? 20 : 0; // 0 means no limit
 		$issue_count = 0;
-		
-		if ( $issue_limit > 0 ) {
-			error_log( 'WPV Debug: Issue limiting enabled - will stop after ' . $issue_limit . ' issues' );
-		}
 
 		// Run the checks with early termination support
 		foreach ( $checks as $check ) {
 			// Check if we've reached the issue limit
 			if ( $issue_limit > 0 && $issue_count >= $issue_limit ) {
-				error_log( 'WPV Debug: Issue limit reached (' . $issue_count . '/' . $issue_limit . ') - stopping check execution' );
 				break;
 			}
 			
@@ -60,22 +55,18 @@ final class Checks {
 			$issues_before = $this->count_issues_in_result( $result );
 			
 			// Run the check
-			$this->run_check_with_result( $check, $result );
+			$this->run_check_with_result( $check, $result, $issue_limit > 0 ? $issue_limit : null );
 			
 			// Update issue count after running check
 			if ( $issue_limit > 0 ) {
 				$issues_after = $this->count_issues_in_result( $result );
-				$new_issues = $issues_after - $issues_before;
 				$issue_count = $issues_after;
 				
-				if ( $new_issues > 0 ) {
-					error_log( 'WPV Debug: Check "' . get_class( $check ) . '" found ' . $new_issues . ' issues (total: ' . $issue_count . ')' );
+				// Check if we've reached the limit after this check
+				if ( $issue_count >= $issue_limit ) {
+					// Will stop after this check
 				}
 			}
-		}
-		
-		if ( $issue_limit > 0 ) {
-			error_log( 'WPV Debug: Check execution completed with ' . $issue_count . ' total issues (limit was ' . $issue_limit . ')' );
 		}
 
 		return $result;
@@ -88,16 +79,29 @@ final class Checks {
 	 *
 	 * @param Check        $check  The check to run.
 	 * @param Check_Result $result The result object to amend.
+	 * @param int|null     $issue_limit Optional. Maximum number of issues before stopping.
 	 *
 	 * @throws Exception Thrown when check fails with critical error.
 	 */
-	private function run_check_with_result( Check $check, Check_Result $result ) {
+	private function run_check_with_result( Check $check, Check_Result $result, $issue_limit = null ) {
 		// If $check implements Preparation interface, ensure the preparation and clean up is run.
 		if ( $check instanceof Preparation ) {
 			$cleanup = $check->prepare();
 
 			try {
-				$check->run( $result );
+				// Pass issue limit to checks that support it
+				if ( method_exists( $check, 'run' ) && $issue_limit !== null ) {
+					$reflection = new \ReflectionMethod( $check, 'run' );
+					$parameters = $reflection->getParameters();
+					// Check if the run method accepts an issue_limit parameter
+					if ( count( $parameters ) >= 2 ) {
+						$check->run( $result, $issue_limit );
+					} else {
+						$check->run( $result );
+					}
+				} else {
+					$check->run( $result );
+				}
 			} catch ( Exception $e ) {
 				// Run clean up in case of any exception thrown from check.
 				$cleanup();
@@ -108,8 +112,24 @@ final class Checks {
 			return;
 		}
 
-		// Otherwise, just run the check.
-		$check->run( $result );
+		// Otherwise, just run the check with issue limit if supported
+		if ( method_exists( $check, 'run' ) && $issue_limit !== null ) {
+			try {
+				$reflection = new \ReflectionMethod( $check, 'run' );
+				$parameters = $reflection->getParameters();
+				// Check if the run method accepts an issue_limit parameter
+				if ( count( $parameters ) >= 2 ) {
+					$check->run( $result, $issue_limit );
+				} else {
+					$check->run( $result );
+				}
+			} catch ( \ReflectionException $e ) {
+				// Fallback to original method call
+				$check->run( $result );
+			}
+		} else {
+			$check->run( $result );
+		}
 	}
 
 	/**
@@ -121,17 +141,26 @@ final class Checks {
 	 */
 	private function get_issue_limit_from_request() {
 		// Get check_options from POST request
-		$check_options_json = filter_input( INPUT_POST, 'check_options', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$check_options_json = filter_input( INPUT_POST, 'check_options', FILTER_UNSAFE_RAW );
+		// Handle double-escaped JSON and HTML entities
+		if ( $check_options_json ) {
+			$check_options_json = stripslashes( $check_options_json );
+			$check_options_json = html_entity_decode( $check_options_json, ENT_QUOTES, 'UTF-8' );
+		}
+		
 		if ( ! $check_options_json ) {
 			return false;
 		}
 		
 		$check_options = json_decode( $check_options_json, true );
+		
 		if ( ! $check_options || ! is_array( $check_options ) ) {
 			return false;
 		}
 		
-		return isset( $check_options['limit_results'] ) ? (bool) $check_options['limit_results'] : false;
+		$limit_results = isset( $check_options['limit_results'] ) ? (bool) $check_options['limit_results'] : false;
+		
+		return $limit_results;
 	}
 
 	/**
@@ -149,7 +178,9 @@ final class Checks {
 		$error_count = $this->count_issues_in_array( $errors );
 		$warning_count = $this->count_issues_in_array( $warnings );
 		
-		return $error_count + $warning_count;
+		$total = $error_count + $warning_count;
+		
+		return $total;
 	}
 
 	/**

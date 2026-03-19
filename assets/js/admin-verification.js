@@ -86,6 +86,10 @@
             };
 
             console.log('Verification options:', options);
+            console.log('Limit results checkbox checked:', $('#plugin-check__limit-results').is(':checked'));
+            console.log('Limit results checkbox exists:', $('#plugin-check__limit-results').length);
+            console.log('Limit results checkbox value:', $('#plugin-check__limit-results').val());
+            console.log('Limit results checkbox element:', $('#plugin-check__limit-results')[0]);
 
             // Start progress simulation
             this.startProgressSimulation();

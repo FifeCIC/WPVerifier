@@ -64,11 +64,12 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 	 * @since 1.0.0
 	 *
 	 * @param Check_Result $result The check result to amend, including the plugin context to check.
+	 * @param int|null $issue_limit Optional. Maximum number of issues to find before stopping. Null for no limit.
 	 *
 	 * @throws Exception Thrown when the check fails with a critical error (unrelated to any errors detected as part of
 	 *                   the check).
 	 */
-	final public function run( Check_Result $result ) {
+	final public function run( Check_Result $result, $issue_limit = null ) {
 		// Include the PHPCS autoloader.
 		$autoloader = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'vendor/squizlabs/php_codesniffer/autoload.php';
 
@@ -91,10 +92,66 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		// Step 1: Check for unchanged files and skip them
 		$files_to_scan = $this->get_files_to_scan( $result );
 		if ( empty( $files_to_scan ) ) {
-			// All files unchanged, skip PHPCS entirely
 			return;
 		}
 
+		// If issue limiting is enabled, process files individually
+		if ( $issue_limit !== null && $issue_limit > 0 ) {
+			$this->run_with_issue_limit( $result, $files_to_scan, $issue_limit );
+			return;
+		}
+
+		// Original behavior - process all files at once
+		$this->run_phpcs_on_files( $result, $files_to_scan );
+	}
+
+	/**
+	 * Run PHPCS with issue limiting - processes files individually until limit is reached
+	 *
+	 * @param Check_Result $result The check result to amend
+	 * @param array $files_to_scan Array of files to scan
+	 * @param int $issue_limit Maximum number of issues to find
+	 */
+	private function run_with_issue_limit( Check_Result $result, $files_to_scan, $issue_limit ) {
+		// If scanning entire plugin directory, get individual PHP files
+		if ( count( $files_to_scan ) === 1 && is_dir( $files_to_scan[0] ) ) {
+			$files_to_scan = $this->get_php_files( $files_to_scan[0] );
+		}
+		
+		$total_issues = 0;
+		$files_processed = 0;
+		
+		foreach ( $files_to_scan as $file_path ) {
+			if ( $total_issues >= $issue_limit ) {
+				break;
+			}
+			
+			$files_processed++;
+			
+			// Count issues before processing this file
+			$issues_before = $this->count_current_issues( $result );
+			
+			// Process single file
+			$this->run_phpcs_on_files( $result, array( $file_path ) );
+			
+			// Count issues after processing this file
+			$issues_after = $this->count_current_issues( $result );
+			$total_issues = $issues_after;
+			
+			// Check if we've reached or exceeded the limit
+			if ( $total_issues >= $issue_limit ) {
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Run PHPCS on specified files (original behavior)
+	 *
+	 * @param Check_Result $result The check result to amend
+	 * @param array $files_to_scan Array of files to scan
+	 */
+	private function run_phpcs_on_files( Check_Result $result, $files_to_scan ) {
 		// Backup the original command line arguments.
 		$orig_cmd_args = $_SERVER['argv'] ?? '';
 
@@ -171,6 +228,40 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 				);
 			}
 		}
+	}
+
+	/**
+	 * Count current issues in the Check_Result
+	 *
+	 * @param Check_Result $result The check result to count issues in
+	 * @return int Total number of issues (errors + warnings)
+	 */
+	private function count_current_issues( Check_Result $result ) {
+		$errors = $result->get_errors();
+		$warnings = $result->get_warnings();
+		
+		$error_count = $this->count_issues_in_array( $errors );
+		$warning_count = $this->count_issues_in_array( $warnings );
+		
+		return $error_count + $warning_count;
+	}
+
+	/**
+	 * Count issues in a nested array structure
+	 *
+	 * @param array $issues Nested array of issues
+	 * @return int Total count of issues
+	 */
+	private function count_issues_in_array( $issues ) {
+		$count = 0;
+		foreach ( $issues as $file => $lines ) {
+			foreach ( $lines as $line => $columns ) {
+				foreach ( $columns as $column => $issue_list ) {
+					$count += count( $issue_list );
+				}
+			}
+		}
+		return $count;
 	}
 
 	/**
@@ -265,39 +356,29 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		$ignored_paths = array();
 		$config_file = $plugin_path . '/.wpv-config.json';
 		
-		error_log( 'WPV DEBUG: Looking for config file: ' . $config_file );
-		
 		if ( ! file_exists( $config_file ) ) {
-			error_log( 'WPV DEBUG: Config file not found' );
 			return $ignored_paths;
 		}
 		
 		$config_content = file_get_contents( $config_file );
 		if ( false === $config_content ) {
-			error_log( 'WPV DEBUG: Failed to read config file' );
 			return $ignored_paths;
 		}
 		
 		$config_data = json_decode( $config_content, true );
 		if ( null === $config_data ) {
-			error_log( 'WPV DEBUG: Failed to decode config JSON' );
 			return $ignored_paths;
 		}
 		
 		if ( ! isset( $config_data['ignored_paths'] ) || ! is_array( $config_data['ignored_paths'] ) ) {
-			error_log( 'WPV DEBUG: No ignored_paths found in config' );
 			return $ignored_paths;
 		}
-		
-		error_log( 'WPV DEBUG: Found ignored_paths in config: ' . print_r( $config_data['ignored_paths'], true ) );
 		
 		foreach ( $config_data['ignored_paths'] as $ignored_path_data ) {
 			if ( isset( $ignored_path_data['path'] ) ) {
 				$ignored_paths[] = $ignored_path_data['path'];
 			}
 		}
-		
-		error_log( 'WPV DEBUG: Processed ignored paths: ' . print_r( $ignored_paths, true ) );
 		
 		return $ignored_paths;
 	}
@@ -326,10 +407,8 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			}
 			
 			$file_path = $file->getPathname();
-			$relative_path = str_replace( $plugin_path . '/', '', $file_path );
-			
-			// Debug logging
-			error_log( 'WPV DEBUG: Checking file: ' . $relative_path );
+			// Normalize path separators for consistent comparison
+			$relative_path = str_replace( array( $plugin_path . '/', $plugin_path . '\\' ), '', str_replace( '\\', '/', $file_path ) );
 			
 			// Check ignore patterns
 			$should_ignore = false;
@@ -337,7 +416,6 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			// Check directory ignores from Plugin_Request_Utility
 			foreach ( $directories_to_ignore as $ignore_dir ) {
 				if ( strpos( $relative_path, $ignore_dir . '/' ) === 0 ) {
-					error_log( 'WPV DEBUG: File ignored by Plugin_Request_Utility directory: ' . $ignore_dir );
 					$should_ignore = true;
 					break;
 				}
@@ -347,7 +425,6 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			if ( ! $should_ignore ) {
 				foreach ( $files_to_ignore as $ignore_file ) {
 					if ( basename( $file_path ) === $ignore_file ) {
-						error_log( 'WPV DEBUG: File ignored by Plugin_Request_Utility file: ' . $ignore_file );
 						$should_ignore = true;
 						break;
 					}
@@ -357,8 +434,10 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			// Check config ignored paths
 			if ( ! $should_ignore ) {
 				foreach ( $config_ignored_paths as $ignored_path ) {
-					if ( strpos( $relative_path, $ignored_path . '/' ) === 0 ) {
-						error_log( 'WPV DEBUG: File ignored by config ignored_paths: ' . $ignored_path );
+					// Normalize ignored path for comparison
+					$normalized_ignored_path = str_replace( '\\', '/', $ignored_path );
+					
+					if ( strpos( $relative_path, $normalized_ignored_path . '/' ) === 0 ) {
 						$should_ignore = true;
 						break;
 					}
@@ -366,10 +445,7 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			}
 			
 			if ( ! $should_ignore ) {
-				error_log( 'WPV DEBUG: File will be scanned: ' . $relative_path );
 				$php_files[] = $file_path;
-			} else {
-				error_log( 'WPV DEBUG: File ignored: ' . $relative_path );
 			}
 		}
 		
@@ -402,19 +478,38 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 		$files_to_ignore       = Plugin_Request_Utility::get_files_to_ignore();
 
 		// Only add ignore patterns if scanning entire plugin (not specific files)
-		if ( null === $files_to_scan ) {
+		// Check if we're scanning the entire plugin directory vs specific files
+		$scanning_entire_plugin = ( null === $files_to_scan || 
+									( count( $files_to_scan ) === 1 && is_dir( $files_to_scan[0] ) ) );
+		
+		if ( $scanning_entire_plugin ) {
 			// Ignore directories.
 			if ( ! empty( $directories_to_ignore ) ) {
-				$ignore_patterns[] = '*/' . implode( '/*,*/', $directories_to_ignore ) . '/*';
+				$dir_pattern = '*/' . implode( '/*,*/', $directories_to_ignore ) . '/*';
+				$ignore_patterns[] = $dir_pattern;
 			}
 
 			// Ignore files.
 			if ( ! empty( $files_to_ignore ) ) {
-				$ignore_patterns[] = '/' . implode( ',/', $files_to_ignore );
+				$file_pattern = '/' . implode( ',/', $files_to_ignore );
+				$ignore_patterns[] = $file_pattern;
+			}
+			
+			// Add config ignored paths
+			$plugin_path = $result->plugin()->location();
+			$config_ignored_paths = $this->get_config_ignored_paths( $plugin_path );
+			
+			if ( ! empty( $config_ignored_paths ) ) {
+				foreach ( $config_ignored_paths as $config_path ) {
+					// Convert config path to PHPCS ignore pattern
+					$phpcs_pattern = '*/' . $config_path . '/*';
+					$ignore_patterns[] = $phpcs_pattern;
+				}
 			}
 
 			if ( ! empty( $ignore_patterns ) ) {
-				$defaults[] = '--ignore=' . implode( ',', $ignore_patterns );
+				$final_ignore_string = '--ignore=' . implode( ',', $ignore_patterns );
+				$defaults[] = $final_ignore_string;
 			}
 		}
 

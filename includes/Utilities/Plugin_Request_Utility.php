@@ -190,7 +190,11 @@ class Plugin_Request_Utility {
 	 * @since 1.0.2
 	 */
 	public static function get_files_to_ignore() {
-		$default_ignore_files = array();
+		$default_ignore_files = array(
+			'.wpv-config.json',
+			'.wpv-config.json.backup',
+			'.wpv-results.json',
+		);
 
 		/**
 		 * Filters the files to ignore.
