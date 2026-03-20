@@ -112,15 +112,6 @@ $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handl
 			</div>
 			
 			<div class="wpv-ast-sidebar">
-				<h3 class="wpv-accordion-header" data-target="pan00-content"><?php wpverifier_header( __( 'File Details', 'wp-verifier' ), 'PAN00' ); ?> <span class="dashicons dashicons-arrow-down-alt2"></span></h3>
-				<div id="pan00-content" class="wpv-accordion-content">
-					<div class="wpv-ast-details" id="file-details">
-						<div class="wpv-ast-placeholder">
-							<p><?php esc_html_e( 'Select a file to see details', 'wp-verifier' ); ?></p>
-						</div>
-					</div>
-				</div>
-				
 				<h3 class="wpv-accordion-header panel-spacing" data-target="pan01-content"><?php wpverifier_header( __( 'Selected Issue Details', 'wp-verifier' ), 'PAN01' ); ?> <span class="dashicons dashicons-arrow-down-alt2"></span></h3>
 				<div id="pan01-content" class="wpv-accordion-content" style="display: none;">
 					<div class="wpv-ast-details" id="saved-results-details">

@@ -118,4 +118,44 @@ jQuery(function($) {
 			}
 		});
 	});
+
+	// Unignore button - AJAX call then reload
+	$(document).on('click', '.wpv-unignore-btn', function(e) {
+		e.preventDefault();
+		var $btn = $(this);
+		var issueId = $btn.data('issue-id');
+		var plugin = wpv_ajax_object.current_plugin || '';
+
+		if (!issueId || !plugin) {
+			alert('Missing issue ID or plugin.');
+			return;
+		}
+
+		$btn.prop('disabled', true).html('<span class="dashicons dashicons-update-alt"></span> Unignoring...');
+
+		$.ajax({
+			url: wpv_ajax_object.ajax_url,
+			type: 'POST',
+			data: {
+				action: 'wpv_mark_unignored',
+				issue_id: issueId,
+				plugin: plugin,
+				nonce: wpv_ajax_object.nonce
+			},
+			success: function(response) {
+				if (response.success) {
+					var url = new URL(window.location.href);
+					url.searchParams.delete('issue_id');
+					window.location.href = url.toString();
+				} else {
+					alert('Failed: ' + (response.data && response.data.message || 'Unknown error'));
+					$btn.prop('disabled', false).html('<span class="dashicons dashicons-visibility"></span> Unignore');
+				}
+			},
+			error: function() {
+				alert('Request failed.');
+				$btn.prop('disabled', false).html('<span class="dashicons dashicons-visibility"></span> Unignore');
+			}
+		});
+	});
 });

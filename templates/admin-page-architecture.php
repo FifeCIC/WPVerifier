@@ -2,11 +2,323 @@
 /**
  * Template for Architecture tab - Plugin Check Process Flow
  *
+ * TAB STRUCTURE (CURRENT):
+ * TAB01 = Select Plugin
+ * TAB02 = Configure
+ * TAB03 = Verification
+ * TAB04 = Results (unified - was TAB04 Files + TAB05 Issues, merged in PHASE 5)
+ * TAB05 = REMOVED
+ * TAB06 = Plugin Monitoring
+ * TAB07 = Test Area
+ * TAB08 = Error Codes
+ * TAB09 = Settings
+ * TAB10 = Assets
+ * TAB11 = Architecture (this tab)
+ * TAB12 = Roadmap
+ *
  * @package wp-verifier
  */
 
-/*
- * CRITICAL FOR AI: TAB STRUCTURE CLARIFICATION
+use WordPress\Plugin_Check\Utilities\Path_Builder;
+
+$current_plugin = null;
+$last_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
+if ( $last_plugin ) {
+	$plugins = get_plugins();
+	if ( isset( $plugins[ $last_plugin ] ) ) {
+		$current_plugin = array(
+			'slug'   => $last_plugin,
+			'name'   => $plugins[ $last_plugin ]['Name'],
+			'folder' => strpos( $last_plugin, '/' ) !== false ? dirname( $last_plugin ) : $last_plugin,
+		);
+	}
+}
+
+// Live file validation
+function validate_plugin_files( $plugin_folder ) {
+	if ( ! $plugin_folder ) {
+		return array( array( 'status' => 'error', 'message' => 'No active plugin selected' ) );
+	}
+	$plugin_path      = Path_Builder::get_plugin_directory_path( $plugin_folder );
+	$results_file     = $plugin_path . '/.wpv-results.json';
+	$verification_file = $plugin_path . '/.wpv-verification.json';
+	$validations      = array();
+
+	if ( file_exists( $results_file ) ) {
+		$data = json_decode( file_get_contents( $results_file ), true );
+		if ( $data ) {
+			$total_issues = 0;
+			foreach ( $data['results'] ?? array() as $issues ) {
+				$total_issues += count( $issues );
+			}
+			$validations[] = array(
+				'status'  => 'success',
+				'message' => '.wpv-results.json exists and valid',
+				'details' => sprintf( 'Files: %d, Issues: %d, Errors: %d, Warnings: %d',
+					count( $data['results'] ?? array() ),
+					$total_issues,
+					$data['readiness']['errors'] ?? 0,
+					$data['readiness']['warnings'] ?? 0
+				),
+			);
+		} else {
+			$validations[] = array( 'status' => 'error', 'message' => '.wpv-results.json contains invalid JSON' );
+		}
+	} else {
+		$validations[] = array( 'status' => 'warning', 'message' => '.wpv-results.json not found' );
+	}
+
+	if ( file_exists( $verification_file ) ) {
+		$vdata = json_decode( file_get_contents( $verification_file ), true );
+		if ( $vdata ) {
+			$ignored_count = count( $vdata['ignored_files'] ?? array() );
+			$validations[] = array(
+				'status'  => 'success',
+				'message' => '.wpv-verification.json exists and valid',
+				'details' => "Ignored files: {$ignored_count}",
+			);
+		} else {
+			$validations[] = array( 'status' => 'error', 'message' => '.wpv-verification.json contains invalid JSON' );
+		}
+	} else {
+		$validations[] = array( 'status' => 'info', 'message' => '.wpv-verification.json not found - no file ignores recorded yet' );
+	}
+
+	return $validations;
+}
+
+$validations = validate_plugin_files( $current_plugin['folder'] ?? null );
+?>
+
+<div class="wrap">
+	<h2><?php wpverifier_header( 'Plugin Check Architecture', 'TAB11-01' ); ?></h2>
+
+	<?php if ( $current_plugin ) : ?>
+		<p><strong>Active Plugin:</strong> <?php echo esc_html( $current_plugin['name'] ); ?> (<?php echo esc_html( $current_plugin['folder'] ); ?>)</p>
+	<?php else : ?>
+		<p><strong>No active plugin selected. Run a scan first.</strong></p>
+	<?php endif; ?>
+
+	<div class="wpv-arch-grid">
+
+		<!-- LEFT: Process Flow -->
+		<div class="wpv-arch-panel">
+			<h3><?php wpverifier_header( 'Verification Process Flow', 'TAB11-02' ); ?></h3>
+			<div class="wpv-arch-flow">
+
+				<div class="wpv-arch-step">
+					<strong>1. SCAN INITIATION</strong><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 264, 0, null, 'Admin_AJAX::run_checks()', 'button-link' ); ?><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ); ?>
+				</div>
+
+				<div class="wpv-arch-step">
+					<strong>2. FILE FILTERING</strong><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
+					→ Loads <code>.wpv-verification.json</code> ignored_files<br>
+					→ For each file: compute MD5 hash<br>
+					→ Hash matches stored → SKIP file<br>
+					→ Hash differs → INVALIDATE ignore, scan normally<br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'get_directories_to_ignore()', 'button-link' ); ?>
+				</div>
+
+				<div class="wpv-arch-step">
+					<strong>3. PHPCS EXECUTION</strong><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?><br>
+					→ Stops at 20 issues if limit_results enabled<br>
+					→ WordPress coding standards applied
+				</div>
+
+				<div class="wpv-arch-step">
+					<strong>4. RESULTS PROCESSING</strong><br>
+					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'run_checks()', 'button-link' ); ?><br>
+					→ issue_id = md5(file + line + column + code + counter)<br>
+					→ Calculate readiness score<br>
+					→ Save to <code>.wpv-results.json</code>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- RIGHT: Live Validation -->
+		<div class="wpv-arch-panel">
+			<h3><?php wpverifier_header( 'Live Configuration Validation', 'TAB11-03' ); ?></h3>
+			<?php foreach ( $validations as $v ) : ?>
+				<div class="wpv-arch-validation wpv-arch-validation-<?php echo esc_attr( $v['status'] ); ?>">
+					<div class="wpv-arch-validation-header">
+						<?php
+						switch ( $v['status'] ) {
+							case 'success': echo '✅'; break;
+							case 'error':   echo '❌'; break;
+							case 'warning': echo '⚠️'; break;
+							default:        echo 'ℹ️'; break;
+						}
+						?>
+						<?php echo esc_html( $v['message'] ); ?>
+					</div>
+					<?php if ( isset( $v['details'] ) ) : ?>
+						<div class="wpv-arch-validation-details"><?php echo esc_html( $v['details'] ); ?></div>
+					<?php endif; ?>
+				</div>
+			<?php endforeach; ?>
+		</div>
+	</div>
+
+	<!-- JSON Files -->
+	<div class="wpv-arch-json-panel">
+		<h3><?php wpverifier_header( 'JSON Files & Data Flow', 'TAB11-04' ); ?></h3>
+		<div class="wpv-arch-json-files">
+
+			<div class="wpv-arch-json-file">
+				<h5><code>.wpv-results.json</code> — Active Task List</h5>
+				<strong>Purpose:</strong> Only contains actionable issues. Acts as a clean task list.<br>
+				<strong>Created by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 575, 0, null, 'save_results_to_json()', 'button-link' ); ?><br>
+				<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'templates/admin-page-results.php', 0, 0, null, 'admin-page-results.php (TAB04)', 'button-link' ); ?><br>
+				<strong>Modified by:</strong> Fixed button (removes issue), Ignore button (sets ignored:true), File-ignore (removes all file issues)<br>
+				<pre>{
+  "generated_at": "2026-03-20 12:00:00",
+  "plugin": "wpseed/wpseed.php",
+  "readiness": { "overall": 0, "errors": 40, "warnings": 300 },
+  "results": {
+    "includes/admin/admin-settings.php": [
+      {
+        "issue_id": "E-0a19dbdf",
+        "message": "...",
+        "code": "WordPress.Security.EscapeOutput",
+        "type": "ERROR",
+        "line": 354,
+        "column": 58,
+        "ignored": false
+      }
+    ]
+  }
+}</pre>
+			</div>
+
+			<div class="wpv-arch-json-file">
+				<h5><code>.wpv-verification.json</code> — Ignore & Hash Tracking</h5>
+				<strong>Purpose:</strong> Tracks which files are fully ignored and their hash at time of ignore.<br>
+				<strong>Created by:</strong> <?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+				<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?> during scan<br>
+				<strong>Modified by:</strong> Auto file-ignore (when all issues ignored), manual unignore, hash invalidation<br>
+				<pre>{
+  "ignored_files": {
+    "includes/admin/admin-settings.php": {
+      "hash": "d41d8cd98f00b204e9800998ecf8427e",
+      "ignored_at": "2026-03-20 20:00:00",
+      "ignored_by": 1
+    }
+  }
+}</pre>
+			</div>
+
+			<div class="wpv-arch-json-file">
+				<h5><code>.wpv-config.json</code> — Scan Configuration</h5>
+				<strong>Purpose:</strong> Stores ignored vendor paths and scan configuration.<br>
+				<strong>Created by:</strong> TAB02 Configuration interface<br>
+				<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?>
+			</div>
+		</div>
+	</div>
+
+	<!-- Button Behaviour -->
+	<div class="wpv-arch-json-panel">
+		<h3><?php wpverifier_header( 'TAB04 Button Behaviour', 'TAB11-05' ); ?></h3>
+		<table class="wp-list-table widefat fixed striped">
+			<thead><tr><th>Button</th><th>AJAX Action</th><th>Handler</th><th>Effect on .wpv-results.json</th><th>Effect on .wpv-verification.json</th></tr></thead>
+			<tbody>
+				<tr>
+					<td><strong>Fixed</strong></td>
+					<td><code>wpv_mark_resolved</code></td>
+					<td><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1062, 0, null, 'mark_issue_as_fixed()', 'button-link' ); ?></td>
+					<td>Issue permanently removed. Readiness recalculated.</td>
+					<td>No change</td>
+				</tr>
+				<tr>
+					<td><strong>Ignore</strong></td>
+					<td><code>wpv_mark_ignored</code></td>
+					<td><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1011, 0, null, 'mark_issue_as_ignored()', 'button-link' ); ?></td>
+					<td>Sets <code>ignored:true</code> on issue. If ALL issues in file now ignored → all file issues deleted.</td>
+					<td>If all file issues ignored → adds entry to <code>ignored_files</code> with MD5 hash.</td>
+				</tr>
+				<tr>
+					<td><strong>Unignore</strong></td>
+					<td><code>wpv_mark_unignored</code></td>
+					<td><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1060, 0, null, 'mark_issue_as_unignored()', 'button-link' ); ?></td>
+					<td>Sets <code>ignored:false</code> on issue.</td>
+					<td>No change</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Key Functions -->
+	<div class="wpv-arch-functions-panel">
+		<h3><?php wpverifier_header( 'Key Functions', 'TAB11-06' ); ?></h3>
+		<table class="wp-list-table widefat fixed striped wpv-arch-functions-table">
+			<thead><tr><th>Function</th><th>File</th><th>Purpose</th></tr></thead>
+			<tbody>
+				<tr>
+					<td><code>mark_issue_as_fixed()</code></td>
+					<td>Verification_AJAX_Handler.php</td>
+					<td>Removes single issue from .wpv-results.json. Uses explicit array assignment (not reference) to avoid PHP reference corruption bug.</td>
+				</tr>
+				<tr>
+					<td><code>mark_issue_as_ignored()</code></td>
+					<td>Verification_AJAX_Handler.php</td>
+					<td>Sets ignored:true. Then checks if ALL issues in file are ignored → triggers mark_file_as_ignored().</td>
+				</tr>
+				<tr>
+					<td><code>mark_file_as_ignored()</code></td>
+					<td>Verification_AJAX_Handler.php</td>
+					<td>PHASE 6: Computes file MD5, writes to .wpv-verification.json ignored_files, deletes all file issues from .wpv-results.json.</td>
+				</tr>
+				<tr>
+					<td><code>get_files_to_scan()</code></td>
+					<td>Abstract_PHP_CodeSniffer_Check.php</td>
+					<td>PHASE 6: Loads ignored_files from .wpv-verification.json. Skips files with matching hash. Invalidates (removes) entries where hash differs.</td>
+				</tr>
+				<tr>
+					<td><code>save_results_to_json()</code></td>
+					<td>Verification_AJAX_Handler.php</td>
+					<td>Writes full scan results to .wpv-results.json. issue_id = md5(file+line+column+code+counter).</td>
+				</tr>
+				<tr>
+					<td><code>get_directories_to_ignore()</code></td>
+					<td>Plugin_Request_Utility.php</td>
+					<td>Returns vendor/library directory patterns to exclude from PHPCS scan.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<!-- Known Bugs Fixed -->
+	<div class="wpv-arch-issue-panel">
+		<h3><?php wpverifier_header( 'Known Bugs Fixed', 'TAB11-07' ); ?></h3>
+		<table class="wp-list-table widefat fixed striped">
+			<thead><tr><th>Bug</th><th>Root Cause</th><th>Fix</th></tr></thead>
+			<tbody>
+				<tr>
+					<td>Fixed button removed ALL issues with same code</td>
+					<td>issue_id = md5(file+line+code) — identical for issues sharing file/line/code</td>
+					<td>issue_id = md5(file+line+column+code+counter) — guaranteed unique</td>
+				</tr>
+				<tr>
+					<td>Fixed button replaced all file issues with last issue in JSON</td>
+					<td>PHP <code>foreach ($array as $key => &$value)</code> reference + <code>break 2</code> corrupts array data</td>
+					<td>Removed <code>&</code> reference. After removal: <code>$results_data['results'][$file_path] = $issues</code> (explicit assignment)</td>
+				</tr>
+				<tr>
+					<td>showDetails() in wp-verifier-ast.js overrode PHP-rendered PAN01 sidebar</td>
+					<td>JavaScript innerHTML replacement always won over PHP rendering</td>
+					<td>PHASE 5: Eliminated JavaScript panel replacement entirely. URL-driven state (?issue_id=X) lets PHP render sidebar.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<p><strong>See:</strong> <?php echo wpv_get_vscode_button( 'docs/ROADMAP.md', 0, 0, null, 'ROADMAP.md', 'button-link' ); ?> for full development roadmap.</p>
+</div>
  * 
  * TAB04 (Files) vs TAB05 (Issues) - BOTH USE AST BUT COMPLETELY DIFFERENT!
  * 

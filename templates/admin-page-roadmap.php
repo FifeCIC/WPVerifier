@@ -36,31 +36,238 @@ if ( $last_plugin ) {
 	<!-- Phase Status Overview -->
 	<div class="wpv-roadmap-status-grid">
 		<div class="wpv-roadmap-status-card wpv-status-completed">
-			<h3>🎉 PHASE 2</h3>
+			<h3>PHASE 2</h3>
 			<div class="wpv-status-title">Path Building Consolidation</div>
 			<div class="wpv-status-badge">✅ COMPLETED</div>
-			<div class="wpv-status-details">17/17 components updated, VSCode integration fixed</div>
+			<div class="wpv-status-details">Centralized Path_Builder. VSCode integration working.</div>
 		</div>
-		
+		<div class="wpv-roadmap-status-card wpv-status-completed">
+			<h3>PHASE 5</h3>
+			<div class="wpv-status-title">Results Tab Refactor</div>
+			<div class="wpv-status-badge">✅ COMPLETED</div>
+			<div class="wpv-status-details">TAB04+TAB05 merged. Pure PHP rendering. Fixed/Ignore/Unignore working.</div>
+		</div>
 		<div class="wpv-roadmap-status-card wpv-status-active">
-			<h3>🚀 PHASE 3</h3>
-			<div class="wpv-status-title">Function-Based Issue Management</div>
-			<div class="wpv-status-badge">🔄 IN PLANNING</div>
-			<div class="wpv-status-details">Transform TAB05 to function-centric workflow</div>
+			<h3>PHASE 6</h3>
+			<div class="wpv-status-title">File-Level Ignore System</div>
+			<div class="wpv-status-badge">🔄 CURRENT FOCUS</div>
+			<div class="wpv-status-details">Auto-ignore files when all issues ignored. Hash validation. Skip on rescan.</div>
 		</div>
-		
 		<div class="wpv-roadmap-status-card wpv-status-pending">
-			<h3>⏳ PHASE 4</h3>
+			<h3>PHASE 3</h3>
+			<div class="wpv-status-title">Function-Level Ignore + Overwatch</div>
+			<div class="wpv-status-badge">📋 PLANNED (DELAYED)</div>
+			<div class="wpv-status-details">Requires Phase 6 complete. Needed for active file monitoring during development.</div>
+		</div>
+		<div class="wpv-roadmap-status-card wpv-status-pending">
+			<h3>PHASE 4</h3>
 			<div class="wpv-status-title">Real-Time Progress Tracking</div>
 			<div class="wpv-status-badge">📋 PLANNED</div>
-			<div class="wpv-status-details">Replace simulated progress with actual file tracking</div>
+			<div class="wpv-status-details">Replace simulated progress bar with actual file-based tracking.</div>
 		</div>
 	</div>
 
 	<!-- Main Roadmap Content -->
 	<div class="wpv-roadmap-main">
-		
-		<!-- PHASE 3: Function-Based Issue Management -->
+
+		<!-- PHASE 6: File-Level Ignore System -->
+		<div class="wpv-roadmap-phase wpv-roadmap-phase-active">
+			<div class="wpv-roadmap-phase-header" data-phase="phase6">
+				<h2>PHASE 6: File-Level Ignore System 🔄 CURRENT FOCUS</h2>
+				<div class="wpv-roadmap-phase-toggle">▼</div>
+			</div>
+			<div class="wpv-roadmap-phase-content" id="phase6-content">
+				<div class="wpv-roadmap-objective">
+					<strong>Objective:</strong> When a developer has ignored ALL issues in a file one by one, the file is automatically marked as ignored. Subsequent plugin checks skip ignored files entirely — making checks faster and keeping <code>.wpv-results.json</code> as a clean task list.
+				</div>
+
+				<div class="wpv-roadmap-section">
+					<div class="wpv-roadmap-section-header">
+						<h3>Phase 6.1: Auto-Detect All-Ignored Files</h3>
+						<span class="wpv-priority-badge wpv-priority-high">HIGH PRIORITY — DO FIRST</span>
+					</div>
+					<div class="wpv-roadmap-tasks-grid">
+						<div class="wpv-roadmap-tasks-column">
+							<h4>Requirements</h4>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t61a" class="wpv-task-checkbox">
+								<label for="t61a">After setting ignored:true, check if ALL issues in that file are now ignored</label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t61b" class="wpv-task-checkbox">
+								<label for="t61b">If all ignored: compute MD5 hash of actual file on disk</label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t61c" class="wpv-task-checkbox">
+								<label for="t61c">Write entry to <code>.wpv-verification.json</code> under <code>ignored_files</code> with hash, timestamp, user_id</label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t61d" class="wpv-task-checkbox">
+								<label for="t61d">Delete ALL issues for that file from <code>.wpv-results.json</code></label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t61e" class="wpv-task-checkbox">
+								<label for="t61e">Recalculate readiness score after deletion</label>
+							</div>
+							<h4>Testing Steps</h4>
+							<ol>
+								<li>Pick a file with 2-3 issues in TAB04</li>
+								<li>Ignore all issues one by one</li>
+								<li>On last ignore: verify <code>.wpv-verification.json</code> has <code>ignored_files</code> entry with correct hash</li>
+								<li>Verify all issues for that file are gone from <code>.wpv-results.json</code></li>
+								<li>Verify TAB04 no longer shows that file</li>
+								<li>Verify readiness score updated correctly</li>
+							</ol>
+						</div>
+						<div class="wpv-roadmap-architecture-column">
+							<h4>Files to Modify</h4>
+							<div class="wpv-roadmap-arch-item">
+								<?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1011, 0, null, 'mark_issue_as_ignored()', 'button-link' ); ?><br>
+								Add all-ignored check + call mark_file_as_ignored()
+							</div>
+							<div class="wpv-roadmap-arch-item">
+								New: <code>mark_file_as_ignored( $file_path, $plugin, $results_file )</code><br>
+								In Verification_AJAX_Handler.php
+							</div>
+							<div class="wpv-roadmap-arch-item">
+								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+								Add: write_ignored_file(), get_ignored_files()
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="wpv-roadmap-section">
+					<div class="wpv-roadmap-section-header">
+						<h3>Phase 6.3: Hash Validation on Plugin Check (Skip Ignored Files)</h3>
+						<span class="wpv-priority-badge wpv-priority-high">HIGH PRIORITY — DO SECOND</span>
+					</div>
+					<div class="wpv-roadmap-tasks-grid">
+						<div class="wpv-roadmap-tasks-column">
+							<h4>Requirements</h4>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t63a" class="wpv-task-checkbox">
+								<label for="t63a">In <code>get_files_to_scan()</code>: load <code>ignored_files</code> from <code>.wpv-verification.json</code></label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t63b" class="wpv-task-checkbox">
+								<label for="t63b">For each file: if in ignored_files AND hash matches → skip (do not scan)</label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t63c" class="wpv-task-checkbox">
+								<label for="t63c">If in ignored_files AND hash differs → remove from ignored_files, scan normally (auto-clear stale ignore)</label>
+							</div>
+							<h4>Testing Steps</h4>
+							<ol>
+								<li>Get a file to fully-ignored state (Phase 6.1 done)</li>
+								<li>Run a new plugin check</li>
+								<li>Verify ignored file does NOT appear in new results</li>
+								<li>Modify the ignored file on disk</li>
+								<li>Run another plugin check</li>
+								<li>Verify the modified file IS scanned and issues appear in results</li>
+								<li>Verify file entry removed from <code>ignored_files</code> in <code>.wpv-verification.json</code></li>
+							</ol>
+						</div>
+						<div class="wpv-roadmap-architecture-column">
+							<h4>Files to Modify</h4>
+							<div class="wpv-roadmap-arch-item">
+								<?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
+								Add ignored_files loading and hash comparison logic
+							</div>
+							<div class="wpv-roadmap-arch-item">
+								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+								Add: get_ignored_files(), remove_ignored_file()
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="wpv-roadmap-section">
+					<div class="wpv-roadmap-section-header">
+						<h3>Phase 6.4: Manual Unignore File</h3>
+						<span class="wpv-priority-badge wpv-priority-medium">MEDIUM PRIORITY — DO THIRD</span>
+					</div>
+					<div class="wpv-roadmap-tasks-grid">
+						<div class="wpv-roadmap-tasks-column">
+							<h4>Requirements</h4>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t64a" class="wpv-task-checkbox">
+								<label for="t64a">Show list of ignored files somewhere in TAB04 (separate panel or section)</label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t64b" class="wpv-task-checkbox">
+								<label for="t64b">"Unignore File" button removes entry from <code>ignored_files</code> in <code>.wpv-verification.json</code></label>
+							</div>
+							<div class="wpv-roadmap-task">
+								<input type="checkbox" id="t64c" class="wpv-task-checkbox">
+								<label for="t64c">Do NOT restore issues to <code>.wpv-results.json</code> — user must re-run check to get them back</label>
+							</div>
+						</div>
+						<div class="wpv-roadmap-architecture-column">
+							<h4>Files to Modify</h4>
+							<div class="wpv-roadmap-arch-item">
+								<?php echo wpv_get_vscode_button( 'templates/admin-page-results.php', 0, 0, null, 'admin-page-results.php', 'button-link' ); ?><br>
+								Add ignored files panel reading from .wpv-verification.json
+							</div>
+							<div class="wpv-roadmap-arch-item">
+								New AJAX action: <code>wpv_unignore_file</code><br>
+								In Verification_AJAX_Handler.php
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- PHASE 3: Function-Level Ignore + Overwatch -->
+		<div class="wpv-roadmap-phase">
+			<div class="wpv-roadmap-phase-header" data-phase="phase3">
+				<h2>PHASE 3: Function-Level Ignore + Overwatch System 📋 PLANNED (DELAYED)</h2>
+				<div class="wpv-roadmap-phase-toggle">▶</div>
+			</div>
+			<div class="wpv-roadmap-phase-content" id="phase3-content" style="display:none;">
+				<div class="wpv-roadmap-objective">
+					<strong>Why Delayed:</strong> Function-level ignoring is primarily needed for the Overwatch system — active file monitoring during development. A developer wants new code checked but doesn't want old false positives showing up. Since Overwatch requires function-level ignoring to work first, both are planned together and delayed until Phase 6 is complete.
+				</div>
+				<div class="wpv-roadmap-section">
+					<h3>Phase 3.1: Function Detection</h3>
+					<ul>
+						<li>Use <code>token_get_all()</code> to map line numbers to containing function/method</li>
+						<li>Add <code>function_name</code>, <code>function_hash</code>, <code>class_name</code> fields to issues in <code>.wpv-results.json</code></li>
+						<li>Store function-level ignores in <code>.wpv-verification.json</code> under <code>ignored_functions</code></li>
+						<li>Hash computed from function body only — changes to other functions don't invalidate the ignore</li>
+					</ul>
+					<h3>Phase 3.2: Overwatch System</h3>
+					<ul>
+						<li>Actively monitors files while a project is being developed</li>
+						<li>On file save → re-scan only changed functions</li>
+						<li>Ignored functions are skipped</li>
+						<li>New issues in non-ignored functions appear immediately in TAB04</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- PHASE 4 -->
+		<div class="wpv-roadmap-phase">
+			<div class="wpv-roadmap-phase-header" data-phase="phase4">
+				<h2>PHASE 4: Real-Time Progress Tracking 📋 PLANNED</h2>
+				<div class="wpv-roadmap-phase-toggle">▶</div>
+			</div>
+			<div class="wpv-roadmap-phase-content" id="phase4-content" style="display:none;">
+				<div class="wpv-roadmap-objective">
+					<strong>Objective:</strong> Replace simulated progress bar with actual file-based progress tracking.
+				</div>
+				<ul>
+					<li>Replace <code>startProgressSimulation()</code> with <code>pollProgressStatus()</code></li>
+					<li>Show "Processing file X of Y" with current filename</li>
+					<li>Estimated time remaining based on processing speed</li>
+					<li>Create <code>.wpv-progress.json</code> updated during scan</li>
+				</ul>
+			</div>
+		</div>
+
+	</div>
 		<div class="wpv-roadmap-phase wpv-roadmap-phase-active">
 			<div class="wpv-roadmap-phase-header" data-phase="phase3">
 				<h2>🚀 PHASE 3: Function-Based Issue Management</h2>
@@ -481,29 +688,21 @@ if ( $last_plugin ) {
 	
 	<!-- Task Progress Summary -->
 	<div class="wpv-roadmap-summary">
-		<h3>📊 Development Progress Summary</h3>
+		<h3>Development Progress Summary</h3>
 		<div class="wpv-roadmap-progress-bars">
 			<div class="wpv-progress-item">
-				<label>Phase 3.1 - JSON Schema Enhancement</label>
-				<div class="wpv-progress-bar">
-					<div class="wpv-progress-fill" style="width: 0%"></div>
-				</div>
+				<label>Phase 6.1 - Auto-Detect All-Ignored Files</label>
+				<div class="wpv-progress-bar"><div class="wpv-progress-fill" style="width:0%"></div></div>
+				<span class="wpv-progress-text">0/5 tasks completed</span>
+			</div>
+			<div class="wpv-progress-item">
+				<label>Phase 6.3 - Hash Validation on Plugin Check</label>
+				<div class="wpv-progress-bar"><div class="wpv-progress-fill" style="width:0%"></div></div>
 				<span class="wpv-progress-text">0/3 tasks completed</span>
 			</div>
-			
 			<div class="wpv-progress-item">
-				<label>Phase 3.2 - Function-Centric UI</label>
-				<div class="wpv-progress-bar">
-					<div class="wpv-progress-fill" style="width: 0%"></div>
-				</div>
-				<span class="wpv-progress-text">0/3 tasks completed</span>
-			</div>
-			
-			<div class="wpv-progress-item">
-				<label>Phase 4.1 - Server-Side Progress</label>
-				<div class="wpv-progress-bar">
-					<div class="wpv-progress-fill" style="width: 0%"></div>
-				</div>
+				<label>Phase 6.4 - Manual Unignore File</label>
+				<div class="wpv-progress-bar"><div class="wpv-progress-fill" style="width:0%"></div></div>
 				<span class="wpv-progress-text">0/3 tasks completed</span>
 			</div>
 		</div>

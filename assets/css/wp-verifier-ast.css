@@ -254,6 +254,25 @@
 	cursor: pointer;
 }
 
+/* Ignored issue styling */
+.wpv-ast-issue-item.ignored {
+	opacity: 0.6;
+	background: #f8f8f8;
+	border-left: 4px solid #646970;
+}
+
+.wpv-ast-issue-item.ignored:hover {
+	background: #f0f0f0;
+}
+
+.wpv-ignored-status {
+	margin-bottom: 10px;
+	padding: 8px 12px;
+	background: #f8f8f8;
+	border-left: 4px solid #646970;
+	border-radius: 3px;
+}
+
 .wpv-accordion-header {
 	cursor: pointer;
 }

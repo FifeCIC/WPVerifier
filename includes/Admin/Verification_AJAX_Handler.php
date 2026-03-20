@@ -42,6 +42,7 @@ class Verification_AJAX_Handler {
 		add_action( 'wp_ajax_plugin_check_validate_structure', array( $this, 'validate_structure' ) );
 		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_issue_as_fixed' ) );
 		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_issue_as_ignored' ) );
+		add_action( 'wp_ajax_wpv_mark_unignored', array( $this, 'mark_issue_as_unignored' ) );
 		
 		error_log( 'WPV DEBUG: Verification_AJAX_Handler registered wpv_mark_resolved action' );
 	}
@@ -1057,17 +1058,67 @@ class Verification_AJAX_Handler {
 	}
 
 	/**
+	 * Mark issue as unignored (remove ignored flag)
+	 */
+	public function mark_issue_as_unignored() {
+		$this->check_request_validity();
+
+		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$plugin   = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		if ( empty( $issue_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
+		}
+
+		if ( empty( $plugin ) ) {
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wp-verifier' ) ), 400 );
+		}
+
+		$results_file = Path_Builder::get_results_file_path( $plugin );
+
+		if ( ! file_exists( $results_file ) ) {
+			wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
+		}
+
+		$results_data = json_decode( file_get_contents( $results_file ), true );
+		if ( ! $results_data ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wp-verifier' ) ), 500 );
+		}
+
+		$found = false;
+		if ( isset( $results_data['results'] ) ) {
+			foreach ( $results_data['results'] as $file_path => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					if ( isset( $issue['issue_id'] ) && $issue['issue_id'] === $issue_id ) {
+						$issue['ignored'] = false;
+						$found = true;
+						break 2;
+					}
+				}
+			}
+			unset( $issues, $issue );
+		}
+
+		if ( ! $found ) {
+			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wp-verifier' ) ), 404 );
+		}
+
+		file_put_contents( $results_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+		wp_send_json_success( array(
+			'message'  => __( 'Issue unmarked as ignored.', 'wp-verifier' ),
+			'issue_id' => $issue_id,
+		) );
+	}
+
+	/**
 	 * Mark an issue as fixed by removing it from the results JSON file
 	 */
 	public function mark_issue_as_fixed() {
-		error_log( 'WPV FIXED: mark_issue_as_fixed ENTERED' );
-		error_log( 'WPV FIXED: nonce=' . ( $_POST['nonce'] ?? 'MISSING' ) );
 		$this->check_request_validity();
-		error_log( 'WPV FIXED: nonce check PASSED' );
 
 		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		error_log( 'WPV FIXED: issue_id=' . $issue_id . ' plugin=' . $plugin );
 
 		if ( empty( $issue_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
@@ -1098,27 +1149,38 @@ class Verification_AJAX_Handler {
 
 			// Find and remove the issue
 			$issue_found = false;
+			$issues_removed = 0;
 			if ( isset( $results_data['results'] ) && is_array( $results_data['results'] ) ) {
-				foreach ( $results_data['results'] as $file_path => &$issues ) {
+				foreach ( $results_data['results'] as $file_path => $issues ) {
+					error_log( 'WPV FIXED: Checking file: ' . $file_path . ' with ' . count($issues) . ' issues' );
+					error_log( 'WPV FIXED: First issue in ' . $file_path . ': ' . ($issues[0]['issue_id'] ?? 'NO_FIRST_ISSUE') );
 					if ( is_array( $issues ) ) {
 						foreach ( $issues as $index => $issue ) {
+							error_log( 'WPV FIXED: Checking issue[' . $index . '] id=' . ($issue['issue_id'] ?? 'NO_ID') . ' vs target=' . $issue_id );
 							if ( isset( $issue['issue_id'] ) && $issue['issue_id'] === $issue_id ) {
-								// Remove the issue
+								error_log( 'WPV FIXED: MATCH FOUND! Removing issue ' . $issue_id . ' from file ' . $file_path );
+								error_log( 'WPV FIXED: Before removal - issues count: ' . count($issues) );
+								// Remove the issue from the array
 								unset( $issues[ $index ] );
+								// Re-index the array
+								$issues = array_values( $issues );
+								error_log( 'WPV FIXED: After removal and re-index - issues count: ' . count($issues) );
+								// Update the results data
+								if ( empty( $issues ) ) {
+									error_log( 'WPV FIXED: File ' . $file_path . ' now empty, removing from results' );
+									unset( $results_data['results'][ $file_path ] );
+								} else {
+									$results_data['results'][ $file_path ] = $issues;
+								}
 								$issue_found = true;
+								$issues_removed++;
 								break 2; // Break out of both loops
 							}
-						}
-						// Re-index array after removal
-						$issues = array_values( $issues );
-						
-						// Remove file entry if no issues left
-						if ( empty( $issues ) ) {
-							unset( $results_data['results'][ $file_path ] );
 						}
 					}
 				}
 			}
+
 
 			if ( ! $issue_found ) {
 				wp_send_json_error( array( 'message' => __( 'Issue not found in results.', 'wp-verifier' ) ), 404 );

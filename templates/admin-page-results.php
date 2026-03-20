@@ -129,11 +129,16 @@ if ( $selected_issue ) {
 									<?php foreach ( $issues as $issue ) :
 										$iid       = $issue['issue_id'] ?? '';
 										$is_active = ( $iid === $selected_issue_id );
+										$is_ignored = isset( $issue['ignored'] ) && $issue['ignored'];
 										$issue_url = add_query_arg( 'issue_id', $iid, $results_url );
+										$item_classes = array( 'wpv-ast-issue-item' );
+										if ( $is_active ) $item_classes[] = 'active';
+										if ( $is_ignored ) $item_classes[] = 'ignored';
 										?>
-										<li class="wpv-ast-issue-item <?php echo $is_active ? 'active' : ''; ?>">
+										<li class="<?php echo esc_attr( implode( ' ', $item_classes ) ); ?>">
 											<a href="<?php echo esc_url( $issue_url ); ?>" style="text-decoration:none; color:inherit; display:block;">
 												<span class="wpv-ast-badge <?php echo esc_attr( strtolower( $issue['type'] ) ); ?>"><?php echo esc_html( $issue['type'] ); ?></span>
+												<?php if ( $is_ignored ) : ?><span class="wpv-ast-badge ignored"><?php esc_html_e( 'IGNORED', 'wp-verifier' ); ?></span><?php endif; ?>
 												<code style="font-size:11px; color:#666;">[<?php echo esc_html( $iid ); ?>]</code>
 												Line <?php echo esc_html( $issue['line'] ); ?>: <?php echo esc_html( $issue['message'] ); ?>
 											</a>
@@ -163,6 +168,12 @@ if ( $selected_issue ) {
 									<span class="wpv-issue-id-display">ID: <code><?php echo esc_html( $selected_issue_id ); ?></code></span>
 								</div>
 								<div class="wpv-issue-info">
+									<?php if ( isset( $selected_issue['ignored'] ) && $selected_issue['ignored'] ) : ?>
+										<div class="wpv-issue-field wpv-ignored-status">
+											<strong><?php esc_html_e( 'Status:', 'wp-verifier' ); ?></strong>
+											<span class="wpv-ast-badge ignored"><?php esc_html_e( 'IGNORED', 'wp-verifier' ); ?></span>
+										</div>
+									<?php endif; ?>
 									<div class="wpv-issue-field">
 										<strong><?php esc_html_e( 'Type:', 'wp-verifier' ); ?></strong>
 										<span class="wpv-ast-badge <?php echo esc_attr( strtolower( $selected_issue['type'] ) ); ?>"><?php echo esc_html( $selected_issue['type'] ); ?></span>
@@ -185,16 +196,25 @@ if ( $selected_issue ) {
 									</div>
 								</div>
 								<div class="wpv-issue-actions">
+									<?php $is_ignored = isset( $selected_issue['ignored'] ) && $selected_issue['ignored']; ?>
 									<a href="#" class="button button-primary wpv-fixed-btn"
 										data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
 										title="<?php esc_attr_e( 'Permanently removes this issue from results', 'wp-verifier' ); ?>">
 										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Fixed', 'wp-verifier' ); ?>
 									</a>
-									<a href="#" class="button wpv-ignore-btn"
-										data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
-										title="<?php esc_attr_e( 'Marks as ignored but keeps in results (for false positives)', 'wp-verifier' ); ?>">
-										<span class="dashicons dashicons-hidden"></span> <?php esc_html_e( 'Ignore', 'wp-verifier' ); ?>
-									</a>
+									<?php if ( $is_ignored ) : ?>
+										<a href="#" class="button wpv-unignore-btn"
+											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
+											title="<?php esc_attr_e( 'Remove ignored status from this issue', 'wp-verifier' ); ?>">
+											<span class="dashicons dashicons-visibility"></span> <?php esc_html_e( 'Unignore', 'wp-verifier' ); ?>
+										</a>
+									<?php else : ?>
+										<a href="#" class="button wpv-ignore-btn"
+											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
+											title="<?php esc_attr_e( 'Marks as ignored but keeps in results (for false positives)', 'wp-verifier' ); ?>">
+											<span class="dashicons dashicons-hidden"></span> <?php esc_html_e( 'Ignore', 'wp-verifier' ); ?>
+										</a>
+									<?php endif; ?>
 									<?php
 									$vscode_url = Path_Builder::get_vscode_url(
 										$plugin_info['basename'],
