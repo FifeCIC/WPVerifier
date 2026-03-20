@@ -273,13 +273,7 @@ final class Admin_Page {
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-verification.php';
 				break;
 			case 'results':
-				if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
-					require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Saved_Results_Handler.php';
-				}
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-issues-byfile.php';
-				break;
-			case 'issues':
-				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-issues.php';
+				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-results.php';
 				break;
 			case 'monitoring':
 				require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'templates/admin-page-monitoring.php';

@@ -40,10 +40,7 @@ class Asset_Manager {
                 break;
             case 'saved':
             case 'results':
-                $this->enqueue_saved_results_assets();
-                break;
-            case 'issues':
-                $this->enqueue_issues_assets();
+                $this->enqueue_results_assets();
                 break;
             case 'monitoring':
                 $this->enqueue_monitoring_assets();
@@ -197,72 +194,10 @@ class Asset_Manager {
         );
     }
     
-    private function enqueue_saved_results_assets() {
+    private function enqueue_results_assets() {
         wp_enqueue_script(
-            'plugin-check-saved',
-            WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/plugin-check-saved.js',
-            array('jquery'),
-            WP_PLUGIN_CHECK_VERSION,
-            true
-        );
-        
-        wp_enqueue_script(
-            'admin-page-saved',
-            WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-page-saved.js',
-            array('jquery'),
-            WP_PLUGIN_CHECK_VERSION,
-            true
-        );
-        
-        // Get saved results for localization
-        if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\Saved_Results_Handler' ) ) {
-            require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/Saved_Results_Handler.php';
-        }
-        $plugin_info = \WordPress\Plugin_Check\Admin\Saved_Results_Handler::get_last_selected_plugin();
-        $results_data = $plugin_info ? \WordPress\Plugin_Check\Admin\Saved_Results_Handler::load_plugin_results( $plugin_info['slug'] ) : null;
-        
-        wp_localize_script(
-            'admin-page-saved',
-            'wpvSavedData',
-            array(
-                'results' => $results_data ? $results_data['results'] : array(),
-            )
-        );
-        
-        // Add AI Guidance configuration
-        if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\AI_Guidance' ) ) {
-            require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Utilities/AI_Guidance.php';
-        }
-        $ai_guidance = \WordPress\Plugin_Check\Utilities\AI_Guidance::get_all_guidance();
-        wp_add_inline_script(
-            'plugin-check-saved',
-            'const wpvAiGuidance = ' . json_encode( $ai_guidance ) . ';',
-            'before'
-        );
-        
-        wp_localize_script(
-            'plugin-check-saved',
-            'wpvConfig',
-            array(
-                'pluginUrl' => WP_PLUGIN_CHECK_PLUGIN_DIR_URL,
-                'pluginDir' => WP_PLUGIN_DIR,
-                'nonce' => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
-                'currentPluginSlug' => $plugin_info ? $plugin_info['slug'] : '',
-            )
-        );
-    }
-    
-    private function enqueue_issues_assets() {
-        wp_enqueue_style(
-            'wpv-issues-tab',
-            WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/css/issues-tab.css',
-            array(),
-            WP_PLUGIN_CHECK_VERSION
-        );
-        
-        wp_enqueue_script(
-            'wpv-issues-tab',
-            WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/issues-tab.js',
+            'admin-results',
+            WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-results.js',
             array('jquery'),
             WP_PLUGIN_CHECK_VERSION,
             true
@@ -270,11 +205,11 @@ class Asset_Manager {
         
         $current_plugin = get_user_meta( get_current_user_id(), 'wpv_last_selected_plugin', true );
         wp_localize_script(
-            'wpv-issues-tab',
+            'admin-results',
             'wpv_ajax_object',
             array(
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'nonce' => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
+                'ajax_url'       => admin_url( 'admin-ajax.php' ),
+                'nonce'          => $this->ajax_manager ? $this->ajax_manager->get_nonce() : '',
                 'current_plugin' => $current_plugin,
             )
         );

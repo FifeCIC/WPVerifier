@@ -41,6 +41,7 @@ class Verification_AJAX_Handler {
 		add_action( 'wp_ajax_plugin_check_basic_check', array( $this, 'basic_check' ) );
 		add_action( 'wp_ajax_plugin_check_validate_structure', array( $this, 'validate_structure' ) );
 		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_issue_as_fixed' ) );
+		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_issue_as_ignored' ) );
 		
 		error_log( 'WPV DEBUG: Verification_AJAX_Handler registered wpv_mark_resolved action' );
 	}
@@ -583,50 +584,50 @@ class Verification_AJAX_Handler {
 		// Convert to original flat format per file
 		$results_by_file = array();
 		
+		$id_counter = 0;
+
 		// Process errors
 		foreach ( $errors as $file => $lines ) {
-			// Convert absolute path to relative path from plugin directory
 			$relative_file = $this->get_relative_path( $file, $plugin_path );
-			
 			foreach ( $lines as $line => $columns ) {
 				foreach ( $columns as $column => $issues ) {
 					foreach ( $issues as $issue ) {
 						if ( ! isset( $results_by_file[ $relative_file ] ) ) {
 							$results_by_file[ $relative_file ] = array();
 						}
+						$id_counter++;
 						$results_by_file[ $relative_file ][] = array(
-							'issue_id' => 'E-' . substr( md5( $relative_file . $line . $issue['code'] ), 0, 8 ),
-							'message' => $issue['message'] ?? '',
-							'code' => $issue['code'] ?? '',
-							'type' => 'ERROR',
-							'line' => (int) $line,
-							'column' => (int) $column,
-							'ignored' => false
+							'issue_id' => 'E-' . substr( md5( $relative_file . $line . $column . $issue['code'] . $id_counter ), 0, 8 ),
+							'message'  => $issue['message'] ?? '',
+							'code'     => $issue['code'] ?? '',
+							'type'     => 'ERROR',
+							'line'     => (int) $line,
+							'column'   => (int) $column,
+							'ignored'  => false,
 						);
 					}
 				}
 			}
 		}
-		
+
 		// Process warnings
 		foreach ( $warnings as $file => $lines ) {
-			// Convert absolute path to relative path from plugin directory
 			$relative_file = $this->get_relative_path( $file, $plugin_path );
-			
 			foreach ( $lines as $line => $columns ) {
 				foreach ( $columns as $column => $issues ) {
 					foreach ( $issues as $issue ) {
 						if ( ! isset( $results_by_file[ $relative_file ] ) ) {
 							$results_by_file[ $relative_file ] = array();
 						}
+						$id_counter++;
 						$results_by_file[ $relative_file ][] = array(
-							'issue_id' => 'W-' . substr( md5( $relative_file . $line . $issue['code'] ), 0, 8 ),
-							'message' => $issue['message'] ?? '',
-							'code' => $issue['code'] ?? '',
-							'type' => 'WARNING',
-							'line' => (int) $line,
-							'column' => (int) $column,
-							'ignored' => false
+							'issue_id' => 'W-' . substr( md5( $relative_file . $line . $column . $issue['code'] . $id_counter ), 0, 8 ),
+							'message'  => $issue['message'] ?? '',
+							'code'     => $issue['code'] ?? '',
+							'type'     => 'WARNING',
+							'line'     => (int) $line,
+							'column'   => (int) $column,
+							'ignored'  => false,
 						);
 					}
 				}
@@ -1004,19 +1005,69 @@ class Verification_AJAX_Handler {
 	}
 
 	/**
-	 * Mark an issue as fixed by removing it from the results JSON file
+	 * Mark an issue as ignored (sets ignored flag, keeps in results)
 	 */
-	public function mark_issue_as_fixed() {
+	public function mark_issue_as_ignored() {
 		$this->check_request_validity();
 
 		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$plugin   = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
-		// Debug output
-		error_log( 'WPV DEBUG: mark_issue_as_fixed called' );
-		error_log( 'WPV DEBUG: POST data: ' . print_r( $_POST, true ) );
-		error_log( 'WPV DEBUG: issue_id: ' . $issue_id );
-		error_log( 'WPV DEBUG: plugin: ' . $plugin );
+		if ( empty( $issue_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
+		}
+		if ( empty( $plugin ) ) {
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wp-verifier' ) ), 400 );
+		}
+
+		$results_file = Path_Builder::get_results_file_path( $plugin );
+		if ( ! file_exists( $results_file ) ) {
+			wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
+		}
+
+		$results_data = json_decode( file_get_contents( $results_file ), true );
+		if ( ! $results_data ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wp-verifier' ) ), 500 );
+		}
+
+		$found = false;
+		if ( isset( $results_data['results'] ) ) {
+			foreach ( $results_data['results'] as $file_path => &$issues ) {
+				foreach ( $issues as &$issue ) {
+					if ( isset( $issue['issue_id'] ) && $issue['issue_id'] === $issue_id ) {
+						$issue['ignored'] = true;
+						$found = true;
+						break 2;
+					}
+				}
+			}
+			unset( $issues, $issue );
+		}
+
+		if ( ! $found ) {
+			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wp-verifier' ) ), 404 );
+		}
+
+		file_put_contents( $results_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+		wp_send_json_success( array(
+			'message'  => __( 'Issue marked as ignored.', 'wp-verifier' ),
+			'issue_id' => $issue_id,
+		) );
+	}
+
+	/**
+	 * Mark an issue as fixed by removing it from the results JSON file
+	 */
+	public function mark_issue_as_fixed() {
+		error_log( 'WPV FIXED: mark_issue_as_fixed ENTERED' );
+		error_log( 'WPV FIXED: nonce=' . ( $_POST['nonce'] ?? 'MISSING' ) );
+		$this->check_request_validity();
+		error_log( 'WPV FIXED: nonce check PASSED' );
+
+		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		error_log( 'WPV FIXED: issue_id=' . $issue_id . ' plugin=' . $plugin );
 
 		if ( empty( $issue_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
