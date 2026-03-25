@@ -75,8 +75,8 @@ class AJAX_Handler_Manager {
 		add_action( 'wp_ajax_plugin_check_mark_complete', array( $this, 'mark_complete' ) );
 		add_action( 'wp_ajax_plugin_check_add_ignore_rule', array( $this, 'add_ignore_rule' ) );
 		add_action( 'wp_ajax_plugin_check_add_ignore_directory', array( $this, 'add_ignore_directory' ) );
-		// wpv_mark_resolved is now ONLY handled by Verification_AJAX_Handler
-		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_ignored' ) );
+		// wpv_mark_resolved and wpv_mark_ignored are handled by Verification_AJAX_Handler
+		// wpv_mark_unignored is also handled by Verification_AJAX_Handler
 		
 		// Scan history and reporting
 		add_action( 'wp_ajax_plugin_check_get_scan_history', array( $this, 'get_scan_history' ) );

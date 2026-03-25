@@ -43,8 +43,6 @@ class Verification_AJAX_Handler {
 		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_issue_as_fixed' ) );
 		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_issue_as_ignored' ) );
 		add_action( 'wp_ajax_wpv_mark_unignored', array( $this, 'mark_issue_as_unignored' ) );
-		
-		error_log( 'WPV DEBUG: Verification_AJAX_Handler registered wpv_mark_resolved action' );
 	}
 
 	/**
@@ -576,12 +574,7 @@ class Verification_AJAX_Handler {
 	private function save_results_to_json( $plugin_slug, $errors, $warnings ) {
 		$json_file = Path_Builder::get_results_file_path( $plugin_slug );
 		$plugin_path = Path_Builder::get_plugin_directory_path( $plugin_slug );
-		
-		error_log( 'WPV Debug: Saving results to: ' . $json_file );
-		error_log( 'WPV Debug: Plugin path: ' . $plugin_path );
-		error_log( 'WPV Debug: Errors count: ' . $this->count_issues( $errors ) );
-		error_log( 'WPV Debug: Warnings count: ' . $this->count_issues( $warnings ) );
-		
+
 		// Convert to original flat format per file
 		$results_by_file = array();
 		
@@ -635,30 +628,42 @@ class Verification_AJAX_Handler {
 			}
 		}
 		
-		$total_errors = $this->count_issues( $errors );
+		// Post-scan filter: remove results for files in ignored_files with a matching hash.
+		// This catches what PHPCS --ignore= misses: root-level files and non-PHPCS checks.
+		$verification_file = Path_Builder::get_verification_file_path( $plugin_slug );
+		if ( $verification_file && file_exists( $verification_file ) ) {
+			$vdata = json_decode( file_get_contents( $verification_file ), true );
+			if ( is_array( $vdata ) && ! empty( $vdata['ignored_files'] ) ) {
+				$plugin_path_norm = rtrim( str_replace( '\\', '/', $plugin_path ), '/' );
+				foreach ( $vdata['ignored_files'] as $relative_path => $entry ) {
+					if ( ! isset( $results_by_file[ $relative_path ] ) ) {
+						continue;
+					}
+					$stored_hash  = $entry['hash'] ?? '';
+					$absolute     = $plugin_path_norm . '/' . $relative_path;
+					$current_hash = file_exists( $absolute ) ? md5_file( $absolute ) : '';
+					if ( $stored_hash !== '' && $stored_hash === $current_hash ) {
+						unset( $results_by_file[ $relative_path ] );
+					}
+				}
+			}
+		}
+
+		$total_errors   = $this->count_issues( $errors );
 		$total_warnings = $this->count_issues( $warnings );
 		
 		$results_data = array(
 			'generated_at' => gmdate( 'Y-m-d H:i:s' ),
-			'plugin' => $plugin_slug,
-			'readiness' => array(
-				'overall' => min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) ),
-				'errors' => $total_errors,
-				'warnings' => $total_warnings
+			'plugin'       => $plugin_slug,
+			'readiness'    => array(
+				'overall'  => min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) ),
+				'errors'   => $total_errors,
+				'warnings' => $total_warnings,
 			),
-			'configuration' => array(
-				'wporg_preparation' => true,
-				'skipped_rules' => array()
-			),
-			'ignored_paths' => array(),
-			'results' => $results_by_file
+			'results' => $results_by_file,
 		);
 		
-		if ( file_put_contents( $json_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ) ) {
-			error_log( 'WPV Debug: Results saved successfully' );
-		} else {
-			error_log( 'WPV Debug: Failed to save results file' );
-		}
+		file_put_contents( $json_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 	}
 
 	/**
@@ -691,19 +696,6 @@ class Verification_AJAX_Handler {
 		
 		if ( empty( $paths_to_ignore ) ) {
 			return;
-		}
-		
-		// Only log if we have our test directories
-		$has_test_dirs = false;
-		foreach ( $paths_to_ignore as $path ) {
-			if ( strpos( $path, 'carbon-fields' ) !== false || strpos( $path, 'action-scheduler' ) !== false ) {
-				$has_test_dirs = true;
-				break;
-			}
-		}
-		
-		if ( $has_test_dirs ) {
-			error_log( 'WPV TEST DEBUG: Config loaded paths to ignore: ' . implode( ', ', $paths_to_ignore ) );
 		}
 		
 		add_filter(
@@ -771,17 +763,14 @@ class Verification_AJAX_Handler {
 	 * Get relative path from absolute path
 	 */
 	private function get_relative_path( $absolute_path, $plugin_path ) {
-		// Normalize paths to use forward slashes
 		$absolute_path = str_replace( '\\', '/', $absolute_path );
-		$plugin_path = str_replace( '\\', '/', $plugin_path );
-		
-		// Remove plugin path from absolute path
+		$plugin_path   = rtrim( str_replace( '\\', '/', $plugin_path ), '/' );
+
 		if ( strpos( $absolute_path, $plugin_path . '/' ) === 0 ) {
 			return substr( $absolute_path, strlen( $plugin_path ) + 1 );
 		}
-		
-		// If path doesn't start with plugin path, return basename
-		return basename( $absolute_path );
+
+		return $absolute_path;
 	}
 
 	/**
@@ -872,8 +861,6 @@ class Verification_AJAX_Handler {
 				}
 			}
 		}
-		
-		error_log( 'WPV Debug: Limited to ' . $issue_count . ' issues out of ' . $max_issues . ' requested' );
 		
 		return array(
 			'errors' => $limited_errors,
@@ -1006,7 +993,10 @@ class Verification_AJAX_Handler {
 	}
 
 	/**
-	 * Mark an issue as ignored (sets ignored flag, keeps in results)
+	 * Mark an issue as ignored (sets ignored flag, keeps in results).
+	 * If all issues in the file are now ignored, triggers file-level ignore.
+	 *
+	 * @return void
 	 */
 	public function mark_issue_as_ignored() {
 		$this->check_request_validity();
@@ -1031,13 +1021,15 @@ class Verification_AJAX_Handler {
 			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wp-verifier' ) ), 500 );
 		}
 
-		$found = false;
+		$found          = false;
+		$affected_file  = null;
 		if ( isset( $results_data['results'] ) ) {
 			foreach ( $results_data['results'] as $file_path => &$issues ) {
 				foreach ( $issues as &$issue ) {
 					if ( isset( $issue['issue_id'] ) && $issue['issue_id'] === $issue_id ) {
 						$issue['ignored'] = true;
-						$found = true;
+						$found         = true;
+						$affected_file = $file_path;
 						break 2;
 					}
 				}
@@ -1049,12 +1041,97 @@ class Verification_AJAX_Handler {
 			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wp-verifier' ) ), 404 );
 		}
 
+		// Check if every issue in the affected file is now ignored.
+		$file_ignored = false;
+		if ( $affected_file && isset( $results_data['results'][ $affected_file ] ) ) {
+			$all_ignored = true;
+			foreach ( $results_data['results'][ $affected_file ] as $issue ) {
+				if ( empty( $issue['ignored'] ) ) {
+					$all_ignored = false;
+					break;
+				}
+			}
+			if ( $all_ignored ) {
+				$results_data = $this->mark_file_as_ignored( $plugin, $affected_file, $results_data );
+				$file_ignored = true;
+			}
+		}
+
 		file_put_contents( $results_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 
 		wp_send_json_success( array(
-			'message'  => __( 'Issue marked as ignored.', 'wp-verifier' ),
-			'issue_id' => $issue_id,
+			'message'      => $file_ignored
+				? __( 'All issues in file ignored — file marked as ignored.', 'wp-verifier' )
+				: __( 'Issue marked as ignored.', 'wp-verifier' ),
+			'issue_id'     => $issue_id,
+			'file_ignored' => $file_ignored,
 		) );
+	}
+
+	/**
+	 * Mark a file as ignored at the file level.
+	 *
+	 * Computes the MD5 hash of the file on disk, writes an entry to
+	 * `.wpv-verification.json` under `ignored_files`, removes all issues
+	 * for that file from the results data, and recalculates readiness scores.
+	 *
+	 * @param string $plugin        Plugin slug.
+	 * @param string $file_path     Relative file path within the plugin (as stored in results).
+	 * @param array  $results_data  Current decoded results data array.
+	 * @return array Updated results data with the file's issues removed.
+	 */
+	private function mark_file_as_ignored( $plugin, $file_path, array $results_data ) {
+		$plugin_dir      = str_replace( '\\', '/', Path_Builder::get_plugin_directory_path( $plugin ) );
+		$file_path       = str_replace( '\\', '/', $file_path );
+		$absolute_path   = $plugin_dir . '/' . $file_path;
+		$file_hash       = file_exists( $absolute_path ) ? md5_file( $absolute_path ) : '';
+
+		// Load or initialise .wpv-verification.json.
+		$verification_file = Path_Builder::get_verification_file_path( $plugin );
+		$verification_data = array();
+		if ( file_exists( $verification_file ) ) {
+			$decoded = json_decode( file_get_contents( $verification_file ), true );
+			if ( is_array( $decoded ) ) {
+				$verification_data = $decoded;
+			}
+		}
+
+		if ( ! isset( $verification_data['ignored_files'] ) ) {
+			$verification_data['ignored_files'] = array();
+		}
+
+		$verification_data['ignored_files'][ $file_path ] = array(
+			'hash'       => $file_hash,
+			'ignored_at' => gmdate( 'Y-m-d H:i:s' ),
+		);
+
+		file_put_contents( $verification_file, wp_json_encode( $verification_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+		// Remove all issues for this file from results.
+		unset( $results_data['results'][ $file_path ] );
+
+		// Recalculate readiness.
+		if ( isset( $results_data['readiness'] ) ) {
+			$total_errors   = 0;
+			$total_warnings = 0;
+			foreach ( $results_data['results'] as $issues ) {
+				foreach ( $issues as $issue ) {
+					if ( ! empty( $issue['ignored'] ) ) {
+						continue;
+					}
+					if ( isset( $issue['type'] ) && 'ERROR' === $issue['type'] ) {
+						$total_errors++;
+					} elseif ( isset( $issue['type'] ) && 'WARNING' === $issue['type'] ) {
+						$total_warnings++;
+					}
+				}
+			}
+			$results_data['readiness']['errors']  = $total_errors;
+			$results_data['readiness']['warnings'] = $total_warnings;
+			$results_data['readiness']['overall']  = min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) );
+		}
+
+		return $results_data;
 	}
 
 	/**
@@ -1112,13 +1189,17 @@ class Verification_AJAX_Handler {
 	}
 
 	/**
-	 * Mark an issue as fixed by removing it from the results JSON file
+	 * Mark an issue as fixed by removing it from the results JSON file.
+	 * If the remaining issues in the file are all ignored (or none remain),
+	 * triggers file-level ignore.
+	 *
+	 * @return void
 	 */
 	public function mark_issue_as_fixed() {
 		$this->check_request_validity();
 
 		$issue_id = filter_input( INPUT_POST, 'issue_id', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$plugin   = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( empty( $issue_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
@@ -1129,14 +1210,12 @@ class Verification_AJAX_Handler {
 		}
 
 		try {
-			// Get the results file path
 			$results_file = Path_Builder::get_results_file_path( $plugin );
-			
+
 			if ( ! file_exists( $results_file ) ) {
 				wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
 			}
 
-			// Load current results
 			$results_content = file_get_contents( $results_file );
 			if ( false === $results_content ) {
 				wp_send_json_error( array( 'message' => __( 'Failed to read results file.', 'wp-verifier' ) ), 500 );
@@ -1147,76 +1226,81 @@ class Verification_AJAX_Handler {
 				wp_send_json_error( array( 'message' => __( 'Invalid results file format.', 'wp-verifier' ) ), 500 );
 			}
 
-			// Find and remove the issue
-			$issue_found = false;
-			$issues_removed = 0;
+			$issue_found   = false;
+			$affected_file = null;
 			if ( isset( $results_data['results'] ) && is_array( $results_data['results'] ) ) {
 				foreach ( $results_data['results'] as $file_path => $issues ) {
-					error_log( 'WPV FIXED: Checking file: ' . $file_path . ' with ' . count($issues) . ' issues' );
-					error_log( 'WPV FIXED: First issue in ' . $file_path . ': ' . ($issues[0]['issue_id'] ?? 'NO_FIRST_ISSUE') );
 					if ( is_array( $issues ) ) {
 						foreach ( $issues as $index => $issue ) {
-							error_log( 'WPV FIXED: Checking issue[' . $index . '] id=' . ($issue['issue_id'] ?? 'NO_ID') . ' vs target=' . $issue_id );
 							if ( isset( $issue['issue_id'] ) && $issue['issue_id'] === $issue_id ) {
-								error_log( 'WPV FIXED: MATCH FOUND! Removing issue ' . $issue_id . ' from file ' . $file_path );
-								error_log( 'WPV FIXED: Before removal - issues count: ' . count($issues) );
-								// Remove the issue from the array
 								unset( $issues[ $index ] );
-								// Re-index the array
 								$issues = array_values( $issues );
-								error_log( 'WPV FIXED: After removal and re-index - issues count: ' . count($issues) );
-								// Update the results data
 								if ( empty( $issues ) ) {
-									error_log( 'WPV FIXED: File ' . $file_path . ' now empty, removing from results' );
 									unset( $results_data['results'][ $file_path ] );
 								} else {
 									$results_data['results'][ $file_path ] = $issues;
 								}
-								$issue_found = true;
-								$issues_removed++;
-								break 2; // Break out of both loops
+								$issue_found   = true;
+								$affected_file = $file_path;
+								break 2;
 							}
 						}
 					}
 				}
 			}
-
 
 			if ( ! $issue_found ) {
 				wp_send_json_error( array( 'message' => __( 'Issue not found in results.', 'wp-verifier' ) ), 404 );
 			}
 
-			// Update readiness scores
-			if ( isset( $results_data['readiness'] ) ) {
-				$total_errors = 0;
+			// If remaining issues in the file are all ignored (or file is now empty), trigger file-level ignore.
+			$file_ignored = false;
+			if ( $affected_file ) {
+				$remaining = $results_data['results'][ $affected_file ] ?? array();
+				$all_ignored = true;
+				foreach ( $remaining as $issue ) {
+					if ( empty( $issue['ignored'] ) ) {
+						$all_ignored = false;
+						break;
+					}
+				}
+				if ( $all_ignored ) {
+					$results_data = $this->mark_file_as_ignored( $plugin, $affected_file, $results_data );
+					$file_ignored = true;
+				}
+			}
+
+			// Recalculate readiness (skip if mark_file_as_ignored already did it).
+			if ( ! $file_ignored && isset( $results_data['readiness'] ) ) {
+				$total_errors   = 0;
 				$total_warnings = 0;
-				
 				foreach ( $results_data['results'] as $issues ) {
 					foreach ( $issues as $issue ) {
-						if ( isset( $issue['type'] ) ) {
-							if ( $issue['type'] === 'ERROR' ) {
-								$total_errors++;
-							} elseif ( $issue['type'] === 'WARNING' ) {
-								$total_warnings++;
-							}
+						if ( ! empty( $issue['ignored'] ) ) {
+							continue;
+						}
+						if ( isset( $issue['type'] ) && 'ERROR' === $issue['type'] ) {
+							$total_errors++;
+						} elseif ( isset( $issue['type'] ) && 'WARNING' === $issue['type'] ) {
+							$total_warnings++;
 						}
 					}
 				}
-				
-				$results_data['readiness']['errors'] = $total_errors;
+				$results_data['readiness']['errors']  = $total_errors;
 				$results_data['readiness']['warnings'] = $total_warnings;
-				$results_data['readiness']['overall'] = min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) );
+				$results_data['readiness']['overall']  = min( 100, max( 0, 100 - ( $total_errors * 2 + $total_warnings ) ) );
 			}
 
-			// Save updated results
-			$updated_json = wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-			if ( false === file_put_contents( $results_file, $updated_json ) ) {
+			if ( false === file_put_contents( $results_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ) ) {
 				wp_send_json_error( array( 'message' => __( 'Failed to save updated results.', 'wp-verifier' ) ), 500 );
 			}
 
 			wp_send_json_success( array(
-				'message' => __( 'Issue marked as fixed and removed from results.', 'wp-verifier' ),
-				'issue_id' => $issue_id
+				'message'      => $file_ignored
+					? __( 'Issue fixed — all remaining issues in file were ignored, file marked as ignored.', 'wp-verifier' )
+					: __( 'Issue marked as fixed and removed from results.', 'wp-verifier' ),
+				'issue_id'     => $issue_id,
+				'file_ignored' => $file_ignored,
 			) );
 
 		} catch ( Exception $e ) {

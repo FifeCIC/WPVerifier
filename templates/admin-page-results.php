@@ -41,6 +41,52 @@ if ( $selected_issue_id && $results_data && ! empty( $results_data['results'] ) 
 	}
 }
 
+// Sort results: files with stale ignored_files entries (hash mismatch) first,
+// then active files ordered by error count descending, warnings descending.
+if ( ! empty( $results_data['results'] ) ) {
+	$verification_file = Path_Builder::get_verification_file_path( $plugin_info['slug'] );
+	$ignored_files     = array();
+	if ( $verification_file && file_exists( $verification_file ) ) {
+		$vdata = json_decode( file_get_contents( $verification_file ), true );
+		if ( is_array( $vdata ) ) {
+			$ignored_files = $vdata['ignored_files'] ?? array();
+		}
+	}
+
+	$stale   = array();
+	$normal  = array();
+
+	foreach ( $results_data['results'] as $file => $issues ) {
+		if ( isset( $ignored_files[ $file ] ) ) {
+			$stale[ $file ] = $issues;
+		} else {
+			$normal[ $file ] = $issues;
+		}
+	}
+
+	// Sort normal files: fewest active issues first (closest to resolved at top),
+	// ties broken by error count descending.
+	uasort(
+		$normal,
+		static function ( $a, $b ) {
+			$a_errors   = count( array_filter( $a, static fn( $i ) => empty( $i['ignored'] ) && ( $i['type'] ?? '' ) === 'ERROR' ) );
+			$b_errors   = count( array_filter( $b, static fn( $i ) => empty( $i['ignored'] ) && ( $i['type'] ?? '' ) === 'ERROR' ) );
+			$a_warnings = count( array_filter( $a, static fn( $i ) => empty( $i['ignored'] ) && ( $i['type'] ?? '' ) === 'WARNING' ) );
+			$b_warnings = count( array_filter( $b, static fn( $i ) => empty( $i['ignored'] ) && ( $i['type'] ?? '' ) === 'WARNING' ) );
+			$a_total    = $a_errors + $a_warnings;
+			$b_total    = $b_errors + $b_warnings;
+			if ( $a_total !== $b_total ) {
+				return $a_total - $b_total; // Fewest issues first.
+			}
+			// Tie-break: more errors = higher priority.
+			return $b_errors - $a_errors;
+		}
+	);
+
+	// Stale-ignored files bubble to the top so the developer notices them.
+	$results_data['results'] = array_merge( $stale, $normal );
+}
+
 // Load AI guidance for selected issue
 $ai_guidance_text = '';
 if ( $selected_issue ) {
@@ -102,7 +148,12 @@ if ( $selected_issue ) {
 					foreach ( $results_data['results'] as $file => $issues ) :
 						$error_count   = 0;
 						$warning_count = 0;
+						$ignored_count = 0;
 						foreach ( $issues as $issue ) {
+							if ( ! empty( $issue['ignored'] ) ) {
+								$ignored_count++;
+								continue;
+							}
 							if ( 'ERROR' === $issue['type'] ) {
 								$error_count++;
 							} elseif ( 'WARNING' === $issue['type'] ) {
@@ -117,10 +168,13 @@ if ( $selected_issue ) {
 								<div class="wpv-ast-file-name"><?php echo esc_html( $file ); ?></div>
 								<div class="wpv-ast-severity">
 									<?php if ( $error_count > 0 ) : ?>
-										<span class="wpv-ast-badge error"><?php echo esc_html( $error_count ); ?> errors</span>
+										<span class="wpv-ast-badge error"><?php echo esc_html( $error_count ); ?> error<?php echo 1 !== $error_count ? 's' : ''; ?></span>
 									<?php endif; ?>
 									<?php if ( $warning_count > 0 ) : ?>
-										<span class="wpv-ast-badge warning"><?php echo esc_html( $warning_count ); ?> warnings</span>
+										<span class="wpv-ast-badge warning"><?php echo esc_html( $warning_count ); ?> warning<?php echo 1 !== $warning_count ? 's' : ''; ?></span>
+									<?php endif; ?>
+									<?php if ( $ignored_count > 0 ) : ?>
+										<span class="wpv-ast-badge ignored"><?php echo esc_html( $ignored_count ); ?> ignored</span>
 									<?php endif; ?>
 								</div>
 							</div>

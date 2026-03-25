@@ -14,7 +14,6 @@ use WordPress\Plugin_Check\Checker\Check_Result;
 use WordPress\Plugin_Check\Checker\Static_Check;
 use WordPress\Plugin_Check\Traits\Amend_Check_Result;
 use WordPress\Plugin_Check\Utilities\Plugin_Request_Utility;
-use WordPress\Plugin_Check\Verification\Hash_Generator;
 
 /**
  * Check for running one or more PHP CodeSniffer sniffs.
@@ -294,54 +293,90 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 	}
 
 	/**
-	 * Gets files that need to be scanned (changed files only)
+	 * Gets files that need to be scanned, excluding files ignored via the
+	 * file-level ignore system in `.wpv-verification.json`.
 	 *
-	 * @param Check_Result $result The check result context
-	 * @return array Array of file paths that need scanning
+	 * Passes the full plugin directory to PHPCS (preserving all check types)
+	 * and appends ignored file paths as additional --ignore patterns.
+	 * Stale ignores (hash mismatch) are automatically cleared.
+	 *
+	 * @param Check_Result $result The check result context.
+	 * @return array Array containing the plugin directory path to scan.
 	 */
 	private function get_files_to_scan( Check_Result $result ) {
 		try {
-			$hash_generator = new Hash_Generator();
-			$plugin_path = $result->plugin()->location();
-			$results_file = $plugin_path . '/.wpv-results.json';
-			
-			// Load existing hashes
-			$existing_hashes = array();
-			$has_existing_results = false;
-			if ( file_exists( $results_file ) ) {
-				$data = json_decode( file_get_contents( $results_file ), true );
-				if ( isset( $data['file_hashes'] ) && ! empty( $data['file_hashes'] ) ) {
-					$existing_hashes = $data['file_hashes'];
-					$has_existing_results = true;
+			$plugin_path      = $result->plugin()->location();
+			$plugin_path_norm = rtrim( str_replace( '\\', '/', $plugin_path ), '/' );
+
+			// Load ignored_files from .wpv-verification.json.
+			$verification_file = $plugin_path . '/.wpv-verification.json';
+			$ignored_files     = array();
+			$verification_data = array();
+			if ( file_exists( $verification_file ) ) {
+				$decoded = json_decode( file_get_contents( $verification_file ), true );
+				if ( is_array( $decoded ) ) {
+					$verification_data = $decoded;
+					$ignored_files     = $decoded['ignored_files'] ?? array();
 				}
 			}
-			
-			// If no existing results, scan all files (first run)
-			if ( ! $has_existing_results ) {
-				return array( $plugin_path ); // Scan entire plugin
+
+			if ( empty( $ignored_files ) ) {
+				return array( $plugin_path );
 			}
-			
-			// Get all PHP files in plugin
-			$php_files = $this->get_php_files( $plugin_path );
-			$changed_files = array();
-			
-			foreach ( $php_files as $file_path ) {
-				$current_hash = $hash_generator->generate_file_hash( $file_path );
-				$relative_path = str_replace( $plugin_path . '/', '', $file_path );
-				
-				// Compare with existing hash
-				if ( ! isset( $existing_hashes[ $relative_path ] ) || 
-					 $existing_hashes[ $relative_path ] !== $current_hash ) {
-					$changed_files[] = $file_path;
+
+			// Validate hashes — clear stale entries, collect valid ignore patterns.
+			$stale_cleared    = false;
+			$ignore_patterns  = array();
+
+			foreach ( $ignored_files as $relative_path => $entry ) {
+				$absolute_path = $plugin_path_norm . '/' . $relative_path;
+				$stored_hash   = $entry['hash'] ?? '';
+				$current_hash  = file_exists( $absolute_path ) ? md5_file( $absolute_path ) : '';
+
+				if ( $stored_hash !== '' && $stored_hash === $current_hash ) {
+					// Hash matches — add as PHPCS ignore pattern.
+					$ignore_patterns[] = $absolute_path;
+				} else {
+					// Hash mismatch or empty — clear the stale entry.
+					unset( $verification_data['ignored_files'][ $relative_path ] );
+					$stale_cleared = true;
 				}
 			}
-			
-			// If no files changed, still return plugin path to maintain compatibility
-			// This ensures we don't break existing functionality
-			return empty( $changed_files ) ? array( $plugin_path ) : $changed_files;
-			
+
+			// Persist cleared stale ignores.
+			if ( $stale_cleared ) {
+				file_put_contents(
+					$verification_file,
+					wp_json_encode( $verification_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
+				);
+			}
+
+			// Register valid ignored files as additional PHPCS ignore patterns.
+			if ( ! empty( $ignore_patterns ) ) {
+				add_filter(
+					'wp_plugin_check_ignore_files',
+					static function ( $files ) use ( $ignore_patterns, $plugin_path_norm ) {
+						$glob_patterns = array();
+						foreach ( $ignore_patterns as $absolute ) {
+							// Strip plugin root to get relative path, then build a
+							// forward-slash glob pattern PHPCS fnmatch() can handle.
+							$relative = ltrim(
+								str_replace( $plugin_path_norm, '', str_replace( '\\', '/', $absolute ) ),
+								'/'
+							);
+							// Use the full forward-slash path as the pattern so PHPCS
+							// can match it after normalising its own paths.
+							$glob_patterns[] = $plugin_path_norm . '/' . $relative;
+						}
+						return array_unique( array_merge( $files, $glob_patterns ) );
+					}
+				);
+			}
+
+			// Always return the full plugin directory so all check types run.
+			return array( $plugin_path );
+
 		} catch ( Exception $e ) {
-			// On error, scan all files (fallback to original behavior)
 			return array( $result->plugin()->location() );
 		}
 	}
@@ -491,8 +526,7 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 
 			// Ignore files.
 			if ( ! empty( $files_to_ignore ) ) {
-				$file_pattern = '/' . implode( ',/', $files_to_ignore );
-				$ignore_patterns[] = $file_pattern;
+				$ignore_patterns[] = implode( ',', $files_to_ignore );
 			}
 			
 			// Add config ignored paths

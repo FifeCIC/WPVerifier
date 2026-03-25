@@ -36,6 +36,9 @@ Hash (MD5 of file contents) only changes when actual content changes. Timestamps
 - Open file, save without changes → hash unchanged → ignore still valid ✅
 - Actually fix/change code → hash changes → ignore correctly invalidated ✅
 
+### Known Issues
+- [ ] **"File Resolved!" button message not displaying** — `file_ignored: true` is returned correctly in the AJAX response and the JS handler is correct, but the button text change is not visible before the redirect fires. The notification/admin message system needs a proper queued message approach rather than relying on button text mutation. This should be solved by building a proper admin notice queue (see Additional Features below) and using it here instead.
+
 ### Phase 6.1: Auto-Detect All-Ignored Files
 **Trigger:** When user clicks Ignore on any issue in TAB04.
 **Logic in `mark_issue_as_ignored()`:**

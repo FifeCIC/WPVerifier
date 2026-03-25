@@ -31,8 +31,7 @@ class Hash_AJAX_Handler {
 	public function add_hooks() {
 		add_action( 'wp_ajax_wpv_generate_hashes', array( $this, 'generate_hashes' ) );
 		add_action( 'wp_ajax_wpv_check_hashes', array( $this, 'check_hashes' ) );
-		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_ignored' ) );
-		// Removed wpv_mark_resolved - now handled by Verification_AJAX_Handler
+		// wpv_mark_ignored is handled exclusively by Verification_AJAX_Handler
 	}
 
 	/**

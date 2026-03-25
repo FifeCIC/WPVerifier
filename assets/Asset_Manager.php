@@ -199,7 +199,7 @@ class Asset_Manager {
             'admin-results',
             WP_PLUGIN_CHECK_PLUGIN_DIR_URL . 'assets/js/admin-results.js',
             array('jquery'),
-            WP_PLUGIN_CHECK_VERSION,
+            filemtime( WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/js/admin-results.js' ),
             true
         );
         
