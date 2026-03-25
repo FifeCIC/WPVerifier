@@ -150,6 +150,73 @@ Same concept as file-level ignoring but scoped to individual functions/methods. 
 
 ---
 
+## PHASE 7: JSON Storage Directory Migration 📋 PLANNED
+
+### Overview
+Move all `.wpv-*.json` files from the target plugin's root into a dedicated `wpevolveverifier/` subfolder. This keeps the plugin root clean and uses a unique folder name to avoid collisions. A `README.md` is placed inside the folder explaining its purpose.
+
+### Phase 7.0: Path_Builder Consolidation (Prerequisite) ⚠️ CRITICAL
+**Problem:** Multiple files bypass `Path_Builder` and hardcode JSON paths directly. A directory change will break them all unless consolidated first.
+
+**Files that hardcode JSON paths (must be refactored to use Path_Builder):**
+- `includes/Admin/Results_AJAX_Handler.php` — `$dir . '/.wpv-results.json'`
+- `includes/Admin/Saved_Results_Handler.php` — `$plugin_dir . '/.wpv-results.json'`
+- `includes/Admin/Config_AJAX_Handler.php` — hardcodes `.wpv-config.json`
+- `includes/Admin/Verification_AJAX_Handler.php` — hardcodes `.wpv-config.json`
+- `includes/Admin/Hash_AJAX_Handler.php` — hardcodes `.wpv-verification.json` (×2)
+- `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php` — hardcodes `.wpv-config.json` + `.wpv-verification.json`
+- `includes/Utilities/Template_Helper.php` — hardcodes all three JSON files
+- `includes/Utilities/Plugin_Request_Utility.php` — hardcodes all three in `get_files_to_ignore()`
+- `includes/Verification/Results_Storage.php` — own `RESULTS_FILE` constant
+- `includes/Verification/Config_Storage.php` — own `CONFIG_FILE` constant
+- `includes/Verification/JSON_Storage.php` — own `VERIFICATION_FILE` constant
+
+**Action:** Every reference above must call `Path_Builder::get_results_file_path()`, `get_config_file_path()`, or `get_verification_file_path()` instead. The Storage class constants should delegate to `Path_Builder` or be removed.
+
+**Once consolidated, changing the directory is a single-line edit in `Path_Builder`.**
+
+### Phase 7.1: Move JSON Files to `wpevolveverifier/` Subfolder
+**Changes to `Path_Builder`:**
+- Update `get_results_file_path()`, `get_config_file_path()`, `get_verification_file_path()` to return paths under `wpevolveverifier/` subfolder
+- Add `get_storage_directory_path( $plugin_slug )` method that returns `{plugin_root}/wpevolveverifier/`
+- Add `ensure_storage_directory( $plugin_slug )` method that creates the folder + `README.md` if missing
+
+**`wpevolveverifier/README.md` contents:**
+Auto-generated file explaining:
+- This folder is created and managed by the WP Verifier plugin
+- Contains verification results, configuration, and ignore tracking data
+- Safe to delete (will be regenerated on next plugin check)
+- Should be added to `.gitignore` for the target plugin
+
+**Update `Plugin_Request_Utility::get_directories_to_ignore()`:**
+- Add `wpevolveverifier` to the default ignored directories list (so the folder itself is never scanned)
+
+### Phase 7.2: Migration of Existing Files
+- On plugin load or first access, detect old `.wpv-*.json` files in plugin root
+- Move them into `wpevolveverifier/` automatically
+- Clean up old files from root after successful migration
+
+---
+
+## PHASE 8: Plugin Selection Duplicate File Warning 📋 PLANNED
+
+### Overview
+When a user selects a new plugin for verification, check if the target plugin already contains `wpevolveverifier/` folder or `.wpv-*.json` files. If files exist, display a clear admin warning: these files may not have been created by WP Verifier (e.g. manually placed, or from a different WP Verifier installation).
+
+### Implementation
+**Trigger:** Plugin selection change (when `wpv_last_selected_plugin` is updated via AJAX).
+**Logic:**
+1. Check if `wpevolveverifier/` folder or any `.wpv-*.json` files exist in the newly selected plugin's root
+2. If found → return a warning flag in the AJAX response
+3. JS displays an admin notice: _"This plugin already contains WP Verifier data files. These may have been created by a previous installation or another tool. Proceeding will use the existing data. Run a fresh check to regenerate."_
+4. User can dismiss or proceed
+
+**Files to modify:**
+- `includes/Admin/AJAX_Handler_Manager.php` — add existence check on plugin selection
+- `assets/js/` — display warning notice in UI
+
+---
+
 ## Additional Features
 
 ### Hash-Aware Ignore / Verify Workflow
