@@ -19,7 +19,7 @@ Merged TAB04 + TAB05 into single "Results" tab with pure PHP rendering.
 - [x] Fixed PHP reference bug (`&$issues` + `break 2` = data corruption). Solution: remove reference, use explicit `$results_data['results'][$file_path] = $issues`
 
 ### Remaining Cleanup
-- [ ] Delete old files: `admin-page-issues-byfile.php`, `admin-page-issues.php`, `admin-page-saved.js`, `issues-tab.js`, `plugin-check-saved.js`
+- [x] Delete old files: `admin-page-issues-byfile.php`, `admin-page-issues.php` — deleted. `admin-page-saved.js`, `issues-tab.js`, `plugin-check-saved.js` — not found, likely already removed.
 - [ ] Strip TAB04/TAB05 code from `wp-verifier-ast.js` (keep TAB03 post-verification display)
 - [ ] Remove `results-ast.php` template from `admin_footer()` if safe
 

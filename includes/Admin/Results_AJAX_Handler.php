@@ -476,7 +476,19 @@ class Results_AJAX_Handler {
 	private function update_file_results( $plugin, $file, $errors, $warnings ) {
 		$json_file = $this->get_results_file_path( $plugin );
 
-		if ( ! file_exists( $json_file ) ) {
+		if ( ! $json_file || ! file_exists( $json_file ) ) {
+			return;
+		}
+
+		// Guard: only write to the expected WPVerifier results file inside WP_PLUGIN_DIR.
+		$real_plugin_dir = realpath( WP_PLUGIN_DIR );
+		$real_dir        = realpath( dirname( $json_file ) );
+		if (
+			false === $real_plugin_dir ||
+			false === $real_dir ||
+			strpos( $real_dir, $real_plugin_dir ) !== 0 ||
+			basename( $json_file ) !== '.wpv-results.json'
+		) {
 			return;
 		}
 
@@ -491,13 +503,18 @@ class Results_AJAX_Handler {
 		// Convert grouped format to flat and use existing processing logic
 		$errors_flat = $this->convert_grouped_to_flat( $errors );
 		$warnings_flat = $this->convert_grouped_to_flat( $warnings );
-		
+
 		// Process using same logic as save_results
 		$this->add_issues_to_results( $data['results'], $errors_flat, 'ERROR' );
 		$this->add_issues_to_results( $data['results'], $warnings_flat, 'WARNING' );
 
 		$data['updated_at'] = current_time( 'mysql' );
-		file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
+
+		// Atomic write via temp file to avoid partial writes corrupting the JSON.
+		$temp_path = $json_file . '.tmp';
+		if ( false !== file_put_contents( $temp_path, wp_json_encode( $data, JSON_PRETTY_PRINT ), LOCK_EX ) ) {
+			rename( $temp_path, $json_file );
+		}
 	}
 
 	/**

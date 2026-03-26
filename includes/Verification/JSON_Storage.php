@@ -155,7 +155,19 @@ class JSON_Storage {
 	 */
 	public static function initialize_verification_file( $plugin_folder ) {
 		$file_path = WP_PLUGIN_DIR . '/' . $plugin_folder . '/' . self::VERIFICATION_FILE;
-		
+
+		// Guard: only write the expected filename inside WP_PLUGIN_DIR.
+		$real_plugin_dir = realpath( WP_PLUGIN_DIR );
+		$real_dir        = realpath( dirname( $file_path ) );
+		if (
+			false === $real_plugin_dir ||
+			false === $real_dir ||
+			strpos( $real_dir, $real_plugin_dir ) !== 0 ||
+			basename( $file_path ) !== self::VERIFICATION_FILE
+		) {
+			return false;
+		}
+
 		if ( file_exists( $file_path ) ) {
 			return true; // Already exists
 		}

@@ -1,4 +1,12 @@
 {
+  "WordPress.Security.ValidatedSanitizedInput.MissingUnslash": {
+    "message": "Input variable not unslashed before sanitisation.",
+    "ai_guidance": "Wrap the superglobal access in wp_unslash() before passing to a sanitisation function, e.g. sanitize_text_field( wp_unslash( $_POST['field'] ) ). Consider: (1) whether the field is also missing an isset() check — MissingUnslash and InputNotValidated often appear together on the same line; (2) whether the value is a nonce — nonces should be verified with wp_verify_nonce() or check_ajax_referer(), not sanitised with sanitize_text_field(); (3) whether the field contains HTML or rich text — use wp_kses_post() after wp_unslash() rather than sanitize_text_field() which strips tags."
+  },
+  "WordPress.Security.ValidatedSanitizedInput.InputNotSanitized": {
+    "message": "Input variable used without sanitisation.",
+    "ai_guidance": "Apply the correct sanitisation function for the data type: sanitize_text_field() for plain text, sanitize_email() for email addresses, absint() for positive integers, sanitize_url() for URLs, wp_kses_post() for HTML content. Consider: (1) whether the variable is a nonce — nonces must be verified with wp_verify_nonce(), not sanitised; (2) whether the variable is used in a database query — sanitisation alone is not enough, $wpdb->prepare() is also required; (3) whether the variable is used in output — sanitisation on input and escaping on output are separate concerns, both are required."
+  },
   "WordPress.Security.NonceVerification.Missing": {
     "message": "Processing form data without nonce verification.",
     "ai_guidance": "Before adding nonce verification, check if the calling function already performs nonce verification. Avoid duplicate nonce checks in nested functions. Use @security phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function to exempt when already handled."
@@ -14,6 +22,122 @@
   "WordPress.Security.EscapeOutput.OutputNotEscaped": {
     "message": "All output should be run through an escaping function.",
     "ai_guidance": "Before adding escaping, examine if the variable contains pre-escaped content. Check if values were already escaped when added to arrays or variables. If content is already escaped, use wp_kses_post(). Look beyond the immediate line to understand the data flow and origin of the variable."
+  },
+  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound": {
+    "message": "Global variable does not use the plugin prefix.",
+    "ai_guidance": "Rename the variable to use the plugin's prefix (e.g. $wpseed_current_tab instead of $current_tab). Consider: (1) whether the variable is actually global scope or just a local variable inside a function — PHPCS sometimes flags loop variables in template files that are not truly global; (2) whether the variable is used across multiple files — a rename must be applied consistently everywhere it is referenced; (3) whether the file is a template partial included by another file — variables inherited from the parent scope are not global and may not need renaming."
+  },
+  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound": {
+    "message": "Class name does not use the plugin prefix.",
+    "ai_guidance": "Rename the class to use the plugin's prefix (e.g. WPSeed_Foo_Widget instead of Foo_Widget). Consider: (1) whether the class is instantiated or extended elsewhere — all references must be updated; (2) whether the class name is registered with WordPress (e.g. as a widget via register_widget()) — the registered name must also be updated; (3) whether the class is part of a third-party library included in the plugin — if so, it should be excluded from PHPCS scanning rather than renamed."
+  },
+  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound": {
+    "message": "Hook name does not use the plugin prefix.",
+    "ai_guidance": "Rename the hook to use the plugin's prefix (e.g. wpseed_updater_cron instead of wp_wpseed_updater_cron). Consider: (1) whether the hook is already in use by external code or other plugins that listen to it — renaming is a breaking change; (2) whether the hook is registered with wp_schedule_event() or add_action() in multiple places — all registrations and all listeners must be updated together; (3) whether a deprecated alias hook should be kept temporarily for backwards compatibility."
+  },
+  "WordPress.DB.DirectDatabaseQuery.DirectQuery": {
+    "message": "Direct database call is discouraged.",
+    "ai_guidance": "Consider whether a WordPress API function (get_posts(), get_option(), WP_Query, etc.) can replace the direct query. If a direct query is genuinely necessary (custom tables, complex joins, performance-critical paths), keep it but ensure: (1) the query uses $wpdb->prepare() for any dynamic values; (2) a caching layer is added with wp_cache_get()/wp_cache_set() if the query runs on page load; (3) for schema-changing queries (CREATE TABLE, DROP TABLE), use dbDelta() instead of direct $wpdb->query()."
+  },
+  "WordPress.DB.DirectDatabaseQuery.SchemaChange": {
+    "message": "Direct database schema change is discouraged.",
+    "ai_guidance": "Schema changes (CREATE TABLE, ALTER TABLE, DROP TABLE) should use dbDelta() from wp-admin/includes/upgrade.php rather than direct $wpdb->query() calls. Consider: (1) whether the table creation belongs in a plugin activation hook via register_activation_hook() rather than running on every page load; (2) whether DROP TABLE is safe to run unconditionally — it should typically only run in an uninstall hook (uninstall.php or register_uninstall_hook()); (3) whether the table name uses $wpdb->prefix to avoid collisions in multisite."
+  },
+  "WordPress.DB.PreparedSQL.NotPrepared": {
+    "message": "Database query variable passed directly without $wpdb->prepare().",
+    "ai_guidance": "Wrap the query in $wpdb->prepare() with placeholders (%s, %d, %f) for all dynamic values. Consider: (1) whether the variable being flagged is a table name or column name — these cannot use %s/%d placeholders and require the %i identifier placeholder (WordPress 6.2+) or esc_sql() for older compatibility targets; (2) whether the query is built dynamically across multiple lines — trace the full construction of the variable to ensure all interpolated values are covered; (3) whether the minimum WordPress version requirement allows %i — if supporting below 6.2, use esc_sql() for identifiers instead."
+  },
+  "WordPress.DB.PreparedSQL.InterpolatedNotPrepared": {
+    "message": "Interpolated variable found directly in SQL string passed to $wpdb->prepare().",
+    "ai_guidance": "Replace interpolated variables in the SQL string with placeholders and pass the values as arguments to $wpdb->prepare(). Consider: (1) whether the interpolated variable is a table name or column name — use %i (WordPress 6.2+) or esc_sql() for identifiers, not %s; (2) whether the variable is a dynamically built WHERE clause or ORDER BY fragment — these require whitelist validation (e.g. in_array() against allowed values) before inclusion, as placeholders cannot be used for SQL keywords or clause fragments; (3) whether fixing this requires restructuring the query significantly — a full rewrite using $wpdb->prepare() with all values as arguments is preferable to partial fixes."
+  },
+  "WordPress.DB.PreparedSQLPlaceholders.UnsupportedIdentifierPlaceholder": {
+    "message": "The %i placeholder requires WordPress 6.2 or higher.",
+    "ai_guidance": "Check the plugin's 'Requires at least' value in readme.txt and the main plugin file header. If supporting WordPress below 6.2, replace %i with esc_sql( $wpdb->prefix . 'table_name' ) for table/column identifiers. If the minimum requirement is already 6.2 or higher, the %i usage is correct and this may indicate a PHPCS ruleset version mismatch — verify the WordPress coding standards package is up to date."
+  },
+  "WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber": {
+    "message": "Wrong number of replacement parameters passed to $wpdb->prepare().",
+    "ai_guidance": "Count the placeholders in the SQL string (%s, %d, %f, %i) and ensure the number of arguments passed to $wpdb->prepare() matches exactly. Consider: (1) whether an array is being passed as a single argument instead of being unpacked — use array_merge() or spread operator correctly; (2) whether the SQL string is built dynamically and the placeholder count varies — the argument count must be built dynamically to match; (3) whether %i placeholders are being counted — each %i counts as one replacement."
+  },
+  "WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder": {
+    "message": "Complex placeholder (e.g. %1s) will not be quoted automatically.",
+    "ai_guidance": "Complex positional placeholders like %1s, %2s are not automatically quoted by $wpdb->prepare(). Wrap them in single quotes in the SQL string (e.g. '%1s') or switch to simple %s placeholders where positional ordering is not required. Consider whether the positional placeholder is actually needed — if the values are passed in order, simple %s/%d placeholders are clearer and safer."
+  },
+  "PluginCheck.Security.DirectDB.UnescapedDBParameter": {
+    "message": "Unescaped parameter used in a direct database call.",
+    "ai_guidance": "This is a deep taint analysis warning tracing the origin of a variable used in a database query. Read the full message carefully — it shows the assignment chain from origin to use. Consider: (1) whether the variable is a table name built from $wpdb->prefix — this is safe but must use %i or esc_sql(); (2) whether the variable is a dynamically built WHERE clause — each component must use $wpdb->prepare() placeholders, not string concatenation; (3) whether the variable originates from user input ($args, $_POST, $_GET) — all such values must pass through $wpdb->prepare() placeholders before reaching the query."
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log_error_log": {
+    "message": "error_log() found. Debug code should not be used in production.",
+    "ai_guidance": "Remove the error_log() call entirely. Consider: (1) whether the logging serves a legitimate production purpose — if so, replace with a proper logging class or WordPress debug log wrapper that can be toggled via a constant; (2) whether the surrounding code has no other error handling — if error_log() was the only signal of a failure, add proper error handling (return WP_Error, throw exception, or return false with a meaningful fallback); (3) whether the file is a dedicated debug/logger class — if the entire purpose of the file is logging, the class itself may need rethinking for production use."
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log_var_dump": {
+    "message": "var_dump() found. Debug code should not be used in production.",
+    "ai_guidance": "Remove the var_dump() call entirely. If the surrounding code needs to inspect a value for a legitimate reason (e.g. returning debug info to an admin UI), use print_r() wrapped in esc_html() for output, or store the value in a transient/option for inspection. Never leave var_dump() in production code as it can expose sensitive data."
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log_var_export": {
+    "message": "var_export() found. Debug code should not be used in production.",
+    "ai_guidance": "Remove the var_export() call. If the intent was to serialise data for storage, use wp_json_encode() or serialize() instead. If the intent was debugging, remove it entirely. Consider whether the function containing this call is a dedicated debug utility — if so, the whole function may need to be gated behind a WP_DEBUG constant check."
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace": {
+    "message": "debug_backtrace() found. Debug code should not be used in production.",
+    "ai_guidance": "Remove or gate the debug_backtrace() call. If a stack trace is genuinely needed for error reporting in production (e.g. in an exception handler or logging class), wrap it in a check: if ( defined( 'WP_DEBUG' ) && WP_DEBUG ). Consider whether the calling context is a logger class — if so, the backtrace capture may be intentional but should be conditional on debug mode."
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler": {
+    "message": "set_error_handler() found. Debug code should not be used in production.",
+    "ai_guidance": "set_error_handler() overrides PHP's global error handling and can interfere with WordPress and other plugins. Consider: (1) whether this is inside a dedicated error/debug class — if so, gate it behind WP_DEBUG; (2) whether the custom handler is restoring the previous handler with restore_error_handler() after use — if not, it will affect the entire request; (3) whether the intent can be achieved with WordPress hooks (wp_die_handler, wp_error_handler) instead."
+  },
+  "WordPress.PHP.DevelopmentFunctions.error_log_trigger_error": {
+    "message": "trigger_error() found. Debug code should not be used in production.",
+    "ai_guidance": "Replace trigger_error() with a proper WordPress error pattern. For recoverable errors, return a WP_Error object. For truly exceptional conditions, consider _doing_it_wrong() which integrates with WordPress debug logging and is silenced in production. Avoid trigger_error() as it can expose file paths and is not suppressible in production without a custom error handler."
+  },
+  "WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting": {
+    "message": "error_reporting() can lead to full path disclosure.",
+    "ai_guidance": "Remove the error_reporting() call. WordPress manages error reporting via WP_DEBUG and WP_DEBUG_DISPLAY constants in wp-config.php. Overriding it in plugin code can expose server paths in production. If the intent was to suppress errors locally during development, use WP_DEBUG_DISPLAY = false in wp-config.php instead."
+  },
+  "Squiz.PHP.DiscouragedFunctions.Discouraged": {
+    "message": "Use of a discouraged PHP function (e.g. ini_set()).",
+    "ai_guidance": "ini_set() modifies PHP configuration at runtime and can have unintended side effects across the entire request. Consider: (1) whether the setting being changed is necessary — many ini_set() calls in plugins are legacy debug code that can simply be removed; (2) whether the intent was to increase memory or execution time — WordPress provides wp_raise_memory_limit() for memory and set_time_limit() is less problematic but still discouraged; (3) whether the ini_set() is inside a debug class — if so, gate it behind WP_DEBUG."
+  },
+  "WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude": {
+    "message": "Using exclusionary parameters (post__not_in / exclude) in WP_Query or get_posts() is discouraged for performance.",
+    "ai_guidance": "Exclusionary queries (post__not_in, exclude) force MySQL to scan all matching rows before filtering, which degrades at scale. Consider: (1) whether the exclusion list is small and static — if so, the performance impact is minimal and the warning may be acceptable to address later; (2) whether the query can be restructured to fetch only what is needed rather than fetching everything and excluding some; (3) whether the excluded IDs come from user input — if so, validate they are integers with array_map( 'absint', ... ) before use."
+  },
+  "WordPress.WP.EnqueuedResourceParameters.NotInFooter": {
+    "message": "Script enqueued without explicitly setting the $in_footer parameter.",
+    "ai_guidance": "Add true as the fifth parameter to wp_register_script() or wp_enqueue_script() to load the script in the footer, which is recommended for performance. Only use false (header) if the script is required before the DOM renders (e.g. critical above-the-fold functionality). Always set the parameter explicitly rather than relying on the default."
+  },
+  "plugin_updater_detected": {
+    "message": "Plugin updater code detected. Not permitted in WordPress.org hosted plugins.",
+    "ai_guidance": "Custom plugin updater code (hooking into site_transient_update_plugins) is not permitted in WordPress.org hosted plugins as updates must go through the official repository. Consider: (1) whether this plugin is intended for WordPress.org submission — if not, the updater may be intentional and the issue can be ignored; (2) whether the updater code is in a development/libraries view file — if so, it may be example or reference code that should be removed from the plugin entirely; (3) if a custom updater is genuinely needed (e.g. for a premium plugin sold outside WordPress.org), move it to a separate file that is excluded from WordPress.org submission."
+  },
+  "update_modification_detected": {
+    "message": "Code detected that may be altering WordPress update routines.",
+    "ai_guidance": "Hooking into pre_set_site_transient_update_plugins or _site_transient_update_plugins to modify update behaviour is flagged as potentially problematic. Consider: (1) whether this is part of a custom updater — see plugin_updater_detected guidance; (2) whether the hook is in example/reference code that should be removed; (3) whether the intent was to suppress updates for a specific plugin — this is generally not acceptable practice in distributed plugins."
+  },
+  "stable_tag_mismatch": {
+    "message": "Stable Tag in readme.txt does not match the Version in the main plugin file header.",
+    "ai_guidance": "Update readme.txt Stable Tag to exactly match the Version field in the main plugin file header (e.g. wpseed.php). Both must be identical. Check: (1) the Version field in the plugin file header (e.g. Version: 2.0.0); (2) the Stable Tag line in readme.txt (e.g. Stable tag: 2.0.0). Update whichever is out of date. Do not change the version number itself unless a version bump is intentional."
+  },
+  "readme_mismatched_header_requires": {
+    "message": "Requires at least in readme.txt does not match the Requires at least in the main plugin file header.",
+    "ai_guidance": "The 'Requires at least' value must be identical in both readme.txt and the main plugin file header. Decide on the correct minimum WordPress version and update both locations to match. Consider: (1) whether the plugin actually uses features from a specific WordPress version — set the requirement to the oldest version that supports all features used; (2) do not set the requirement lower than necessary just to appear compatible with more sites."
+  },
+  "readme_parser_warnings_too_many_tags": {
+    "message": "Too many tags in readme.txt. WordPress.org limits plugins to 5 tags.",
+    "ai_guidance": "Reduce the Tags line in readme.txt to a maximum of 5 tags. Remove the least relevant tags. Tags should describe what the plugin does, not be keyword-stuffed for SEO. Only the first 5 tags will be used by WordPress.org regardless."
+  },
+  "trademarked_term": {
+    "message": "Plugin name or slug contains a restricted or trademarked term.",
+    "ai_guidance": "WordPress.org prohibits plugin names and slugs containing 'wp', 'wordpress', or other trademarked terms. This applies to both the plugin name in readme.txt and the slug. Consider: (1) whether this plugin is intended for WordPress.org submission — if not, this warning can be noted but does not need to be fixed; (2) if WordPress.org submission is planned, rename the plugin to remove the restricted term from both the display name and the slug; (3) note that renaming the slug is a breaking change for existing installations as it changes the plugin directory path."
+  },
+  "Internal.NoCodeFound": {
+    "message": "No PHP code found in file. May be using short open tags which are disabled.",
+    "ai_guidance": "This file either contains no PHP code or uses short open tags (<? instead of <?php). Consider: (1) whether the file uses <? short tags — replace all occurrences with <?php; (2) whether the file is intentionally non-PHP (e.g. a view file using only HTML) — if so, it may not need a PHP open tag at all, but should still have ABSPATH protection if it could be accessed directly; (3) whether the file is empty or a stub — if it serves no purpose, consider removing it."
+  },
+  "WordPress.Security.ValidatedSanitizedInput.InputNotValidated": {
+    "message": "Detected usage of a possibly undefined superglobal array index. Check that the array index exists before using it.",
+    "ai_guidance": "Before adding isset(), consider: (1) What should happen if the key is missing — add an early wp_send_json_error() or wp_die() rather than silently continuing with an empty value. (2) Whether an empty string after sanitisation should also be rejected — isset() passes for empty strings, so a follow-up empty() check or post-sanitisation guard may be needed. (3) Whether a surrounding function already validates the field — avoid duplicate checks. The correct pattern is: check isset/empty first, bail with a clear error if missing, then sanitise."
   },
   "missing_direct_file_access_protection": {
     "message": "PHP file should prevent direct access. Add a check like: if ( ! defined( 'ABSPATH' ) ) exit;",

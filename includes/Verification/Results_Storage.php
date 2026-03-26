@@ -25,10 +25,20 @@ class Results_Storage {
 	/**
 	 * Constructor
 	 *
-	 * @param string $plugin_basename Plugin basename (e.g., 'wpverifier/plugin.php')
+	 * @param string $plugin_basename Plugin basename (e.g., 'wpverifier/plugin.php').
+	 * @throws \InvalidArgumentException If the resolved plugin directory is invalid.
 	 */
 	public function __construct( $plugin_basename ) {
 		$plugin_folder = dirname( $plugin_basename );
+
+		// dirname() returns '.' when there is no directory component, which would
+		// resolve to WP_PLUGIN_DIR itself — an unsafe write target.
+		if ( '.' === $plugin_folder || empty( $plugin_folder ) ) {
+			throw new \InvalidArgumentException(
+				sprintf( 'Invalid plugin basename supplied to Results_Storage: "%s"', $plugin_basename )
+			);
+		}
+
 		$this->plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_folder;
 	}
 
@@ -67,6 +77,36 @@ class Results_Storage {
 	}
 
 	/**
+	 * Assert that a resolved path is safe to write to.
+	 *
+	 * Prevents writes to any path that does not end with a known WPVerifier
+	 * JSON filename and is not inside WP_PLUGIN_DIR, guarding against
+	 * path-traversal and accidental overwrite of plugin PHP files.
+	 *
+	 * @param string $file_path Absolute path to validate.
+	 * @return bool True if safe, false otherwise.
+	 */
+	protected function is_safe_write_path( $file_path ) {
+		$real_plugin_dir = realpath( WP_PLUGIN_DIR );
+		$real_file_path  = realpath( dirname( $file_path ) );
+
+		// Destination directory must be inside WP_PLUGIN_DIR.
+		if ( false === $real_plugin_dir || false === $real_file_path ) {
+			return false;
+		}
+		if ( strpos( $real_file_path, $real_plugin_dir ) !== 0 ) {
+			return false;
+		}
+
+		// Filename must be the expected WPVerifier JSON file.
+		if ( basename( $file_path ) !== self::RESULTS_FILE ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Save results data to JSON file
 	 *
 	 * @param array $data Results data to save
@@ -74,7 +114,12 @@ class Results_Storage {
 	 */
 	public function save_results_data( $data ) {
 		$file_path = $this->get_results_file_path();
-		
+
+		// Abort if the resolved path is not a safe WPVerifier JSON target.
+		if ( ! $this->is_safe_write_path( $file_path ) ) {
+			return false;
+		}
+
 		// Create backup if file exists
 		if ( file_exists( $file_path ) ) {
 			$backup_path = $file_path . '.backup';

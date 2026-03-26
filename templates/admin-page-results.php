@@ -93,16 +93,32 @@ if ( $selected_issue ) {
 	$code     = $selected_issue['code'] ?? '';
 	$guidance = AI_Guidance::get_guidance( $code );
 
-	$ai_guidance_text  = 'Issue ID: ' . $selected_issue_id . "\n";
+	$plugin_slug       = $plugin_info['slug'] ?? '';
+	$ai_guidance_text  = 'Plugin: ' . $plugin_slug . "\n";
+	$ai_guidance_text .= 'Issue ID: ' . $selected_issue_id . "\n";
 	$ai_guidance_text .= 'File: ' . $selected_file . "\n";
 	$ai_guidance_text .= 'Line: ' . ( $selected_issue['line'] ?? '' ) . "\n";
 	$ai_guidance_text .= 'Code: ' . $code . "\n";
 	$ai_guidance_text .= 'Type: ' . ( $selected_issue['type'] ?? '' ) . "\n";
 	$ai_guidance_text .= 'Message: ' . ( $selected_issue['message'] ?? '' ) . "\n\n";
-	$ai_guidance_text .= "Please review this WordPress coding standards issue and provide a fix.\n";
+	$ai_guidance_text .= "Please review this WordPress coding standards issue and provide a fix or suggest the issue is ignored.\n";
 	if ( $guidance && ! empty( $guidance['ai_guidance'] ) ) {
 		$ai_guidance_text .= "\nAI Guidance:\n" . $guidance['ai_guidance'];
 	}
+	$readme_path       = Path_Builder::get_plugin_file_path( $plugin_slug, 'readme.txt' );
+	$ai_guidance_text .= "\nPlugin readme.txt: " . ( $readme_path ? wp_normalize_path( $readme_path ) : 'not found' ) . "\n";
+	$ai_guidance_text .= "\nDo ALL of the following:\n";
+	$ai_guidance_text .= "- Update the plugin readme.txt changelog to record this fix: " . wp_normalize_path( $readme_path ) . "\n";
+	$ai_guidance_text .= "- Update the @version tag on any modified function, method, or class to the current plugin version\n";
+	$ai_guidance_text .= "- Add or update inline comments on changed lines to explain why the change was made, not just what it does\n";
+	$ai_guidance_text .= "\nDo NOT do any of the following:\n";
+	$ai_guidance_text .= "- Add phpcs:ignore or phpcs:disable comments — fix the code properly\n";
+	$ai_guidance_text .= "- Leave // TODO comments — implement the fix fully\n";
+	$ai_guidance_text .= "- Add error_log() calls\n";
+	$ai_guidance_text .= "- Use American English spelling — use British English\n";
+	$ai_guidance_text .= "- Skip PHPDoc — all new or modified functions must have PHPDoc blocks\n";
+	$ai_guidance_text .= "- Modify any files outside the plugin directory: " . wp_normalize_path( WP_PLUGIN_DIR . '/' . $plugin_slug ) . "\n";
+	$ai_guidance_text .= "- Touch WP Verifier or any other plugin's files\n";
 }
 ?>
 
