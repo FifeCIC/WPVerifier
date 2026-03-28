@@ -1,40 +1,72 @@
 === WP Verifier ===
 Contributors: Ryan Bayne
 Donate link: https://ryanbayne.uk
-Contributors:      wordpressdotorg
 Tested up to:      6.9
 Stable tag:        1.9.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Tags:              plugin best practices, testing, accessibility, performance, security
+Tags:              plugin check, code quality, coding standards, audit, developer tools
 Requires PHP: 7.4
 
-WP Verifier is a tool which provides checks to help plugins meet the directory requirements and follow various best practices. Based on WordPress.org Plugin Check.
+WP Verifier is a verified code quality audit trail and standards enforcement tool for WordPress plugin development.
 
 == Description ==
 
-WP Verifier is a tool for testing whether your plugin meets the required standards for the WordPress.org plugin directory. With this plugin you will be able to run most of the checks used for new submissions, and check if your plugin meets the requirements.
+Most plugin checkers tell you what is wrong. WP Verifier tells you what was wrong, when it was fixed, and proves the file was in a known state at a known time.
+
+WP Verifier produces a **verified code quality audit trail** — a structured, hash-backed record of every issue found, every fix applied, every decision made, and every file verified. That record travels with your plugin in portable JSON files and can be shared with clients, reviewers, or team members without giving anyone wp-admin access.
+
+This makes WP Verifier useful not just for getting a plugin into the WordPress.org directory, but for the entire development lifecycle: initial audit, iterative fixing, client sign-off, and ongoing maintenance.
+
+= The Audit Trail =
+
+Every verification action is recorded:
+
+* **Issue found** — file path, line, code, message, severity, timestamp
+* **Issue fixed** — marked resolved with hash of the file at fix time
+* **Issue ignored** — marked ignored with hash of the file at ignore time
+* **File verified** — MD5 hash of file contents, timestamp, user ID
+* **File ignored** — hash stored; file skipped on all future scans until the file actually changes
+
+The hash-based approach means the audit trail survives deploys, staging copies, and save-without-edit operations. Only genuine content changes invalidate a verification. You can answer questions no other plugin checker can answer: _Was this file clean when we shipped version 2.0? Which issues were present when the client signed off? Did this file change after we marked it verified?_
+
+= Core Features =
+
+* **PHPCS-Powered Scanning** — Full WordPress Coding Standards enforcement via PHP_CodeSniffer
+* **AI Guidance Per Issue** — Contextual fix guidance for every error code
+* **Results Tab** — Unified accordion view of all issues grouped by file, with issue detail sidebar
+* **Error Codes Tab** — Browse every error code encountered with AI guidance and per-code context
+* **File-Level Ignore System** — Ignore entire files (hash-validated); ignored files are skipped on subsequent scans until the file changes
+* **Issue-Level Fix and Ignore Tracking** — Mark individual issues as fixed or ignored; ignored issues are excluded from the active task list
+* **Ignore Rules System** — Filter third-party code and false positives; supports directory, file, and error-code scopes with auto-detection of vendor directories
+* **Readiness Score** — Live score reflecting how many issues remain unresolved
+* **JSON-Based Storage** — Portable results that travel with the plugin being verified
+* **WP-CLI Support** — Run checks from the command line
+
+= Coming Soon =
+
+* **Native Custom Check Engine** — First-party checks beyond PHPCS covering PHP quality, WordPress idiom compliance, and documentation completeness, each with its own error code, AI guidance, and code examples
+* **Per-Code Global Overrides** — Enable, disable, or change the severity of any check code from the Error Codes tab
+* **Shareable Results View** — Generate a temporary public URL to share verification results with a client or reviewer without granting wp-admin access
+* **Export Reports** — Download results as PDF, CSV, or XML
+* **Professional Services Quote** — Weighted effort estimate for remediation when a scan finds a significant number of issues
+* **Function-Level Verification Tracking** — Hash scoped to individual function bodies for fine-grained ignore management
 
 This plugin is based on the original Plugin Check tool developed by the WordPress Performance Team and Plugin Review Team.
 
-Additionally, the tool flags violations or concerns around plugin development best practices, from basic requirements like correct usage of internationalization functions to accessibility, performance, and security best practices.
+= WP-CLI Usage =
 
-The checks can be run either using the WP Admin user interface or WP-CLI:
+To check a plugin using WP-CLI:
 
-* To check a plugin using WP Admin, please navigate to the _Tools > WP Verifier_ menu. You need to be able to manage plugins on your site in order to access that screen.
-* To check a plugin using WP-CLI, please use the `wp plugin check` command. For example, to check the "Hello Dolly" plugin: `wp plugin check hello.php`
-    * Note that by default when using WP-CLI, only static checks can be executed. In order to also include runtime checks, a workaround is currently necessary using the `--require` argument of WP-CLI, to manually load the `cli.php` file within the plugin checker directory before WordPress is loaded. For example: `wp plugin check hello.php --require=./wp-content/plugins/WPVerifier/cli.php`
-    * You could use arbitrary path or URL to check a plugin. For example, to check a plugin from a URL: `wp plugin check https://example.com/plugin.zip` or to check a plugin from a path: `wp plugin check /path/to/plugin`
+    wp plugin check plugin-slug
 
-The checks are grouped into several categories, so that you can customize which kinds of checks you would like to run on a plugin.
+For runtime checks, load the CLI bootstrap manually:
 
-Keep in mind that this plugin is not a replacement for the manual review process, but it will help you speed up the process of getting your plugin approved for the WordPress.org plugin repository, and it will also help you avoid some common mistakes.
-
-Even if you do not intend to host your plugin in the WordPress.org directory, you are encouraged to use WP Verifier so that your plugin follows the base requirements and best practices for WordPress plugins.
+    wp plugin check plugin-slug --require=./wp-content/plugins/WPVerifier/cli.php
 
 **Ignore Rules System**
 
-WP Verifier includes a powerful Ignore Rules system to filter out third-party code and false positives from verification results. This feature is essential for working with plugins that include vendor libraries or third-party dependencies.
+WP Verifier includes a powerful Ignore Rules system to filter out third-party code and false positives from verification results.
 
 Key features:
 
@@ -43,22 +75,8 @@ Key features:
 * Ignore specific error codes for files or directories
 * Auto-detect common vendor directories
 * Export and import ignore rules as JSON for team sharing
-* Categorize rules by reason (vendor/library or custom)
 
-Access the Ignore Rules manager via the "Ignore Rules" tab in the main WP Verifier interface.
-
-**Plugin Namer Tool**
-
-WP Verifier now includes an AI-powered Plugin Namer tool (accessible via _Tools > WP Verifier Namer_) that helps plugin authors evaluate plugin names before submission. This tool checks for:
-
-* Similarity to existing plugins in the WordPress.org directory
-* Potential trademark conflicts with well-known brands
-* Compliance with WordPress plugin naming guidelines
-* Generic or overly broad naming issues
-
-The Plugin Namer provides instant feedback with actionable suggestions, helping you choose a clear, unique, and policy-compliant name that stands out in the plugin directory. This feature requires AI provider configuration in the settings.
-
-**Important:** The Plugin Namer tool provides guidance only and is not definitive. All plugin name decisions are subject to final review and approval by the WordPress.org Plugins team reviewers.
+Access the Ignore Rules manager via the Ignore Rules tab in the main WP Verifier interface.
 
 == Installation ==
 

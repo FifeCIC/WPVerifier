@@ -4,19 +4,7 @@
 Centralized `Path_Builder` class. All path logic consolidated. VSCode URLs working.
 
 ## PHASE 5: Results Tab Refactor ✅ COMPLETE
-Merged TAB04 + TAB05 into single "Results" tab with pure PHP rendering.
 
-### Completed
-- [x] `templates/admin-page-results.php` — unified template, URL-driven sidebar via `$_GET['issue_id']`
-- [x] `Admin_Page_Tabs.php` — single "Results" entry replaces TAB04+TAB05
-- [x] `Admin_Page.php` — routing updated
-- [x] `Asset_Manager.php` — single `enqueue_results_assets()` method
-- [x] `assets/js/admin-results.js` — minimal JS: accordion, copy, Fixed/Ignore/Unignore AJAX
-- [x] Fixed button AJAX working via `wpv_mark_resolved` → `mark_issue_as_fixed()`
-- [x] Ignore button AJAX working via `wpv_mark_ignored` → `mark_issue_as_ignored()`
-- [x] Unignore button AJAX working via `wpv_mark_unignored` → `mark_issue_as_unignored()`
-- [x] IGNORED badge displayed on ignored issues in list and sidebar
-- [x] Fixed PHP reference bug (`&$issues` + `break 2` = data corruption). Solution: remove reference, use explicit `$results_data['results'][$file_path] = $issues`
 
 ### Remaining Cleanup
 - [x] Delete old files: `admin-page-issues-byfile.php`, `admin-page-issues.php` — deleted. `admin-page-saved.js`, `issues-tab.js`, `plugin-check-saved.js` — not found, likely already removed.
@@ -30,82 +18,6 @@ Merged TAB04 + TAB05 into single "Results" tab with pure PHP rendering.
 ### Overview
 When a developer has ignored ALL issues in a file one by one, the file is automatically marked as ignored in `.wpv-verification.json`. On subsequent plugin checks, ignored files are skipped entirely — making checks faster and keeping `.wpv-results.json` as a clean task list of only actionable issues.
 
-### Why Hash Not Timestamp
-Hash (MD5 of file contents) only changes when actual content changes. Timestamps change on deploy, copy, or save-without-edit — causing false invalidations. Hash means:
-- Deploy to staging → hash unchanged → ignore still valid ✅
-- Open file, save without changes → hash unchanged → ignore still valid ✅
-- Actually fix/change code → hash changes → ignore correctly invalidated ✅
-
-### Known Issues
-- [ ] **"File Resolved!" button message not displaying** — `file_ignored: true` is returned correctly in the AJAX response and the JS handler is correct, but the button text change is not visible before the redirect fires. The notification/admin message system needs a proper queued message approach rather than relying on button text mutation. This should be solved by building a proper admin notice queue (see Additional Features below) and using it here instead.
-
-### Phase 6.1: Auto-Detect All-Ignored Files
-**Trigger:** When user clicks Ignore on any issue in TAB04.
-**Logic in `mark_issue_as_ignored()`:**
-1. After setting `ignored: true` on the target issue, check if ALL issues in that file now have `ignored: true`
-2. If yes → call `mark_file_as_ignored( $file_path, $plugin )`
-3. `mark_file_as_ignored()`:
-   - Computes MD5 hash of the actual file on disk
-   - Writes entry to `.wpv-verification.json` under `ignored_files` key
-   - Deletes ALL issues for that file from `.wpv-results.json` (clean task list)
-   - Recalculates readiness score
-
-**`.wpv-verification.json` structure for ignored files:**
-```json
-{
-  "ignored_files": {
-    "includes/admin/admin-settings.php": {
-      "hash": "d41d8cd98f00b204e9800998ecf8427e",
-      "ignored_at": "2026-03-20 20:00:00",
-      "ignored_by": 1
-    }
-  }
-}
-```
-
-**Files to modify:**
-- `includes/Admin/Verification_AJAX_Handler.php` — add `mark_file_as_ignored()`, update `mark_issue_as_ignored()`
-- `includes/Verification/JSON_Storage.php` — add `write_ignored_file()`, `remove_ignored_file()`
-
-**Testing:**
-1. Ignore all issues in a file one by one
-2. On last ignore → verify `.wpv-verification.json` gets `ignored_files` entry with correct hash
-3. Verify all issues for that file are removed from `.wpv-results.json`
-4. Verify readiness score recalculates correctly
-5. Verify TAB04 no longer shows that file
-
-### Phase 6.2: Visual Indicator for Ignored Files in TAB04
-**Requirement:** Files that are fully ignored should show an IGNORED badge on their accordion header.
-
-**Logic in `admin-page-results.php`:**
-1. Load `.wpv-verification.json` at top of template
-2. For each file accordion header, check if file exists in `ignored_files`
-3. If yes → add `ignored` CSS class to accordion row + show IGNORED badge
-
-**Note:** Since all issues are deleted from `.wpv-results.json` when a file is ignored, ignored files won't appear in the results loop at all. The visual indicator is only needed if we decide to show ignored files separately (future enhancement).
-
-### Phase 6.3: Hash Validation on Plugin Check
-**Trigger:** When a new plugin check is run (TAB03).
-**Logic in `Abstract_PHP_CodeSniffer_Check.php` → `get_files_to_scan()`:**
-1. Load `.wpv-verification.json`
-2. For each file about to be scanned:
-   - If file is in `ignored_files` → compute current MD5 hash
-   - If hash matches stored hash → skip file entirely (do not scan)
-   - If hash differs → file has changed → remove from `ignored_files`, scan normally
-3. After scan completes, any file removed from `ignored_files` due to hash mismatch gets re-scanned and new issues appear in `.wpv-results.json`
-
-**Files to modify:**
-- `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php` — `get_files_to_scan()` reads `ignored_files`, skips or invalidates
-- `includes/Verification/JSON_Storage.php` — `get_ignored_files()`, `remove_ignored_file()`
-
-**Testing:**
-1. Get a file to fully-ignored state (Phase 6.1 complete)
-2. Run a new plugin check
-3. Verify ignored file does NOT appear in new results
-4. Modify the ignored file on disk
-5. Run another plugin check
-6. Verify the modified file IS scanned and its issues appear in results
-7. Verify the file's entry is removed from `ignored_files` in `.wpv-verification.json`
 
 ### Phase 6.4: Unignore File (Manual Override)
 **Requirement:** Allow developer to manually unignore a file from TAB04.
@@ -140,6 +52,7 @@ Same concept as file-level ignoring but scoped to individual functions/methods. 
 - On file save → re-scan only changed functions
 - Ignored functions are skipped
 - New issues in non-ignored functions appear immediately in TAB04
+- **Full Overwatch implementation is planned as part of the WP Verifier Pro premium module — see Phase 13**
 
 ---
 
@@ -217,7 +130,551 @@ When a user selects a new plugin for verification, check if the target plugin al
 
 ---
 
-## Additional Features
+## PHASE 9: Single File Re-Scan 📋 PLANNED
+
+### Overview
+Allow a developer to re-scan a single file directly from TAB04 without running a full plugin check. Useful when working through issues file by file — fix the code, re-scan, confirm issues are resolved.
+
+### UI
+- Add a "Re-scan File" button to PAN01 (Issue Details sidebar) in TAB04
+- Button is contextual to the currently selected issue's file
+- Shows the filename being scanned for clarity
+
+### Logic
+1. AJAX request sends the relative file path to a new handler
+2. Handler runs PHPCS against that single file only (pass absolute file path to PHPCS instead of plugin directory)
+3. Remove all existing issues for that file from `.wpv-results.json`
+4. Insert new issues for that file (keyed by file path, same structure)
+5. Recalculate readiness score
+6. Redirect to TAB04 with the file's first new issue selected, or show a "No issues found" state if clean
+
+### Limitations
+- Non-PHPCS checks (`missing_direct_file_access_protection`, `stable_tag_mismatch`, readme checks) run at plugin level and will not be included in a single file scan
+- Ignored files (hash match in `.wpv-verification.json`) will be skipped as normal
+
+### Files to modify
+- `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php` — accept optional single file path in `get_files_to_scan()`
+- `includes/Admin/Verification_AJAX_Handler.php` — new `rescan_single_file()` method
+- `templates/admin-page-results.php` — add Re-scan File button to PAN01
+
+---
+
+## PHASE 10: Native Custom Check Engine 📋 PLANNED
+
+### Overview
+WPCS/PHPCS covers style and some security patterns but leaves a significant layer of semantic code quality, WordPress idiom compliance, and documentation completeness entirely unchecked. Phase 10 introduces a first-party custom check engine — a structured library of WP Verifier–owned checks that run alongside PHPCS and produce findings in the same format as existing issues, complete with their own error codes, AI guidance, inline examples, and per-code global overrides.
+
+The goal is a perfectionist's toolkit: every check is precisely documented, individually toggleable, and surfaced through the existing Results and Error Codes UI.
+
+---
+
+### Phase 10.1: Custom_Check Base Architecture
+
+**Core concept:** A single abstract base class that every custom check extends. Each check is self-describing — it carries its own code, title, severity, category, description, AI guidance, and code examples as class properties. This makes adding a new check as simple as creating a new file and filling in the metadata.
+
+**`includes/Checker/Custom/Abstract_Custom_Check.php`**
+```
+Abstract_Custom_Check
+  - string $code          — unique check code, e.g. WPV-PHP-001
+  - string $title         — short human-readable title
+  - string $severity      — 'error' | 'warning' | 'info'
+  - string $category      — 'php_quality' | 'wp_idioms' | 'documentation' | 'correctness'
+  - string $description   — full explanation of what the check detects
+  - string $guidance      — AI guidance text (same field as existing ai_guidance)
+  - array  $examples      — [ 'bad' => '...', 'good' => '...' ] code snippets
+  - abstract run( $file_path, $tokens ) : array  — returns array of findings
+```
+
+Each `run()` call receives the file path and a pre-tokenised array (from `token_get_all()`) so checks can inspect the AST without re-parsing. Findings are returned as arrays matching the existing `.wpv-results.json` issue structure so they slot directly into the results pipeline.
+
+**`includes/Checker/Custom/Custom_Check_Registry.php`**
+- Holds all registered check instances
+- `register( Abstract_Custom_Check $check )` — adds a check
+- `get_all()` — returns all registered checks
+- `get_enabled()` — returns only checks not globally disabled via the Error Codes tab
+- `get_by_code( $code )` — lookup by WPV code
+- Auto-discovers checks in `includes/Checker/Custom/Checks/` on init
+
+**`includes/Checker/Custom/Custom_Check_Runner.php`**
+- Iterates files to scan (same list as PHPCS runner)
+- For each file: tokenises once, passes tokens to every enabled check
+- Merges findings into `.wpv-results.json` alongside PHPCS findings
+- Respects file-level and function-level ignores (Phase 6 / Phase 3)
+
+---
+
+### Phase 10.2: WPV Error Code System
+
+Every custom check gets a unique code in the format `WPV-{CATEGORY}-{NNN}`:
+
+| Prefix | Category |
+|---|---|
+| `WPV-PHP` | PHP quality & correctness |
+| `WPV-WP` | WordPress idiom compliance |
+| `WPV-DOC` | Documentation completeness |
+| `WPV-SEC` | Security patterns beyond PHPCS |
+| `WPV-PERF` | Performance patterns |
+
+Examples:
+- `WPV-PHP-001` — Stray escape sequence in string literal
+- `WPV-PHP-002` — `json_encode()` used instead of `wp_json_encode()`
+- `WPV-WP-001` — `array()` used instead of short array syntax `[]` (or vice versa, configurable)
+- `WPV-WP-002` — `absint()` preferred over `(int)` cast for user input
+- `WPV-DOC-001` — Function/method missing `@since` tag
+- `WPV-DOC-002` — Function/method missing `@version` tag
+- `WPV-DOC-003` — Function/method missing `@return` tag
+- `WPV-DOC-004` — Class missing docblock entirely
+- `WPV-SEC-001` — `sanitize_text_field()` used on an email value (should be `sanitize_email()`)
+
+Codes are stable — once assigned they never change, so existing `.wpv-results.json` files remain valid across WP Verifier upgrades.
+
+---
+
+### Phase 10.3: Error Codes Tab (TAB08) Enhancements
+
+TAB08 currently displays PHPCS error codes with AI guidance. Phase 10.3 extends it to be the control centre for all check codes — both PHPCS and WPV native.
+
+**Per-code controls:**
+- **Enabled / Disabled toggle** — globally disable a specific code across all scans for the current plugin. Stored in `.wpv-config.json` under `disabled_codes[]`.
+- **Severity override** — change a code from Warning to Error or Info without editing any PHP.
+- **Examples panel** — expandable section showing the `bad` / `good` code snippets defined in the check class. PHPCS codes show examples where available from the ai-guidance-config.
+- **AI Guidance** — existing field, now also populated for WPV native codes from the check class `$guidance` property.
+
+**UI layout per code row:**
+```
+[CODE]  [TITLE]                    [CATEGORY]  [SEVERITY ▾]  [● Enabled]
+  ↳ Description text
+  ↳ [AI Guidance]  [Examples ▾]  [Override Notes]
+```
+
+**Filtering:**
+- Filter by category (PHP Quality / WP Idioms / Documentation / Security / Performance / PHPCS)
+- Filter by source (WPV Native / PHPCS)
+- Filter by enabled/disabled state
+- Search by code or title
+
+**`.wpv-config.json` additions:**
+```json
+{
+  "disabled_codes": ["WPV-DOC-002", "WPV-WP-001"],
+  "severity_overrides": {
+    "WPV-DOC-001": "error",
+    "WordPress.DB.DirectDatabaseQuery.DirectQuery": "info"
+  }
+}
+```
+
+---
+
+### Phase 10.4: Initial Check Library
+
+First batch of checks to ship with the engine. Each is a concrete class in `includes/Checker/Custom/Checks/`.
+
+**PHP Quality**
+- `WPV-PHP-001` — Stray escape sequence (`\n`, `\t` etc.) in a single-quoted string literal where it has no effect
+- `WPV-PHP-002` — `json_encode()` used; `wp_json_encode()` preferred in WordPress context
+- `WPV-PHP-003` — Variable assigned but never read within its scope
+- `WPV-PHP-004` — `count()` called inside a loop condition (performance)
+
+**WordPress Idioms**
+- `WPV-WP-001` — `(int)` cast on user input; `absint()` preferred
+- `WPV-WP-002` — `sanitize_text_field()` applied to an email field; `sanitize_email()` preferred
+- `WPV-WP-003` — Direct `echo` of translated string; `esc_html_e()` / `esc_attr_e()` preferred
+- `WPV-WP-004` — `add_option()` called without explicit `$autoload` argument
+
+**Documentation**
+- `WPV-DOC-001` — Public function or method missing `@since` tag
+- `WPV-DOC-002` — Function or method missing `@version` tag
+- `WPV-DOC-003` — Function or method missing `@return` tag when return value is non-void
+- `WPV-DOC-004` — Class missing docblock entirely
+- `WPV-DOC-005` — File header docblock missing `@package` tag
+
+**Correctness**
+- `WPV-PHP-005` — `isset()` used with multiple comma-separated superglobal keys (sniff cannot confirm each is sanitised at point of use)
+- `WPV-PHP-006` — `end()` called on a function return value directly (deprecated in PHP 8.1+)
+
+---
+
+### Phase 10.5: Check Configuration UI (TAB08 Extension)
+
+Some checks are configurable — e.g. `WPV-WP-001` could be set to warn on `(int)` only when the value comes from `$_GET`/`$_POST`, not internal calculations. Phase 10.5 adds a per-code configuration panel in TAB08 for checks that expose options.
+
+**`Abstract_Custom_Check::get_options()` — optional override:**
+```php
+public function get_options() : array {
+    return [
+        'scope' => [
+            'type'    => 'select',
+            'label'   => 'Apply to',
+            'options' => [ 'all' => 'All integers', 'user_input' => 'User input only' ],
+            'default' => 'user_input',
+        ],
+    ];
+}
+```
+
+Options are stored in `.wpv-config.json` under `check_options.{code}` and passed to `run()` at scan time.
+
+---
+
+### Phase 10.6: Results Integration
+
+WPV native findings appear in TAB04 (Results) identically to PHPCS findings:
+- Same accordion structure, same sidebar detail panel
+- `source` field in the issue distinguishes `wpv_native` from `phpcs`
+- WPV codes link to TAB08 for the full description, examples, and toggle
+- AI guidance populated from the check class `$guidance` property (no separate config file needed)
+- Fix/Ignore/Unignore AJAX works identically
+
+---
+
+### Phase 10.7: Developer Documentation
+
+`docs/CUSTOM-CHECKS.md` — guide for adding new checks:
+1. Create `includes/Checker/Custom/Checks/Check_WPV_XXX_NNN.php`
+2. Extend `Abstract_Custom_Check`
+3. Fill in the metadata properties
+4. Implement `run( $file_path, $tokens ) : array`
+5. Register in `Custom_Check_Registry` (or rely on auto-discovery)
+6. The check appears automatically in TAB08 and runs on the next scan
+
+The guide includes a full annotated example check and a reference table of all token constants used in common patterns.
+
+---
+
+### Phase 10 Milestones Summary
+
+| Milestone | Deliverable |
+|---|---|
+| 10.1 | `Abstract_Custom_Check`, `Custom_Check_Registry`, `Custom_Check_Runner` |
+| 10.2 | WPV code namespace, code assignment table, stable code registry |
+| 10.3 | TAB08 per-code toggle, severity override, examples panel, filtering |
+| 10.4 | First 13 checks shipped and tested |
+| 10.5 | Per-check configuration options in TAB08 |
+| 10.6 | Results tab integration, source badge, TAB08 deep-link |
+| 10.7 | `CUSTOM-CHECKS.md` developer guide |
+
+---
+
+## PHASE 11: Export Formats 📋 PLANNED
+
+### Overview
+Downloadable export formats for results data. The sharing and client-communication features (temporary public URL, PDF report) are part of the WP Verifier Pro premium module — see Phase 13. The formats below are free-tier exports intended for developer use: piping results into CI/CD pipelines, spreadsheets, or bug trackers.
+
+---
+
+### Phase 11.1: CSV Export
+
+**Concept:** Flat CSV download for import into spreadsheets, project management tools, or bug trackers.
+
+**Columns:** `file_path, line, code, type, severity, message, status, scan_date`
+
+**Options:** All issues / Open only / Fixed only / Ignored only
+
+**Files to create:** `includes/Export/CSV_Exporter.php` — pure PHP, streamed as download.
+
+---
+
+### Phase 11.2: XML Export
+
+**Concept:** Structured XML export mirroring the PHPCS XML output format so existing tooling that consumes PHPCS XML can consume WP Verifier output without modification.
+
+```xml
+<results plugin="wpseed" version="2.0.0" scan_date="2026-01-15">
+  <file path="includes/admin/admin-settings.php" errors="0" warnings="2">
+    <issue line="42" code="WordPress.DB.DirectDatabaseQuery.DirectQuery"
+           type="WARNING" severity="5" status="open"
+           message="Use of a direct database call is discouraged." />
+  </file>
+</results>
+```
+
+**Files to create:** `includes/Export/XML_Exporter.php`
+
+---
+
+### Phase 11.3: Export UI in TAB04
+
+A compact export toolbar added to the TAB04 header:
+
+```
+[ Export ▾  CSV / XML ]  [ Share Results → Pro ]
+```
+
+- Export dropdown: triggers the relevant exporter
+- Share Results: teaser link pointing to the Pro module (Phase 13)
+
+---
+
+### Phase 11 Milestones Summary
+
+| Milestone | Deliverable |
+|---|---|
+| 11.1 | CSV export with status filter options |
+| 11.2 | XML export in PHPCS-compatible format |
+| 11.3 | Export toolbar in TAB04 |
+
+---
+
+## PHASE 13: WP Verifier Pro — Active Development Monitor & Client Communication 📋 PLANNED (PREMIUM MODULE)
+
+### Overview
+
+WP Verifier Pro is a paid add-on module that extends the free plugin with two capabilities that go beyond code auditing into active development support and professional client communication.
+
+**Active Development Monitor (Overwatch)** — watches plugin files in real time as a developer writes code, scanning changed functions immediately and surfacing new issues without requiring a manual full-plugin check.
+
+**Client Communication Suite** — gives developers professional tools to share verification results with clients, generate branded reports, and present audit progress in a way that non-technical stakeholders can understand.
+
+Both capabilities are premium because they require infrastructure beyond a standard WordPress plugin: Overwatch needs a persistent polling or file-watch mechanism, and the Client Communication Suite needs a hosted public-facing layer for shareable URLs and branded PDF generation.
+
+---
+
+### Phase 13.1: Overwatch — Active Development Monitor
+
+**Concept:** While a developer is actively working on a plugin, Overwatch continuously monitors the plugin's files and re-scans only the functions that have changed since the last scan. New issues appear in TAB04 within seconds of saving a file — no manual check required.
+
+**Prerequisites:** Phase 3.1 (function detection) and Phase 3.2 (function-level ignore) must be complete before Overwatch can be built.
+
+**How it works:**
+
+1. Developer activates Overwatch for the current plugin from a new TAB in WP Verifier Pro
+2. A WordPress cron job (or optional server-side file watcher via WP-CLI) polls the plugin directory every N seconds (configurable: 5s / 15s / 30s / 60s)
+3. On each poll, file MD5 hashes are compared against the last-known state
+4. Changed files are tokenised; only functions whose body hash has changed are re-scanned
+5. New issues are written to `.wpv-results.json` and a badge count on TAB04 updates via AJAX long-poll
+6. Ignored functions are skipped entirely — only new or changed code is checked
+7. Developer sees a live "Overwatch active" indicator with last-scan timestamp and files-watched count
+
+**Overwatch session log:**
+- Each Overwatch session is recorded: start time, end time, files watched, functions re-scanned, issues found
+- Session log is visible in the Pro tab for review and export
+
+**Performance safeguards:**
+- Maximum poll frequency capped at 5 seconds to prevent server overload
+- Overwatch automatically pauses if CPU load exceeds a configurable threshold
+- Overwatch stops automatically after a configurable idle period (default: 30 minutes of no file changes)
+- Only the plugin currently selected in WP Verifier is watched — never the entire WordPress installation
+
+**Files to create:**
+- `pro/Overwatch/Overwatch_Controller.php` — session management, start/stop/pause
+- `pro/Overwatch/File_Watcher.php` — hash-based change detection
+- `pro/Overwatch/Function_Rescanner.php` — targeted re-scan of changed functions only
+- `pro/Overwatch/Session_Logger.php` — session recording and retrieval
+- `pro/templates/admin-page-overwatch.php` — Overwatch tab UI
+- `pro/assets/js/overwatch.js` — live badge update, status indicator, AJAX long-poll
+
+---
+
+### Phase 13.2: Overwatch Notification System
+
+**Concept:** When Overwatch detects new issues, the developer is notified immediately without having to watch the screen.
+
+**Notification channels:**
+- **WordPress admin bar badge** — issue count badge on the WP Verifier admin bar icon updates in real time
+- **Browser notification** — optional Web Notifications API alert (requires one-time browser permission grant)
+- **Admin notice** — dismissible notice at the top of any wp-admin screen when new issues are found
+- **Email digest** — optional email summary of issues found during the current Overwatch session, sent when Overwatch stops
+
+**Notification settings** (per-developer, stored in user meta):
+- Enable / disable each channel independently
+- Minimum severity threshold for notifications (e.g. only notify on Error or Critical, not Warning)
+- Email digest: immediate / end of session / daily summary
+
+**Files to create:**
+- `pro/Overwatch/Notification_Manager.php`
+- `pro/assets/js/overwatch-notifications.js` — Web Notifications API integration
+
+---
+
+### Phase 13.3: Client Communication — Temporary Public Results URL
+
+**Concept:** Generate a unique, time-limited URL that renders a read-only view of the current verification results. The recipient sees a clean, professional presentation of the audit without needing wp-admin access.
+
+**How it works:**
+1. Developer clicks "Share with Client" in TAB04
+2. WP Verifier Pro generates a UUID v4 token stored as a transient (default TTL: 72 hours, configurable up to 30 days)
+3. A public URL is produced: `https://site.com/?wpv_share={token}`
+4. The URL renders a standalone branded results page
+5. Token expires automatically; developer can revoke it immediately from TAB04
+
+**What the shared view shows:**
+- Plugin name and version, scan date, readiness score with visual indicator
+- Summary: total issues by severity, files affected, percentage resolved
+- Full issue list grouped by file — same accordion structure as TAB04
+- Issue detail on click: code, plain-English message, line reference, AI guidance
+- Optional developer note (free-text field set at share time, e.g. "Issues from initial audit — 60% resolved as of [date]")
+- "Powered by WP Verifier" footer
+
+**What it does NOT show:**
+- Fix / Ignore / Unignore action buttons
+- Internal server paths beyond what is already in the issue
+- Any other plugin or site data
+
+**Security:**
+- Token is UUID v4 — 128-bit random, not guessable
+- Transient TTL enforced server-side — expired tokens return a clean 404 page
+- No authentication required to view (by design — it is a share link)
+- Developer can set a shorter TTL or revoke immediately
+
+**Files to create:**
+- `pro/Share/Share_Handler.php` — token generation, storage, revocation
+- `pro/Share/Public_Results_Controller.php` — handles `?wpv_share=` query var
+- `pro/templates/public-results.php` — standalone branded results template
+- `pro/assets/css/public-results.css` — clean stylesheet with no wp-admin dependency
+- TAB04 template update — "Share with Client" button, active share link display, TTL indicator, revoke button
+
+---
+
+### Phase 13.4: Client Communication — PDF Report
+
+**Concept:** Professionally formatted PDF report suitable for client delivery, QA sign-off records, or project documentation.
+
+**Report contents:**
+- Cover page: plugin name, version, scan date, readiness score, developer/agency branding (configurable logo and name)
+- Executive summary: total issues, files affected, top 5 most common error codes, issues resolved vs outstanding
+- Per-file breakdown: each file as a section with its issues listed
+- Per-issue detail: code, line, plain-English message, severity, AI guidance (condensed)
+- Appendix: full list of ignored issues with ignore reason
+- Footer: generated by WP Verifier Pro, EvolveWP.dev
+
+**Branding options** (stored in Pro settings):
+- Agency/developer name
+- Logo URL
+- Accent colour
+- Custom footer text
+
+**Implementation:** PHP-only PDF library (TCPDF, FPDF, or Dompdf — no server binary dependency). Generated on demand via AJAX, streamed as a file download, never stored on disk.
+
+**Filename format:** `wpv-{plugin-slug}-audit-{date}.pdf`
+
+**Files to create:**
+- `pro/Export/PDF_Exporter.php`
+- `pro/templates/pdf-report.php` — HTML template fed to the PDF renderer
+- `pro/assets/css/pdf-report.css`
+- `pro/Settings/Branding_Settings.php` — logo, name, colour, footer text
+
+---
+
+### Phase 13.5: Client Communication — Audit Progress View
+
+**Concept:** A simplified, non-technical view of audit progress designed specifically for clients who want to know "how is it going?" without understanding PHPCS error codes.
+
+**What it shows:**
+- A progress bar: "X of Y issues resolved"
+- Severity breakdown in plain English: "3 security issues, 12 code quality issues, 8 documentation gaps"
+- A timeline of scan dates showing the trend (issues going down over time)
+- Current status label: In Progress / Review Ready / Clean
+- The developer's optional status note
+
+**Access:** Available via the same shared URL as Phase 13.3, toggled by a "Client View / Technical View" switch at the top of the shared page.
+
+**Files to create:**
+- `pro/templates/public-results-client.php` — simplified client-facing template
+- `pro/assets/js/public-results-toggle.js` — view switcher
+
+---
+
+### Phase 13.6: Pro Licensing & Activation
+
+**Concept:** Standard licence key activation for the Pro module. Licence is tied to a domain and validated against EvolveWP.dev.
+
+**Licence tiers:**
+
+| Tier | Overwatch | Sharing & PDF | Branding | Sites |
+|---|---|---|---|---|
+| Pro Single | ✅ | ✅ | ✅ | 1 |
+| Pro Agency | ✅ | ✅ | ✅ | Unlimited |
+
+**Activation flow:**
+1. Developer purchases licence at EvolveWP.dev
+2. Enters licence key in WP Verifier → Settings → Pro
+3. Key validated against EvolveWP.dev API (one outbound request on activation only)
+4. Pro features unlock immediately; licence status cached locally
+5. Annual re-validation on licence renewal date
+
+**Graceful degradation:** If licence expires or cannot be validated, Pro features are hidden but all free features continue to work normally. No data is lost.
+
+**Files to create:**
+- `pro/Licensing/Licence_Manager.php`
+- `pro/Licensing/Licence_Validator.php`
+- `pro/templates/admin-page-pro-settings.php`
+
+---
+
+### Phase 13 Milestones Summary
+
+| Milestone | Deliverable |
+|---|---|
+| 13.1 | Overwatch file watcher, function re-scanner, session logger, Overwatch tab UI |
+| 13.2 | Notification system: admin bar badge, browser notification, email digest |
+| 13.3 | Temporary public results URL with UUID token, TTL, revoke, developer note |
+| 13.4 | PDF report with branding options, streamed on demand |
+| 13.5 | Client-facing audit progress view with plain-English severity summary |
+| 13.6 | Pro licence key activation, EvolveWP.dev validation, graceful degradation |
+
+---
+
+## PHASE 12: Professional Services Quote 📋 PLANNED (FREE TIER)
+
+### Overview
+When a scan reveals a significant number of issues, WP Verifier shows a contextual, dismissible offer panel with a weighted effort estimate and a link to EvolveWP.dev professional remediation services. Fully compliant with WordPress.org plugin guidelines (section 11) — dismissible, no automatic data transmission, no obtrusive UI.
+
+### Scoring Formula
+
+| Factor | Weight |
+|---|---|
+| Critical severity issue | ×4 |
+| Error severity issue | ×3 |
+| Warning severity issue | ×1 |
+| Security-category issue (any severity) | +50% on base weight |
+| Distinct files affected | ×0.5 per file (complexity multiplier) |
+| Plugin file count | ×0.1 per file (context multiplier) |
+
+### Four Effort Bands
+
+| Band | Score | Label |
+|---|---|---|
+| 1 | 0–24 | Minor tidy-up |
+| 2 | 25–74 | Moderate remediation |
+| 3 | 75–149 | Significant work |
+| 4 | 150+ | Major audit required |
+
+Only the band label and a plain-English description are shown — not the raw score.
+
+### Offer Panel
+
+- Shown at Band 2+ as a dismissible sidebar card in TAB04 (not a modal, not blocking)
+- Dismiss stored in user meta; does not reappear until a new scan produces a higher score
+- CTA links to `https://evolvewp.dev/plugin-audit/?band={n}&slug={slug}&src=wpverifier`
+- No issue details, no file paths, no PII transmitted
+
+**Example (Band 3):**
+```
+⚠️  Significant remediation work detected
+
+This plugin has a high concentration of security and database-related
+issues across 14 files. Resolving these typically takes 8–16 hours.
+
+[ Get a professional quote → EvolveWP.dev ]   [ Dismiss ]
+```
+
+### Files to Create
+- `includes/Services/Effort_Estimator.php` — scoring logic and band calculation
+- `includes/Services/Effort_Band.php` — band definitions and plain-English descriptions
+- `includes/Services/Offer_Panel.php` — panel rendering and dismiss logic
+
+### Phase 12 Milestones Summary
+
+| Milestone | Deliverable |
+|---|---|
+| 12.1 | `Effort_Estimator` with weighted scoring and four-band output |
+| 12.2 | Dismissible offer panel in TAB04, shown at Band 2+ |
+| 12.3 | EvolveWP.dev landing page query string integration |
+
+---
+
+## Additional Notes
 
 ### Hash-Aware Ignore / Verify Workflow
 - Auto-expire ignores when hash mismatches (Phase 6.3 covers file level)
@@ -226,7 +683,7 @@ When a user selects a new plugin for verification, check if the target plugin al
 ### Review Queue & Audit Trail
 - New issues since last scan
 - Stale verifications (hash mismatch)
-- Export verification/ignore history for QA reviews
+- Export verification/ignore history for QA reviews (Phase 11 covers export formats)
 
 ### Internationalization (i18n)
 - Pass translated strings to JavaScript via localized object

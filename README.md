@@ -1,109 +1,109 @@
 # WP Verifier
-Systematic code monitoring and standards enforcement for WordPress plugin development.
-
-## 🚧 Work In Progress
-
-WP Verifier is currently under active development. This project is being adapted to work within a bespoke plugin ecosystem where automated verification and standards enforcement will streamline development workflows.
-
-**Status:** Coming Soon  
-**Current Version:** 0.0.1 (Development)
+Verified code quality audit trail and standards enforcement for WordPress plugin development.
 
 ---
 
-## About This Project
+## What WP Verifier Actually Is
 
-WP Verifier is based on the excellent [Plugin Check (PCP)](https://github.com/WordPress/plugin-check/) tool developed by the WordPress Performance Team and WordPress Plugin Review Team. We are adapting this proven codebase to serve a specialized plugin ecosystem with enhanced automation and custom verification workflows.
+Most plugin checkers tell you what is wrong. WP Verifier tells you what was wrong, when it was fixed, who fixed it, and proves the file was in a known state at a known time.
 
-### Why Fork Plugin Check?
+The distinction matters. WP Verifier produces a **verified code quality audit trail** — a structured, hash-backed record of every issue found, every fix applied, every decision made, and every file verified. That record travels with your plugin in portable JSON files and can be shared with clients, reviewers, or team members without giving anyone wp-admin access.
 
-While Plugin Check is designed for WordPress.org plugin directory submissions, WP Verifier extends this foundation to:
-
-- **Integrate with custom development workflows** - Automated checks tailored to our specific ecosystem requirements
-- **Enforce bespoke coding standards** - Beyond WordPress.org requirements to match internal best practices
-- **Enable continuous verification** - Automated monitoring throughout the development lifecycle
-- **Support ecosystem-specific features** - Custom checks for proprietary frameworks and patterns
-
-### Credits
-
-This project builds upon Plugin Check, originally created by:
-- WordPress Performance Team
-- WordPress Plugin Review Team
-- Contributors: wordpressdotorg
-
-Original project: https://github.com/WordPress/plugin-check/
+This makes WP Verifier useful not just for getting a plugin into the WordPress.org directory, but for the entire development lifecycle: initial audit, iterative fixing, client sign-off, and ongoing maintenance.
 
 ---
 
 ## Features
 
 ### ✅ Available Now
-- **Plugin Structure Validation** - Comprehensive checks for WordPress plugin requirements
-- **Coding Standards Compliance** - WordPress, security, performance, and accessibility standards
-- **Custom Ruleset Management** - Create and enforce ecosystem-specific standards
-- **Ignore Rules System** - Filter third-party code and false positives from results
-- **AI-Powered Plugin Namer** - Evaluate plugin names for availability and compliance
-- **Files Tab Progress Tracker** - Monitor verification progress per file with detailed panels
-- **Setup Wizard** - Guided configuration on first use
-- **JSON-Based Storage** - Portable results that travel with your plugin
+
+- **PHPCS-Powered Scanning** — Full WordPress Coding Standards enforcement via PHP_CodeSniffer
+- **Verified Audit Trail** — Hash-backed record of every issue, fix, and verification decision stored in portable JSON
+- **AI Guidance Per Issue** — Contextual fix guidance for every error code, configurable via `ai-guidance-config.json`
+- **Results Tab** — Unified accordion view of all issues grouped by file, with issue detail sidebar and AI prompt panel
+- **Error Codes Tab (TAB08)** — Browse every error code encountered, with AI guidance and per-code context
+- **File-Level Ignore System** — Ignore entire files (hash-validated); ignored files are skipped on subsequent scans until the file changes
+- **Issue-Level Ignore / Fix Tracking** — Mark individual issues as fixed or ignored; ignored issues are excluded from the active task list
+- **Ignore Rules System** — Filter third-party code and false positives; supports directory, file, and error-code scopes
+- **Auto-Detection of Vendor Directories** — `vendor/`, `node_modules/`, `libraries/` and others excluded automatically
+- **Export / Import Ignore Rules** — Share ignore rules as JSON across a team
+- **Readiness Score** — Live score reflecting how many issues remain unresolved
+- **JSON-Based Storage** — `.wpv-results.json`, `.wpv-config.json`, `.wpv-verification.json` travel with the plugin being verified
+- **Setup Wizard** — Guided first-use configuration
+- **WP-CLI Support** — Run checks from the command line
 
 ### 🔄 In Development
-- **Function-Level Verification Tracking** - Smart hash-based system to track verified issues
-  - Intelligent invalidation (only affected functions need re-review)
-  - Clean code (no inline ignore comments)
-  - Portable JSON storage in plugin directory
-  - Progress tracking per file and function
-- **Enhanced Files Tab** - File details panel, issue tracking, verification status
-- **Issues Tab Enhancement** - WP_List_Table implementation with search, sort, and bulk actions
 
-### 🔮 Planned Features
-- **Verification Analytics** - Coverage metrics, trends, and team activity
-- **Batch Verification** - Verify entire files or directories at once
-- **Team Collaboration** - Shared verification notes and approval workflows
-- **Advanced Plugin Namer** - Multi-TLD domain checking, trademark search, name alternatives
+- **Function-Level Verification Tracking** — Hash scoped to individual function bodies; changes to one function don't invalidate ignores on others
+- **Overwatch System** — Active file monitoring during development; re-scans only changed functions on save
+- **Single File Re-Scan** — Re-scan one file from the Results tab without running a full plugin check
+- **JSON Storage Directory Migration** — Move all `.wpv-*.json` files into a dedicated `wpevolveverifier/` subfolder to keep plugin roots clean
 
-*Additional features will be announced as development progresses.*
+### 🔮 Planned
+
+- **Native Custom Check Engine** — First-party checks beyond PHPCS: PHP quality, WordPress idiom compliance, documentation completeness, correctness patterns. Each check carries its own `WPV-{CATEGORY}-{NNN}` code, AI guidance, and bad/good code examples
+- **Per-Code Global Overrides** — Enable/disable or change severity of any check code (PHPCS or WPV native) from the Error Codes tab, stored in `.wpv-config.json`
+- **Shareable Results View** — Generate a temporary public URL to share verification results with a client or reviewer without granting wp-admin access
+- **Export Reports** — Download results as PDF, CSV, or XML for client delivery, QA records, or import into other tools
+- **Professional Services Quote** — When a scan finds a significant number of issues, WP Verifier can generate a weighted effort estimate and link to EvolveWP professional remediation services
+- **Real-Time Verification Progress** — Live file-by-file progress during scanning with estimated time remaining
+- **Plugin Selection Duplicate File Warning** — Detect pre-existing WP Verifier data files when switching to a new plugin
+
+---
+
+## The Audit Trail Concept
+
+Every verification action WP Verifier takes is recorded:
+
+| Action | What is stored |
+|---|---|
+| Issue found | File path, line, code, message, severity, timestamp |
+| Issue fixed | Marked resolved, hash of file at fix time |
+| Issue ignored | Marked ignored with reason, hash of file at ignore time |
+| File verified | MD5 hash of file contents, timestamp, user ID |
+| File ignored | Hash stored; file skipped on all future scans until hash changes |
+
+This means you can answer questions that no other plugin checker can answer:
+- *Was this file clean when we shipped version 2.0?*
+- *Which issues were present when the client signed off?*
+- *Did this file change after we marked it verified?*
+
+The hash-based approach means the audit trail survives deploys, staging copies, and save-without-edit operations — only genuine content changes invalidate a verification.
 
 ---
 
 ## Installation
 
-**Note:** WP Verifier is not yet ready for production use.
-
-For development/testing:
-
-1. Clone or download this repository to your WordPress plugins directory
+1. Upload the `WPVerifier` folder to `/wp-content/plugins/`
 2. Run `composer install` in the plugin directory
-3. Activate the plugin through WordPress admin
-4. Access via **Plugins > Verify Plugins** in the admin menu
+3. Activate via **Plugins** in WordPress admin
+4. Navigate to **Tools > WP Verifier**
+5. Select the plugin you want to verify and run a check
+
+**Requirements:** WordPress 6.3+, PHP 7.4+, Composer
 
 ---
 
-## Requirements
+## WP-CLI
 
-- WordPress 6.3 or higher
-- PHP 7.4 or higher
-- Composer (for dependency management)
+```bash
+wp plugin check plugin-slug
+```
+
+For runtime checks via CLI, load the CLI bootstrap manually:
+
+```bash
+wp plugin check plugin-slug --require=./wp-content/plugins/WPVerifier/cli.php
+```
 
 ---
 
-## Development Status
+## Credits
 
-We're actively working on adapting Plugin Check's robust foundation to serve our ecosystem's unique needs. Stay tuned for updates as we roll out new features and capabilities.
-
-### Current Focus
-- Function-level verification tracking system
-- Enhanced Files tab with progress monitoring
-- JSON-based storage architecture
-- Team collaboration features
+WP Verifier is built on [Plugin Check](https://github.com/WordPress/plugin-check/) by the WordPress Performance Team and Plugin Review Team. The audit trail architecture, custom check engine, AI guidance system, and results UI are original additions.
 
 ---
 
 ## License
 
-GPLv2 or later - Same as the original Plugin Check project
-
----
-
-## Support
-
-As this is a work-in-progress project, support is limited. For issues related to the core Plugin Check functionality, please refer to the [original project](https://github.com/WordPress/plugin-check/).
+GPLv2 or later — same as the original Plugin Check project.
