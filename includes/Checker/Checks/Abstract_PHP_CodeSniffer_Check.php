@@ -105,42 +105,23 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 	}
 
 	/**
-	 * Run PHPCS with issue limiting - processes files individually until limit is reached
+	 * Run PHPCS with issue limiting - processes files one at a time until limit is reached.
 	 *
-	 * @param Check_Result $result The check result to amend
-	 * @param array $files_to_scan Array of files to scan
-	 * @param int $issue_limit Maximum number of issues to find
+	 * @param Check_Result $result The check result to amend.
+	 * @param array $files_to_scan Array of files to scan.
+	 * @param int $issue_limit Maximum number of issues to find.
 	 */
 	private function run_with_issue_limit( Check_Result $result, $files_to_scan, $issue_limit ) {
-		// If scanning entire plugin directory, get individual PHP files
 		if ( count( $files_to_scan ) === 1 && is_dir( $files_to_scan[0] ) ) {
 			$files_to_scan = $this->get_php_files( $files_to_scan[0] );
 		}
-		
-		$total_issues = 0;
-		$files_processed = 0;
-		
+
 		foreach ( $files_to_scan as $file_path ) {
-			if ( $total_issues >= $issue_limit ) {
+			if ( ( $result->get_error_count() + $result->get_warning_count() ) >= $issue_limit ) {
 				break;
 			}
-			
-			$files_processed++;
-			
-			// Count issues before processing this file
-			$issues_before = $this->count_current_issues( $result );
-			
-			// Process single file
+
 			$this->run_phpcs_on_files( $result, array( $file_path ) );
-			
-			// Count issues after processing this file
-			$issues_after = $this->count_current_issues( $result );
-			$total_issues = $issues_after;
-			
-			// Check if we've reached or exceeded the limit
-			if ( $total_issues >= $issue_limit ) {
-				break;
-			}
 		}
 	}
 
@@ -197,19 +178,26 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 			return;
 		}
 
+		// Instantiate Hash_Generator once outside the loop (Bottleneck #4 fix)
+		$hash_generator = null;
+		if ( class_exists( 'WordPress\\Plugin_Check\\Verification\\Hash_Generator' ) ) {
+			try {
+				$hash_generator = new \WordPress\Plugin_Check\Verification\Hash_Generator();
+			} catch ( Exception $e ) {
+				// Silent fail
+			}
+		}
+
 		foreach ( $reports['files'] as $file_name => $file_results ) {
 			if ( empty( $file_results['messages'] ) ) {
 				continue;
 			}
 
-			// Step 2: Generate hashes for files with issues (non-breaking logging)
-			if ( class_exists( 'WordPress\\Plugin_Check\\Verification\\Hash_Generator' ) ) {
+			if ( $hash_generator ) {
 				try {
-					$hash_generator = new \WordPress\Plugin_Check\Verification\Hash_Generator();
-					$file_hash = $hash_generator->generate_file_hash( $file_name );
-					// Hash generated silently for verification tracking
+					$hash_generator->generate_file_hash( $file_name );
 				} catch ( Exception $e ) {
-					// Silent fail - don't break existing functionality
+					// Silent fail
 				}
 			}
 
@@ -227,40 +215,6 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 				);
 			}
 		}
-	}
-
-	/**
-	 * Count current issues in the Check_Result
-	 *
-	 * @param Check_Result $result The check result to count issues in
-	 * @return int Total number of issues (errors + warnings)
-	 */
-	private function count_current_issues( Check_Result $result ) {
-		$errors = $result->get_errors();
-		$warnings = $result->get_warnings();
-		
-		$error_count = $this->count_issues_in_array( $errors );
-		$warning_count = $this->count_issues_in_array( $warnings );
-		
-		return $error_count + $warning_count;
-	}
-
-	/**
-	 * Count issues in a nested array structure
-	 *
-	 * @param array $issues Nested array of issues
-	 * @return int Total count of issues
-	 */
-	private function count_issues_in_array( $issues ) {
-		$count = 0;
-		foreach ( $issues as $file => $lines ) {
-			foreach ( $lines as $line => $columns ) {
-				foreach ( $columns as $column => $issue_list ) {
-					$count += count( $issue_list );
-				}
-			}
-		}
-		return $count;
 	}
 
 	/**

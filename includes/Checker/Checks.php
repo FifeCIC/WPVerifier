@@ -40,31 +40,13 @@ final class Checks {
 		$result = new Check_Result( $context );
 		
 		$issue_limit = $this->get_issue_limit_from_request();
-		$issue_count = 0;
 
-		// Run the checks with early termination support
 		foreach ( $checks as $check ) {
-			// Check if we've reached the issue limit
-			if ( $issue_limit > 0 && $issue_count >= $issue_limit ) {
+			if ( $issue_limit > 0 && ( $result->get_error_count() + $result->get_warning_count() ) >= $issue_limit ) {
 				break;
 			}
-			
-			// Store current issue count before running check
-			$issues_before = $this->count_issues_in_result( $result );
-			
-			// Run the check
+
 			$this->run_check_with_result( $check, $result, $issue_limit > 0 ? $issue_limit : null );
-			
-			// Update issue count after running check
-			if ( $issue_limit > 0 ) {
-				$issues_after = $this->count_issues_in_result( $result );
-				$issue_count = $issues_after;
-				
-				// Check if we've reached the limit after this check
-				if ( $issue_count >= $issue_limit ) {
-					// Will stop after this check
-				}
-			}
 		}
 
 		return $result;
@@ -166,43 +148,5 @@ final class Checks {
 		return 0;
 	}
 
-	/**
-	 * Count total issues in a Check_Result object
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param Check_Result $result The result object to count issues in
-	 * @return int Total number of issues (errors + warnings)
-	 */
-	private function count_issues_in_result( Check_Result $result ) {
-		$errors = $result->get_errors();
-		$warnings = $result->get_warnings();
-		
-		$error_count = $this->count_issues_in_array( $errors );
-		$warning_count = $this->count_issues_in_array( $warnings );
-		
-		$total = $error_count + $warning_count;
-		
-		return $total;
-	}
 
-	/**
-	 * Count issues in a nested array structure
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array $issues Nested array of issues
-	 * @return int Total count of issues
-	 */
-	private function count_issues_in_array( $issues ) {
-		$count = 0;
-		foreach ( $issues as $file => $lines ) {
-			foreach ( $lines as $line => $columns ) {
-				foreach ( $columns as $column => $issue_list ) {
-					$count += count( $issue_list );
-				}
-			}
-		}
-		return $count;
-	}
 }

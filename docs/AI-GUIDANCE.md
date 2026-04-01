@@ -98,3 +98,9 @@ Indicators: Describe what a "Success" state looks like visually.
 Hold: AI must stop and wait for user confirmation after implementation.
 
 Troubleshoot: Provide a "If this failed, check X" guide for the developer.
+
+# Blogging Opportunities 
+Sometimes general discussions with AI result in great explanations that could give an insight into the work gone into a project. Occasionally, especially when compacting a conversation, consider the potential to publish a quick blog post. 
+
+# Tutorial/Guide Opportunities
+Sometimes the most technical work in a project with AI result in testing instructions that could be re-used as user guidance. Occasionally, especially when compacting a conversation, consider the potential to update documentation and generate a comprehensive guide systematically. Also consider updating the roadmap with video tutorial tasks and adding placeholders in documentation for their links. 

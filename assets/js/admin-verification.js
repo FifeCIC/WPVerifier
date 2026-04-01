@@ -85,7 +85,7 @@
 
             WPVerifierAjax.runChecks(plugin, options, {
                 showSpinner: 'plugin-check__spinner',
-                timeout: 300000, // 5 minutes for verification
+                timeout: 600000, // 10 minutes for verification
                 onSuccess: (result) => {
                     this.stopProgressSimulation();
                     this.hideProgress();

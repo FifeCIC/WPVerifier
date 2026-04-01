@@ -179,7 +179,7 @@ window.WPVerifierAjax = (function() {
             check_options: checkOptionsJson
         }, {
             showSpinner: 'verification-spinner',
-            timeout: 120000, // Longer timeout for verification
+            timeout: 600000, // 10 minutes for verification
             ...options
         });
     }

@@ -152,9 +152,9 @@ class Verification_AJAX_Handler {
 		$log_file   = WP_CONTENT_DIR . '/wpv-scan-timing.log';
 		$this->timing_log( $log_file, $start_time, 'START run_checks' );
 
-		// Allow up to 5 minutes for large scans
+		// Allow up to 10 minutes for large scans
 		if ( function_exists( 'set_time_limit' ) ) {
-			set_time_limit( 300 );
+			set_time_limit( 600 );
 		}
 
 		$runner = $this->get_ajax_runner();
