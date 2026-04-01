@@ -194,9 +194,16 @@ foreach ($plugin_dirs as $plugin_dir) {
                                             <label><input type="checkbox" value="include-experimental" id="plugin-check__include-experimental" /> <?php esc_html_e('Include Experimental Checks', 'wp-verifier'); ?></label>
                                         </p>
                                     <?php endif; ?>
-                                    <p>
-                                        <label><input type="checkbox" value="limit-results" id="plugin-check__limit-results" /> <?php esc_html_e('Limit to 20 issues (testing)', 'wp-verifier'); ?></label>
-                                    </p>
+                                </div>
+
+                                <div>
+                                    <h4><?php esc_attr_e('Limit Results', 'wp-verifier'); ?></h4>
+                                    <table id="plugin-check__limits">
+                                        <tr><td><label><input type="radio" name="issue_limit" value="0" checked="checked" /> <?php esc_html_e('No limit', 'wp-verifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="20" /> <?php esc_html_e('20 issues (testing)', 'wp-verifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="250" /> <?php esc_html_e('250 issues', 'wp-verifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="500" /> <?php esc_html_e('500 issues', 'wp-verifier'); ?></label></td></tr>
+                                    </table>
                                 </div>
                             </div>
                         </div>

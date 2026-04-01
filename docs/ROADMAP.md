@@ -63,6 +63,47 @@ Same concept as file-level ignoring but scoped to individual functions/methods. 
 
 ---
 
+## PHASE 4.5: Scan Performance Bottleneck Fixes 📋 PLANNED
+
+### Overview
+Profiling the limited-results scan revealed that a 250-issue limit completes in ~8 seconds while an unlimited scan producing ~1,577 issues takes ~2m 41s. The scaling is non-linear due to several O(n²) patterns and per-file overhead in the scan pipeline. This phase addresses the five identified bottlenecks.
+
+### Bottleneck #1 (Critical): O(n²) issue counting in `Abstract_PHP_CodeSniffer_Check`
+**File:** `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php`
+**Problem:** `run_with_issue_limit()` calls `count_current_issues()` before and after every file. That method calls `$result->get_errors()` and `$result->get_warnings()`, retrieves the full nested arrays, then walks every file → line → column → issue to count them. With 1,000 accumulated issues and 100 files to process, this is ~200,000 iterations just for counting.
+**Fix:** `Check_Result` already maintains `$error_count` and `$warning_count` as integers, incremented in `add_message()`. Replace all `count_current_issues()` / `count_issues_in_array()` calls with `$result->get_error_count() + $result->get_warning_count()`. This is O(1) per check.
+
+### Bottleneck #2 (Critical): Same O(n²) counting in `Checks.php`
+**File:** `includes/Checker/Checks.php`
+**Problem:** `run_checks()` calls `count_issues_in_result()` before and after each check type. Same full-array traversal as Bottleneck #1.
+**Fix:** Same — use `$result->get_error_count() + $result->get_warning_count()` instead of `count_issues_in_result()`.
+
+### Bottleneck #3 (Medium): Per-file PHPCS bootstrap overhead
+**File:** `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php`
+**Problem:** `run_with_issue_limit()` calls `run_phpcs_on_files()` once per file. Each call performs: `$_SERVER['argv']` backup/restore, `get_args()`, `reset_php_codesniffer_config()` (Reflection), `Config::getConfigData`/`setConfigData`, full argv defaults rebuild including ignore patterns, `new Runner()` instantiation, JSON output parsing, and `Hash_Generator` instantiation per file with issues. For 100+ files this adds up.
+**Fix:** Batch files into small groups (e.g. 10–20 files per PHPCS invocation) instead of one-at-a-time. After each batch, check the count. This reduces PHPCS bootstrap overhead by 10–20× while still allowing early termination at batch boundaries.
+
+### Bottleneck #4 (Low): `Hash_Generator` instantiated per file
+**File:** `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php`
+**Problem:** Inside `run_phpcs_on_files()`, a new `Hash_Generator` is created for every file that has issues. Object creation is cheap but unnecessary.
+**Fix:** Instantiate `Hash_Generator` once outside the file loop and reuse it.
+
+### Bottleneck #5 (Low): Dead code — `$issues_before` never used
+**File:** `includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php`
+**Problem:** `$issues_before = $this->count_current_issues( $result )` is computed but never referenced. It's a full array traversal for nothing.
+**Fix:** Remove the line.
+
+### Implementation Order
+1. Fix #1 and #2 first (biggest impact, simplest change — swap method calls)
+2. Fix #5 (trivial removal)
+3. Fix #4 (move instantiation outside loop)
+4. Fix #3 (batch file processing — more involved refactor)
+
+### Expected Impact
+Fixes #1 and #2 alone should reduce unlimited scan time from ~2m 41s to roughly proportional to the 250-limit time (~8s) scaled by file count, since the per-file PHPCS work is constant but the counting overhead that grows quadratically is eliminated. Estimated unlimited scan time after fixes: 30–60 seconds.
+
+---
+
 ## PHASE 7: JSON Storage Directory Migration 📋 PLANNED
 
 ### Overview
@@ -671,6 +712,118 @@ issues across 14 files. Resolving these typically takes 8–16 hours.
 | 12.1 | `Effort_Estimator` with weighted scoring and four-band output |
 | 12.2 | Dismissible offer panel in TAB04, shown at Band 2+ |
 | 12.3 | EvolveWP.dev landing page query string integration |
+
+---
+
+## PHASE 14: Community Score Submission & Feedback 📋 PLANNED (FREE TIER)
+
+### Overview
+After a successful scan, developers can voluntarily submit their plugin's readiness score and a short comment to EvolveWP.dev. Submissions go through moderation before appearing publicly. The feature serves three purposes: community benchmarking (developers can see how their score compares to others), product feedback for WP Verifier development, and a lead-generation signal for EvolveWP professional services.
+
+All submission is opt-in, clearly labelled, and fully compliant with WordPress.org plugin guidelines — no data is sent without an explicit user action.
+
+---
+
+### Phase 14.1: Submission UI in TAB04
+
+**Trigger:** Shown after a scan completes, as a collapsible panel below the readiness score display. Not shown if the score is 100 (nothing useful to submit).
+
+**Panel contents:**
+- Readiness score (pre-filled, read-only)
+- Plugin slug (pre-filled from current selection, editable)
+- WP Verifier version (pre-filled, read-only)
+- Developer comment (free-text textarea, max 500 characters)
+  - Placeholder: *"e.g. First scan of a legacy plugin — most issues are in vendor code"*
+- Email address (optional — used for correlation on EvolveWP.dev, never displayed publicly)
+- Website URL (optional)
+- Consent checkbox: *"I agree to submit this score and comment to EvolveWP.dev for moderation and potential public display"*
+- Submit button
+- Dismiss link (stores dismiss in user meta for 30 days)
+
+**What is submitted:**
+```json
+{
+  "plugin_slug": "wpseed",
+  "score": 85,
+  "errors": 1,
+  "warnings": 13,
+  "wpv_version": "1.9.0",
+  "wp_version": "6.9",
+  "php_version": "8.2",
+  "comment": "Developer-supplied free text",
+  "email": "optional@example.com",
+  "website": "https://optional.example.com",
+  "submitted_at": "2026-04-01 12:00:00"
+}
+```
+
+**What is NOT submitted:** file paths, issue details, code content, server paths, user ID, site URL (unless developer explicitly provides website field).
+
+**WordPress.org compliance:**
+- Opt-in only — no submission without explicit checkbox consent ✅
+- Dismissible ✅
+- No automatic outbound requests ✅
+- No PII collected beyond what the developer voluntarily provides ✅
+
+**Files to create/modify:**
+- `includes/Services/Score_Submission.php` — payload assembly, outbound POST to EvolveWP.dev API
+- `templates/admin-page-results.php` — add submission panel below readiness score
+- `assets/js/admin-results.js` — submission AJAX handler, dismiss logic
+
+---
+
+### Phase 14.2: EvolveWP.dev Submission Endpoint
+
+WP Verifier POSTs to `https://evolvewp.dev/wp-json/evolvewp/v1/wpverifier/submit-score`.
+
+The endpoint is part of the EvolveWP Feedback Service (see `ROADMAP-EVOLVEWPCORE-DECISIONS.md` Decision 11). It:
+1. Validates the payload (required fields, score range, version format)
+2. Stores the submission in the `evolvewp_wpv_submissions` database table with `status = pending`
+3. Triggers a moderation queue notification to the EvolveWP admin
+4. Returns a JSON response: `{ "success": true, "message": "Thank you — your submission is under review." }`
+
+Rate limiting: maximum 3 submissions per IP per 24 hours to prevent abuse.
+
+---
+
+### Phase 14.3: Moderation & Public Display
+
+**Moderation queue** (EvolveWP.dev admin):
+- List view of pending submissions with approve / reject / edit actions
+- Approved submissions become publicly visible on the WP Verifier page at EvolveWP.dev
+- Rejected submissions are soft-deleted (retained for abuse tracking)
+- Moderator can edit the comment before approval (e.g. remove accidental PII)
+
+**Public display** (EvolveWP.dev):
+- Score leaderboard / distribution chart: *"Most submitted scores fall between 70–90"*
+- Recent approved comments feed (plugin slug, score, comment, date — no email or website shown publicly unless developer opted in)
+- Filterable by WP Verifier version, PHP version, score band
+
+**Customer correlation** (EvolveWP.dev internal):
+- If email was provided, submission is linked to the EvolveWP customer record
+- Customer service view shows: all submissions from this email, scores over time, comments, associated website
+- Useful for identifying customers who are struggling (high issue counts, repeated submissions) and proactively offering help
+- See Decision 11 in `ROADMAP-EVOLVEWPCORE-DECISIONS.md` for the full EvolveWP Feedback Service architecture
+
+---
+
+### Phase 14.4: In-Plugin Score History
+
+After a developer submits, WP Verifier stores a local record of the submission in user meta:
+- Submission date, score, comment snippet
+- Moderation status (pending / approved / rejected) — polled from EvolveWP.dev on TAB04 load (cached for 1 hour)
+- A small "Your submissions" panel in TAB04 showing the last 3 submissions and their status
+
+---
+
+### Phase 14 Milestones Summary
+
+| Milestone | Deliverable |
+|---|---|
+| 14.1 | Submission panel in TAB04, payload assembly, outbound POST, dismiss logic |
+| 14.2 | EvolveWP.dev submission endpoint, validation, DB storage, rate limiting |
+| 14.3 | Moderation queue, public display, customer correlation view |
+| 14.4 | In-plugin submission history panel with moderation status polling |
 
 ---
 

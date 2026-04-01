@@ -39,9 +39,7 @@ final class Checks {
 	public function run_checks( Check_Context $context, array $checks, ?Check_Runner $runner = null ) {
 		$result = new Check_Result( $context );
 		
-		// Check if issue limiting is enabled
-		$limit_results = $this->get_issue_limit_from_request();
-		$issue_limit = $limit_results ? 20 : 0; // 0 means no limit
+		$issue_limit = $this->get_issue_limit_from_request();
 		$issue_count = 0;
 
 		// Run the checks with early termination support
@@ -133,34 +131,39 @@ final class Checks {
 	}
 
 	/**
-	 * Get issue limit from current request
+	 * Get issue limit from current request.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @return bool True if issue limiting is enabled
+	 * @return int Issue limit (0 = no limit).
 	 */
 	private function get_issue_limit_from_request() {
-		// Get check_options from POST request
 		$check_options_json = filter_input( INPUT_POST, 'check_options', FILTER_UNSAFE_RAW );
-		// Handle double-escaped JSON and HTML entities
 		if ( $check_options_json ) {
 			$check_options_json = stripslashes( $check_options_json );
 			$check_options_json = html_entity_decode( $check_options_json, ENT_QUOTES, 'UTF-8' );
 		}
-		
+
 		if ( ! $check_options_json ) {
-			return false;
+			return 0;
 		}
-		
+
 		$check_options = json_decode( $check_options_json, true );
-		
 		if ( ! $check_options || ! is_array( $check_options ) ) {
-			return false;
+			return 0;
 		}
-		
-		$limit_results = isset( $check_options['limit_results'] ) ? (bool) $check_options['limit_results'] : false;
-		
-		return $limit_results;
+
+		// Radio-based max_issues (new)
+		if ( isset( $check_options['max_issues'] ) && (int) $check_options['max_issues'] > 0 ) {
+			return (int) $check_options['max_issues'];
+		}
+
+		// Legacy checkbox fallback
+		if ( ! empty( $check_options['limit_results'] ) ) {
+			return 20;
+		}
+
+		return 0;
 	}
 
 	/**

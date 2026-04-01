@@ -1,0 +1,2283 @@
+{
+    "generated_at": "2026-04-01 11:44:10",
+    "plugin": "WPVerifier/plugin.php",
+    "readiness": {
+        "overall": 0,
+        "errors": 250,
+        "warnings": 0
+    },
+    "results": {
+        "assets/Asset_Manager.php": [
+            {
+                "issue_id": "E-901fa5da",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 264,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b3257de8",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 265,
+                "column": 64,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-8afdc3d5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 266,
+                "column": 93,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-df27a9cf",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 267,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-30aafa4b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 302,
+                "column": 82,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-805a7fff",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 303,
+                "column": 84,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-8e694ec6",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 305,
+                "column": 67,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a87df015",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 306,
+                "column": 68,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-168f7349",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 307,
+                "column": 72,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a0508aed",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 308,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4a1d9066",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 309,
+                "column": 64,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d087e31e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 310,
+                "column": 68,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2f4525e7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 311,
+                "column": 72,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d1a59062",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 312,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-bc506aeb",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 313,
+                "column": 69,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-33ec9e19",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 314,
+                "column": 67,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f800301b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 315,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1ff5ba7e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 316,
+                "column": 90,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Admin_Page.php": [
+            {
+                "issue_id": "E-8556033d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 80,
+                "column": 35,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b5988c0e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 81,
+                "column": 35,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-cec20b89",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 250,
+                "column": 45,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2191f686",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 259,
+                "column": 158,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3f29aaac",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 338,
+                "column": 47,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-dc8a80f1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 347,
+                "column": 50,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d532ae78",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 456,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-347ac9fc",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 509,
+                "column": 60,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-66df6730",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 510,
+                "column": 202,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-dad67ab8",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 515,
+                "column": 61,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ae9fa8fc",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 516,
+                "column": 55,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ffd95484",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 517,
+                "column": 59,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d9fee6ab",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 518,
+                "column": 67,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f141e099",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 519,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-02c40978",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 526,
+                "column": 97,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-9640733a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 555,
+                "column": 49,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-bb71f3ef",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 557,
+                "column": 94,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e57a5b24",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 558,
+                "column": 134,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6ff5d9e7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 559,
+                "column": 121,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Admin_Page_Tabs.php": [
+            {
+                "issue_id": "E-2e3d43e5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 20,
+                "column": 69,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-5b802d8d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 21,
+                "column": 65,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ca6193dd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 22,
+                "column": 68,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-193bce44",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 23,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e3680164",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 24,
+                "column": 73,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1462a85f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 25,
+                "column": 65,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b8295e93",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 26,
+                "column": 67,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-97a2a3d4",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 27,
+                "column": 64,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-57df185f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 28,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-c9ae8056",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 29,
+                "column": 69,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-61641a26",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 30,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7df545ce",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 65,
+                "column": 57,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-90a7c23a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 66,
+                "column": 124,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/AJAX_Handler_Manager.php": [
+            {
+                "issue_id": "E-858ee3d7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 121,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-dd004bf6",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 167,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-60099766",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 177,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-23a5a3b1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 222,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-5f54d89d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 250,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-9f61a4a4",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 280,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ec8953d7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 310,
+                "column": 81,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d286c5af",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 320,
+                "column": 70,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-167a4fea",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 345,
+                "column": 57,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a1264bd7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 419,
+                "column": 90,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-0ed15b35",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 429,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7da2aaad",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 454,
+                "column": 104,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2fe3944b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 461,
+                "column": 85,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2763e6bf",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 466,
+                "column": 83,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-50d23a01",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 482,
+                "column": 89,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a9b6d61f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 489,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-44b746c1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 511,
+                "column": 96,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2336b1ab",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 529,
+                "column": 79,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-8b59bb9d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 549,
+                "column": 86,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fcade64e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 581,
+                "column": 86,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4eee0700",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 591,
+                "column": 72,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e9dde686",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 728,
+                "column": 95,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-0482cc06",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 736,
+                "column": 126,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f40c5d13",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 744,
+                "column": 83,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-578d57bb",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 762,
+                "column": 89,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1964c4ef",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 770,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fec08140",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 787,
+                "column": 91,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-8bd8eb83",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 792,
+                "column": 84,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-72f114c8",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 842,
+                "column": 73,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-af1d0f78",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 846,
+                "column": 136,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Assets_Tab.php": [
+            {
+                "issue_id": "E-705da3a7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 41,
+                "column": 48,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e7f28a65",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 49,
+                "column": 55,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-62fea06e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 62,
+                "column": 57,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1bf0a636",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 69,
+                "column": 50,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f33718ac",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 70,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-56ed4344",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 71,
+                "column": 53,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-29b6cc9a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 72,
+                "column": 52,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-beb9ef29",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 73,
+                "column": 50,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fa4488b0",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 74,
+                "column": 51,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-bf1ff833",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 75,
+                "column": 58,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4f2b927b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 85,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3021e2eb",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 85,
+                "column": 97,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-777fbdd5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 129,
+                "column": 57,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a0a07210",
+                "message": "A function call to __() with texts containing placeholders was found, but was not accompanied by a &quot;translators:&quot; comment on the line above to clarify the meaning of the placeholders.",
+                "code": "WordPress.WP.I18n.MissingTranslatorsComment",
+                "type": "ERROR",
+                "line": 130,
+                "column": 38,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4cf7a2f9",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 130,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-105e656e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 136,
+                "column": 56,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f82e90c9",
+                "message": "A function call to __() with texts containing placeholders was found, but was not accompanied by a &quot;translators:&quot; comment on the line above to clarify the meaning of the placeholders.",
+                "code": "WordPress.WP.I18n.MissingTranslatorsComment",
+                "type": "ERROR",
+                "line": 137,
+                "column": 38,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4dff7c06",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 137,
+                "column": 65,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2185d61c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 143,
+                "column": 56,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4a4e8b15",
+                "message": "A function call to __() with texts containing placeholders was found, but was not accompanied by a &quot;translators:&quot; comment on the line above to clarify the meaning of the placeholders.",
+                "code": "WordPress.WP.I18n.MissingTranslatorsComment",
+                "type": "ERROR",
+                "line": 144,
+                "column": 38,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6fd27e11",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 144,
+                "column": 65,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Config_AJAX_Handler.php": [
+            {
+                "issue_id": "E-94857ebd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 50,
+                "column": 80,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2370e661",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 80,
+                "column": 97,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2de7090b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 85,
+                "column": 81,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-597e49f9",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 144,
+                "column": 90,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-12fedcfa",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 179,
+                "column": 92,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-73546f8e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 184,
+                "column": 81,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e00d8cbd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 191,
+                "column": 95,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-86415d70",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 202,
+                "column": 91,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-53029b32",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 222,
+                "column": 80,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-70439c4d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 267,
+                "column": 80,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a011a0c5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 295,
+                "column": 91,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-52bf00c1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 314,
+                "column": 90,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1c424c7a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 318,
+                "column": 71,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-deed5647",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 381,
+                "column": 73,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-45a6851d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 385,
+                "column": 136,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Custom_Rulesets.php": [
+            {
+                "issue_id": "E-de9b4d51",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 42,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ffbddfa9",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 61,
+                "column": 112,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-324141df",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 64,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7326fd65",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 66,
+                "column": 100,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fb12cb40",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 73,
+                "column": 78,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6a8b59a9",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 79,
+                "column": 51,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-32a9d120",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 80,
+                "column": 58,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2e46d57c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 81,
+                "column": 57,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-09498118",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 82,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-07bbe47a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 88,
+                "column": 130,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-597e4fe3",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 98,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e39d99f9",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 101,
+                "column": 65,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3270a77a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 104,
+                "column": 128,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b894e61e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 105,
+                "column": 65,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a630054e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 146,
+                "column": 85,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-76a15ca8",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 152,
+                "column": 91,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3f3be929",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 158,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-5b6510b4",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 175,
+                "column": 120,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6ca72392",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 175,
+                "column": 168,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1422cc58",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 176,
+                "column": 147,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-47756c35",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 187,
+                "column": 87,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-9f7fb57a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 220,
+                "column": 87,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-12991b10",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 239,
+                "column": 87,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b8d097d7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 247,
+                "column": 55,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e6140f9f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 264,
+                "column": 87,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b4355b74",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 270,
+                "column": 56,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-37dfde12",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 277,
+                "column": 58,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Hash_AJAX_Handler.php": [
+            {
+                "issue_id": "E-5a4fecec",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 44,
+                "column": 80,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-bd9132a0",
+                "message": "A function call to __() with texts containing placeholders was found, but was not accompanied by a &quot;translators:&quot; comment on the line above to clarify the meaning of the placeholders.",
+                "code": "WordPress.WP.I18n.MissingTranslatorsComment",
+                "type": "ERROR",
+                "line": 93,
+                "column": 39,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f56cbbfa",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 93,
+                "column": 76,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b5b0cebd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 113,
+                "column": 80,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-579d283c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 160,
+                "column": 94,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-5d1c1359",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 166,
+                "column": 84,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1a017107",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 171,
+                "column": 82,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a0b4c47c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 187,
+                "column": 77,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-247e6130",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 194,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-beb30021",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 216,
+                "column": 94,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3cd7c407",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 222,
+                "column": 84,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-08261b3d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 227,
+                "column": 82,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-84a5e6c5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 243,
+                "column": 77,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d0f6bad5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 250,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-dab5534a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 280,
+                "column": 73,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4886e7c5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 284,
+                "column": 136,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Help_Tabs.php": [
+            {
+                "issue_id": "E-8dcd6981",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 37,
+                "column": 51,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-60fc4d83",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 46,
+                "column": 45,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7bcf68a1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 55,
+                "column": 44,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2bb34f50",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 64,
+                "column": 45,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b963b044",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 65,
+                "column": 91,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-20f23fb3",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 66,
+                "column": 220,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-49396f61",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 67,
+                "column": 49,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-86e0156a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 68,
+                "column": 263,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2294f6c7",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 69,
+                "column": 59,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-9cd3f632",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 70,
+                "column": 252,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-98ccd5c8",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 71,
+                "column": 251,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-28aef6e4",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 72,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ade0e47f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 73,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a290d479",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 73,
+                "column": 260,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b7d45855",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 74,
+                "column": 60,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-0cf80e4f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 74,
+                "column": 275,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-8e08bc1b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 75,
+                "column": 63,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ddf4c8c2",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 75,
+                "column": 215,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6640491f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 76,
+                "column": 61,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b6b19b42",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 76,
+                "column": 194,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7449b1fd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 77,
+                "column": 53,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e612c4f3",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 78,
+                "column": 71,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-c843a8b5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 79,
+                "column": 67,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6f8d658c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 80,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-b2827851",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 81,
+                "column": 82,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3c6cad3f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 87,
+                "column": 39,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-c065f3bd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 101,
+                "column": 72,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-1235c8d8",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 102,
+                "column": 105,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-5f2a735a",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 106,
+                "column": 91,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2db27a9d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 107,
+                "column": 191,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-68cb87b5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 108,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-4df5fa28",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 108,
+                "column": 185,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7102f954",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 112,
+                "column": 97,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ec240b28",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 113,
+                "column": 172,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6ee21bff",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 114,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fa646a9c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 114,
+                "column": 187,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d1489199",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 118,
+                "column": 92,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e85202cf",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 119,
+                "column": 178,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-456902e0",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 120,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-962edfad",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 120,
+                "column": 188,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fdc52426",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 124,
+                "column": 97,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6e26b929",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 125,
+                "column": 179,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-9e227ea1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 126,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6df26c04",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 126,
+                "column": 185,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fb0f7654",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 130,
+                "column": 103,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6dafedac",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 131,
+                "column": 159,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-0fab8651",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 132,
+                "column": 66,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ec1636c1",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 132,
+                "column": 190,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7132bb9c",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 137,
+                "column": 57,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-99547472",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 139,
+                "column": 108,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ba6ef937",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 140,
+                "column": 118,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-c21a5dd4",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 141,
+                "column": 127,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-81041d92",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 142,
+                "column": 110,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-54d81ced",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 151,
+                "column": 49,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d8f285fc",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 152,
+                "column": 107,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-a8dc8b84",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 153,
+                "column": 95,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2b1da05f",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 154,
+                "column": 96,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f4d4dc76",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 171,
+                "column": 395,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-6be1ae02",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 174,
+                "column": 341,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f29d178b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 178,
+                "column": 384,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-f0ab9598",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 215,
+                "column": 157,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-5c135493",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wpverifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 239,
+                "column": 70,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-37228181",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 291,
+                "column": 53,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7866f838",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 306,
+                "column": 113,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-7fc5ce34",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 309,
+                "column": 54,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-af5d9b92",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 311,
+                "column": 56,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-824d60a5",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 314,
+                "column": 81,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ca87969e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 316,
+                "column": 81,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-36ee9814",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 318,
+                "column": 83,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-13e0ab62",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 325,
+                "column": 59,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-d53e0b24",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 330,
+                "column": 51,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-e0e3a11e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 336,
+                "column": 95,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-51f01318",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 339,
+                "column": 72,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-917b7b0e",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 349,
+                "column": 90,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-08352b05",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 355,
+                "column": 86,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-03dc1290",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 362,
+                "column": 115,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Ignore_Rules_Handler.php": [
+            {
+                "issue_id": "E-b24d4ec4",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 76,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-3d79ed6b",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 95,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-28d94688",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 109,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-48d3a6fd",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 124,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-dcf7b017",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 130,
+                "column": 56,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2c1e1737",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 137,
+                "column": 56,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-35e35833",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 146,
+                "column": 62,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-2582811d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 155,
+                "column": 65,
+                "ignored": false
+            }
+        ],
+        "includes/Admin/Results_AJAX_Handler.php": [
+            {
+                "issue_id": "E-47990c4d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 72,
+                "column": 84,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-cdc530ee",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 78,
+                "column": 65,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-ccd0eed6",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 99,
+                "column": 85,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-fd549585",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 106,
+                "column": 84,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-9e76865d",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 200,
+                "column": 85,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-201d7207",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 205,
+                "column": 88,
+                "ignored": false
+            },
+            {
+                "issue_id": "E-22d559ec",
+                "message": "Mismatched text domain. Expected &#039;WPVerifier&#039; but got &#039;wp-verifier&#039;.",
+                "code": "WordPress.WP.I18n.TextDomainMismatch",
+                "type": "ERROR",
+                "line": 211,
+                "column": 67,
+                "ignored": false
+            }
+        ]
+    }
+}

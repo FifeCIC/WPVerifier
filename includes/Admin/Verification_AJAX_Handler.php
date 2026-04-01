@@ -148,6 +148,15 @@ class Verification_AJAX_Handler {
 	public function run_checks() {
 		$this->check_request_validity();
 
+		$start_time = microtime( true );
+		$log_file   = WP_CONTENT_DIR . '/wpv-scan-timing.log';
+		$this->timing_log( $log_file, $start_time, 'START run_checks' );
+
+		// Allow up to 5 minutes for large scans
+		if ( function_exists( 'set_time_limit' ) ) {
+			set_time_limit( 300 );
+		}
+
 		$runner = $this->get_ajax_runner();
 
 		if ( is_wp_error( $runner ) ) {
@@ -165,19 +174,33 @@ class Verification_AJAX_Handler {
 			$check_options_json = html_entity_decode( $check_options_json, ENT_QUOTES, 'UTF-8' );
 		}
 		$check_options = $check_options_json ? json_decode( $check_options_json, true ) : array();
-		$limit_results = isset( $check_options['limit_results'] ) ? (bool) $check_options['limit_results'] : false;
+
+		// Determine issue limit from radio selection (new) or legacy checkboxes
+		$max_issues = 0;
+		if ( isset( $check_options['max_issues'] ) && (int) $check_options['max_issues'] > 0 ) {
+			$max_issues = (int) $check_options['max_issues'];
+		} elseif ( ! empty( $check_options['limit_results'] ) ) {
+			$max_issues = 20;
+		} elseif ( ! empty( $check_options['limit_500'] ) ) {
+			$max_issues = 500;
+		}
+
+		$this->timing_log( $log_file, $start_time, 'Options parsed, max_issues=' . $max_issues );
 
 		try {
 			$config = $this->configure_runner( $runner );
+			$this->timing_log( $log_file, $start_time, 'Runner configured for: ' . $config['plugin'] );
 			
 			// Apply ignored_paths from JSON for Advanced Verification
 			$this->apply_ignored_paths_filter( $config['plugin'] );
+			$this->timing_log( $log_file, $start_time, 'Ignored paths applied, starting $runner->run()' );
 			
 			$results = $runner->run();
+			$this->timing_log( $log_file, $start_time, '$runner->run() COMPLETED' );
 			
-			// Debug results
 			$errors = $results->get_errors();
 			$warnings = $results->get_warnings();
+			$this->timing_log( $log_file, $start_time, 'get_errors/get_warnings done — errors=' . $this->count_issues( $errors ) . ' warnings=' . $this->count_issues( $warnings ) );
 			
 			// Filter WordPress.org specific rules if not preparing for WordPress.org
 			$wporg_prep = filter_input( INPUT_POST, 'wporg_preparation', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -189,23 +212,60 @@ class Verification_AJAX_Handler {
 				$filtered_warnings = \WordPress\Plugin_Check\Utilities\WPOrg_Rules::filter_results( $warnings );
 				$errors = $filtered_errors;
 				$warnings = $filtered_warnings;
+				$this->timing_log( $log_file, $start_time, 'WPOrg filter applied' );
 			}
 		} catch ( Exception $error ) {
+			$this->timing_log( $log_file, $start_time, 'EXCEPTION: ' . $error->getMessage() );
 			wp_send_json_error(
 				new WP_Error( 'invalid-request', $error->getMessage() ),
 				400
 			);
 		}
 
-		$response_data = $this->prepare_results_response_with_arrays( $errors, $warnings, $types, $limit_results );
+		// Apply issue limit if selected
+		$total_before_limit = $this->count_issues( $errors ) + $this->count_issues( $warnings );
+		$was_limited = false;
+		if ( $max_issues > 0 && $total_before_limit > $max_issues ) {
+			$limited  = $this->limit_issues_to_count( $errors, $warnings, $max_issues );
+			$errors   = $limited['errors'];
+			$warnings = $limited['warnings'];
+			$was_limited = true;
+			$this->timing_log( $log_file, $start_time, 'Limited from ' . $total_before_limit . ' to ' . $max_issues );
+		}
+
+		$elapsed_seconds = round( microtime( true ) - $start_time, 2 );
+
+		$this->timing_log( $log_file, $start_time, 'Building response HTML' );
+
+		$response_data = $this->prepare_results_response_with_arrays(
+			$errors,
+			$warnings,
+			$types,
+			$was_limited,
+			$elapsed_seconds,
+			$was_limited ? $total_before_limit : 0,
+			$max_issues
+		);
+		$this->timing_log( $log_file, $start_time, 'Response prepared' );
 		
 		// Save results to JSON file
 		$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		if ( $plugin ) {
 			$this->save_results_to_json( $plugin, $errors, $warnings );
+			$this->timing_log( $log_file, $start_time, 'Results saved to JSON' );
 		}
 
+		$this->timing_log( $log_file, $start_time, 'DONE — sending response (' . $elapsed_seconds . 's total)' );
 		wp_send_json_success( $response_data );
+	}
+
+	/**
+	 * Write a timestamped line to the timing log.
+	 */
+	private function timing_log( $log_file, $start_time, $message ) {
+		$elapsed = round( microtime( true ) - $start_time, 2 );
+		$line    = '[' . gmdate( 'Y-m-d H:i:s' ) . '] +' . str_pad( $elapsed, 7, ' ', STR_PAD_LEFT ) . 's  ' . $message . "\n";
+		file_put_contents( $log_file, $line, FILE_APPEND );
 	}
 
 	/**
@@ -446,20 +506,36 @@ class Verification_AJAX_Handler {
 	/**
 	 * Generate HTML output for verification results
 	 */
-	private function generate_results_html( $errors, $warnings ) {
+	private function generate_results_html( $errors, $warnings, $elapsed_seconds = 0 ) {
 		$total_errors = $this->count_issues( $errors );
 		$total_warnings = $this->count_issues( $warnings );
 		$total_issues = $total_errors + $total_warnings;
 
 		if ( $total_issues === 0 ) {
-			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong></p></div>';
+			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wp-verifier' ), $elapsed_seconds ) : '';
+			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
 		}
 
 		ob_start();
 		?>
 		<div class="plugin-check-results">
 			<div class="results-summary" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
-				<h3><?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?></h3>
+				<h3>
+					<?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?>
+					<?php if ( $elapsed_seconds > 0 ) : ?>
+						<span style="font-size: 13px; font-weight: normal; color: #646970; margin-left: 10px;">
+							<?php
+							if ( $elapsed_seconds >= 60 ) {
+								$minutes = floor( $elapsed_seconds / 60 );
+								$seconds = round( $elapsed_seconds - ( $minutes * 60 ), 1 );
+								printf( esc_html__( 'Completed in %1$dm %2$ss', 'wp-verifier' ), $minutes, $seconds );
+							} else {
+								printf( esc_html__( 'Completed in %ss', 'wp-verifier' ), $elapsed_seconds );
+							}
+							?>
+						</span>
+					<?php endif; ?>
+				</h3>
 				<div style="display: flex; gap: 20px; margin: 15px 0;">
 					<div style="flex: 1; text-align: center; padding: 15px; background: #dc3232; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_errors ); ?></div>
@@ -871,13 +947,15 @@ class Verification_AJAX_Handler {
 	/**
 	 * Prepare the results response with array-based errors and warnings
 	 */
-	private function prepare_results_response_with_arrays( $errors, $warnings, array $types, $is_limited = false ) {
+	private function prepare_results_response_with_arrays( $errors, $warnings, array $types, $is_limited = false, $elapsed_seconds = 0, $total_before_limit = 0, $max_issues = 0 ) {
 		$response = array(
 			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
 			'errors'   => array(),
 			'warnings' => array(),
 			'html_output' => '',
-			'limited' => $is_limited
+			'limited' => $is_limited,
+			'elapsed_seconds' => $elapsed_seconds,
+			'total_before_limit' => $total_before_limit,
 		);
 
 		if ( in_array( 'error', $types, true ) ) {
@@ -889,7 +967,7 @@ class Verification_AJAX_Handler {
 		}
 
 		// Generate HTML output with limitation notice
-		$response['html_output'] = $this->generate_results_html_with_limit_notice( $errors, $warnings, $is_limited );
+		$response['html_output'] = $this->generate_results_html_with_limit_notice( $errors, $warnings, $is_limited, $elapsed_seconds, $total_before_limit, $max_issues );
 		
 		// Generate export controls
 		$response['export_controls'] = $this->generate_export_controls( $errors, $warnings );
@@ -923,38 +1001,62 @@ class Verification_AJAX_Handler {
 	/**
 	 * Generate HTML output for verification results with limitation notice
 	 */
-	private function generate_results_html_with_limit_notice( $errors, $warnings, $is_limited = false ) {
+	private function generate_results_html_with_limit_notice( $errors, $warnings, $is_limited = false, $elapsed_seconds = 0, $total_before_limit = 0, $max_issues = 0 ) {
 		$total_errors = $this->count_issues( $errors );
 		$total_warnings = $this->count_issues( $warnings );
 		$total_issues = $total_errors + $total_warnings;
 
 		if ( $total_issues === 0 ) {
-			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong></p></div>';
+			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wp-verifier' ), $elapsed_seconds ) : '';
+			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
 		}
 
 		ob_start();
 		?>
 		<div class="plugin-check-results">
-			<?php if ( $is_limited ) : ?>
-				<div class="notice notice-info" style="margin-bottom: 20px;">
-					<p><strong><?php esc_html_e( 'Limited Results:', 'wp-verifier' ); ?></strong> <?php esc_html_e( 'Showing first 20 issues only. Uncheck "Limit to 20 issues" to see all results.', 'wp-verifier' ); ?></p>
+			<?php if ( $is_limited && $total_before_limit > 0 ) : ?>
+				<div class="notice notice-warning" style="margin-bottom: 20px;">
+					<p><strong><?php esc_html_e( 'Results Limited:', 'wp-verifier' ); ?></strong>
+					<?php
+						printf(
+							esc_html__( '%1$d issues were found but only the first %2$d are shown. Resolve these issues and run verification again to see more.', 'wp-verifier' ),
+							$total_before_limit,
+							$max_issues
+						);
+					?>
+					</p>
 				</div>
 			<?php endif; ?>
 			
 			<div class="results-summary" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
-				<h3><?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?></h3>
+				<h3>
+					<?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?>
+					<?php if ( $elapsed_seconds > 0 ) : ?>
+						<span style="font-size: 13px; font-weight: normal; color: #646970; margin-left: 10px;">
+							<?php
+							if ( $elapsed_seconds >= 60 ) {
+								$minutes = floor( $elapsed_seconds / 60 );
+								$seconds = round( $elapsed_seconds - ( $minutes * 60 ), 1 );
+								printf( esc_html__( 'Completed in %1$dm %2$ss', 'wp-verifier' ), $minutes, $seconds );
+							} else {
+								printf( esc_html__( 'Completed in %ss', 'wp-verifier' ), $elapsed_seconds );
+							}
+							?>
+						</span>
+					<?php endif; ?>
+				</h3>
 				<div style="display: flex; gap: 20px; margin: 15px 0;">
 					<div style="flex: 1; text-align: center; padding: 15px; background: #dc3232; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_errors ); ?></div>
-						<div><?php esc_html_e( 'Errors', 'wp-verifier' ); ?><?php echo $is_limited ? ' (limited)' : ''; ?></div>
+						<div><?php esc_html_e( 'Errors', 'wp-verifier' ); ?></div>
 					</div>
 					<div style="flex: 1; text-align: center; padding: 15px; background: #ffb900; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_warnings ); ?></div>
-						<div><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?><?php echo $is_limited ? ' (limited)' : ''; ?></div>
+						<div><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?></div>
 					</div>
 					<div style="flex: 1; text-align: center; padding: 15px; background: #666; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_issues ); ?></div>
-						<div><?php esc_html_e( 'Total Issues', 'wp-verifier' ); ?><?php echo $is_limited ? ' (limited)' : ''; ?></div>
+						<div><?php esc_html_e( 'Total Issues', 'wp-verifier' ); ?></div>
 					</div>
 				</div>
 			</div>

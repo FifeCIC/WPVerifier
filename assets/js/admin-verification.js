@@ -76,7 +76,8 @@
                 categories: this.getSelectedCategories(),
                 types: this.getSelectedTypes(),
                 include_experimental: $('#plugin-check__include-experimental').is(':checked'),
-                limit_results: $('#plugin-check__limit-results').is(':checked')
+                limit_results: false,
+                max_issues: parseInt($('input[name="issue_limit"]:checked').val(), 10) || 0
             };
 
             // Start progress simulation
@@ -84,7 +85,7 @@
 
             WPVerifierAjax.runChecks(plugin, options, {
                 showSpinner: 'plugin-check__spinner',
-                timeout: 120000, // 2 minutes for advanced verification
+                timeout: 300000, // 5 minutes for verification
                 onSuccess: (result) => {
                     this.stopProgressSimulation();
                     this.hideProgress();
