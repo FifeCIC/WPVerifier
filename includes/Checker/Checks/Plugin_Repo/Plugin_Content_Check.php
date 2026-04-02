@@ -68,7 +68,7 @@ class Plugin_Content_Check extends Abstract_File_Check {
 			foreach ( $files as $file ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'Linking directly to 5 stars reviews is not allowed.', 'wp-verifier' ),
+					__( 'Linking directly to 5 stars reviews is not allowed.', 'wpverifier' ),
 					'five_star_reviews_detected',
 					$file['file'],
 					$file['line'],
@@ -90,7 +90,7 @@ class Plugin_Content_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Detects content that does not comply with the WordPress.org plugin guidelines.', 'wp-verifier' );
+		return __( 'Detects content that does not comply with the WordPress.org plugin guidelines.', 'wpverifier' );
 	}
 
 	/**
@@ -103,6 +103,6 @@ class Plugin_Content_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wpverifier' );
 	}
 }

@@ -22,7 +22,7 @@ class Verification_Status {
 	public static function add_verification_section() {
 		add_settings_section(
 			'verification_status_section',
-			__( 'Hash Tracking System Status', 'wp-verifier' ),
+			__( 'Hash Tracking System Status', 'wpverifier' ),
 			array( __CLASS__, 'render_verification_section' ),
 			'plugin-check-settings'
 		);
@@ -48,38 +48,38 @@ class Verification_Status {
 
 			?>
 			<div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
-				<h4><?php esc_html_e( 'System Status', 'wp-verifier' ); ?></h4>
+				<h4><?php esc_html_e( 'System Status', 'wpverifier' ); ?></h4>
 				<table class="form-table" style="margin: 0;">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Hash Generation', 'wp-verifier' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Hash Generation', 'wpverifier' ); ?></th>
 						<td>
 							<span class="dashicons dashicons-<?php echo $file_hash ? 'yes-alt' : 'dismiss'; ?>" style="color: <?php echo $file_hash ? '#46b450' : '#dc3232'; ?>;"></span>
-							<?php echo $file_hash ? esc_html__( 'Working', 'wp-verifier' ) : esc_html__( 'Failed', 'wp-verifier' ); ?>
+							<?php echo $file_hash ? esc_html__( 'Working', 'wpverifier' ) : esc_html__( 'Failed', 'wpverifier' ); ?>
 							<?php if ( $file_hash ) : ?>
 								<code style="margin-left: 10px;"><?php echo esc_html( $file_hash ); ?></code>
 							<?php endif; ?>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Function Tracking', 'wp-verifier' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Function Tracking', 'wpverifier' ); ?></th>
 						<td>
 							<span class="dashicons dashicons-<?php echo $function_hash ? 'yes-alt' : 'dismiss'; ?>" style="color: <?php echo $function_hash ? '#46b450' : '#dc3232'; ?>;"></span>
-							<?php echo $function_hash ? esc_html__( 'Working', 'wp-verifier' ) : esc_html__( 'Failed', 'wp-verifier' ); ?>
+							<?php echo $function_hash ? esc_html__( 'Working', 'wpverifier' ) : esc_html__( 'Failed', 'wpverifier' ); ?>
 							<?php if ( $function_hash ) : ?>
 								<code style="margin-left: 10px;"><?php echo esc_html( $function_hash ); ?></code>
 							<?php endif; ?>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Verification Storage', 'wp-verifier' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Verification Storage', 'wpverifier' ); ?></th>
 						<td>
 							<span class="dashicons dashicons-yes-alt" style="color: #46b450;"></span>
-							<?php esc_html_e( 'Ready', 'wp-verifier' ); ?>
+							<?php esc_html_e( 'Ready', 'wpverifier' ); ?>
 							<span style="margin-left: 10px; color: #666;">
 								<?php
 								printf(
 									/* translators: %1$d: number of verified files, %2$d: number of verified functions */
-									esc_html__( '%1$d files, %2$d functions tracked', 'wp-verifier' ),
+									esc_html__( '%1$d files, %2$d functions tracked', 'wpverifier' ),
 									$total_files,
 									$total_functions
 								);
@@ -91,9 +91,9 @@ class Verification_Status {
 				
 				<?php if ( $file_hash && $function_hash ) : ?>
 					<div style="margin-top: 15px; padding: 10px; background: #e7f7e7; border-left: 4px solid #46b450;">
-						<strong><?php esc_html_e( 'Hash Tracking System is operational!', 'wp-verifier' ); ?></strong>
+						<strong><?php esc_html_e( 'Hash Tracking System is operational!', 'wpverifier' ); ?></strong>
 						<p style="margin: 5px 0 0 0; font-size: 13px;">
-							<?php esc_html_e( 'The system can now track file and function-level changes for intelligent verification status.', 'wp-verifier' ); ?>
+							<?php esc_html_e( 'The system can now track file and function-level changes for intelligent verification status.', 'wpverifier' ); ?>
 						</p>
 					</div>
 				<?php endif; ?>
@@ -103,7 +103,7 @@ class Verification_Status {
 		} catch ( Exception $e ) {
 			?>
 			<div style="background: #ffeaea; padding: 15px; border: 1px solid #dc3232; border-radius: 4px;">
-				<strong><?php esc_html_e( 'Hash Tracking System Error', 'wp-verifier' ); ?></strong>
+				<strong><?php esc_html_e( 'Hash Tracking System Error', 'wpverifier' ); ?></strong>
 				<p><?php echo esc_html( $e->getMessage() ); ?></p>
 			</div>
 			<?php
@@ -164,7 +164,7 @@ class Verification_Status {
 					add_action( 'admin_notices', function() {
 						?>
 						<div class="notice notice-success is-dismissible">
-							<p><?php esc_html_e( 'Hash tracking system test completed successfully! Check the verification status below.', 'wp-verifier' ); ?></p>
+							<p><?php esc_html_e( 'Hash tracking system test completed successfully! Check the verification status below.', 'wpverifier' ); ?></p>
 						</div>
 						<?php
 					});
@@ -175,7 +175,7 @@ class Verification_Status {
 			add_action( 'admin_notices', function() use ( $e ) {
 				?>
 				<div class="notice notice-error is-dismissible">
-					<p><?php printf( esc_html__( 'Hash tracking system test failed: %s', 'wp-verifier' ), esc_html( $e->getMessage() ) ); ?></p>
+					<p><?php printf( esc_html__( 'Hash tracking system test failed: %s', 'wpverifier' ), esc_html( $e->getMessage() ) ); ?></p>
 				</div>
 				<?php
 			});

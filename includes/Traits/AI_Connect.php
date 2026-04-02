@@ -206,14 +206,14 @@ trait AI_Connect {
 		if ( ! class_exists( '\WordPress\AI_Client\AI_Client' ) ) {
 			return new WP_Error(
 				'ai_client_not_available',
-				__( 'AI client library is not available. Please ensure wp-ai-client is installed.', 'wp-verifier' )
+				__( 'AI client library is not available. Please ensure wp-ai-client is installed.', 'wpverifier' )
 			);
 		}
 
 		if ( empty( $provider ) || empty( $api_key ) || empty( $model ) ) {
 			return new WP_Error(
 				'ai_missing_parameters',
-				__( 'Provider, API key, and model are required to test the connection.', 'wp-verifier' )
+				__( 'Provider, API key, and model are required to test the connection.', 'wpverifier' )
 			);
 		}
 
@@ -244,7 +244,7 @@ trait AI_Connect {
 
 			return new WP_Error(
 				'ai_model_not_found',
-				__( 'The selected model is not available. Please check your model selection.', 'wp-verifier' )
+				__( 'The selected model is not available. Please check your model selection.', 'wpverifier' )
 			);
 		} catch ( \Throwable $e ) {
 			$error_message = $e->getMessage();
@@ -253,14 +253,14 @@ trait AI_Connect {
 			if ( false !== strpos( strtolower( $error_message ), 'authentication' ) || false !== strpos( strtolower( $error_message ), 'unauthorized' ) ) {
 				return new WP_Error(
 					'ai_authentication_failed',
-					__( 'Authentication failed. Please check your API key.', 'wp-verifier' )
+					__( 'Authentication failed. Please check your API key.', 'wpverifier' )
 				);
 			}
 
 			if ( false !== strpos( strtolower( $error_message ), 'model' ) || false !== strpos( strtolower( $error_message ), 'not found' ) ) {
 				return new WP_Error(
 					'ai_model_not_found',
-					__( 'The selected model is not available. Please check your model selection.', 'wp-verifier' )
+					__( 'The selected model is not available. Please check your model selection.', 'wpverifier' )
 				);
 			}
 
@@ -268,7 +268,7 @@ trait AI_Connect {
 				'ai_connection_error',
 				sprintf(
 					/* translators: %s: Error message */
-					__( 'Connection error: %s', 'wp-verifier' ),
+					__( 'Connection error: %s', 'wpverifier' ),
 					$error_message
 				)
 			);
@@ -295,7 +295,7 @@ trait AI_Connect {
 		if ( ! class_exists( '\WordPress\AiClient\AiClient' ) ) {
 			return new WP_Error(
 				'ai_client_not_available',
-				__( 'AI client library is not available.', 'wp-verifier' )
+				__( 'AI client library is not available.', 'wpverifier' )
 			);
 		}
 

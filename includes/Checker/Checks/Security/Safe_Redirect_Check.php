@@ -63,7 +63,7 @@ class Safe_Redirect_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks that redirects use wp_safe_redirect() instead of wp_redirect() for security.', 'wp-verifier' );
+		return __( 'Checks that redirects use wp_safe_redirect() instead of wp_redirect() for security.', 'wpverifier' );
 	}
 
 	/**
@@ -76,7 +76,7 @@ class Safe_Redirect_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/reference/functions/wp_safe_redirect/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/reference/functions/wp_safe_redirect/', 'wpverifier' );
 	}
 
 	/**
@@ -95,7 +95,7 @@ class Safe_Redirect_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @param int          $severity Severity level. Default is 5.
 	 */
 	protected function add_result_message_for_file( Check_Result $result, $error, $message, $code, $file, $line = 0, $column = 0, string $docs = '', $severity = 5 ) {
-		$docs = __( 'https://developer.wordpress.org/reference/functions/wp_safe_redirect/', 'wp-verifier' );
+		$docs = __( 'https://developer.wordpress.org/reference/functions/wp_safe_redirect/', 'wpverifier' );
 
 		parent::add_result_message_for_file( $result, $error, $message, $code, $file, $line, $column, $docs, $severity );
 	}

@@ -510,11 +510,11 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 			</div>
 			<p><strong>NEVER CONFUSE THESE - THEY ARE COMPLETELY DIFFERENT!</strong></p>
 		</div>
-		<p><?php esc_html_e( 'This tab shows the complete plugin verification process flow and validates the current active plugin configuration.', 'wp-verifier' ); ?></p>
+		<p><?php esc_html_e( 'This tab shows the complete plugin verification process flow and validates the current active plugin configuration.', 'wpverifier' ); ?></p>
 		<?php if ( $current_plugin ) : ?>
-			<p><strong><?php esc_html_e( 'Active Plugin:', 'wp-verifier' ); ?></strong> <?php echo esc_html( $current_plugin['name'] ); ?> (<?php echo esc_html( $current_plugin['folder'] ); ?>)</p>
+			<p><strong><?php esc_html_e( 'Active Plugin:', 'wpverifier' ); ?></strong> <?php echo esc_html( $current_plugin['name'] ); ?> (<?php echo esc_html( $current_plugin['folder'] ); ?>)</p>
 		<?php else : ?>
-			<p class="wpv-arch-no-plugin"><strong><?php esc_html_e( 'No active plugin selected. Please run a scan first.', 'wp-verifier' ); ?></strong></p>
+			<p class="wpv-arch-no-plugin"><strong><?php esc_html_e( 'No active plugin selected. Please run a scan first.', 'wpverifier' ); ?></strong></p>
 		<?php endif; ?>
 	</div>
 
@@ -635,8 +635,8 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				
 			<?php else : ?>
 				<div class="wpv-arch-no-selection">
-					<p><?php esc_html_e( 'No active plugin selected.', 'wp-verifier' ); ?></p>
-					<p><?php esc_html_e( 'Please run a verification scan to see live validation results.', 'wp-verifier' ); ?></p>
+					<p><?php esc_html_e( 'No active plugin selected.', 'wpverifier' ); ?></p>
+					<p><?php esc_html_e( 'Please run a verification scan to see live validation results.', 'wpverifier' ); ?></p>
 				</div>
 			<?php endif; ?>
 		</div>

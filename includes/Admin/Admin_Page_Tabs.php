@@ -17,17 +17,17 @@ class Admin_Page_Tabs {
 	 */
 	public static function get_tabs() {
 		return array(
-			'select'      => array( 'title' => __( 'Select Plugin', 'wp-verifier' ), 'code' => 'TAB01' ),
-			'preparation' => array( 'title' => __( 'Configure', 'wp-verifier' ), 'code' => 'TAB02' ),
-			'verify'      => array( 'title' => __( 'Verification', 'wp-verifier' ), 'code' => 'TAB03' ),
-			'results'     => array( 'title' => __( 'Results', 'wp-verifier' ), 'code' => 'TAB04' ),
-			'monitoring'  => array( 'title' => __( 'Plugin Monitoring', 'wp-verifier' ), 'code' => 'TAB06' ),
-			'test-area'   => array( 'title' => __( 'Test Area', 'wp-verifier' ), 'code' => 'TAB07' ),
-			'error-codes' => array( 'title' => __( 'Error Codes', 'wp-verifier' ), 'code' => 'TAB08' ),
-			'settings'    => array( 'title' => __( 'Settings', 'wp-verifier' ), 'code' => 'TAB09' ),
-			'assets'      => array( 'title' => __( 'Assets', 'wp-verifier' ), 'code' => 'TAB10' ),
-			'architecture' => array( 'title' => __( 'Architecture', 'wp-verifier' ), 'code' => 'TAB11' ),
-			'roadmap'     => array( 'title' => __( 'Roadmap', 'wp-verifier' ), 'code' => 'TAB12' ),
+			'select'      => array( 'title' => __( 'Select Plugin', 'wpverifier' ), 'code' => 'TAB01' ),
+			'preparation' => array( 'title' => __( 'Configure', 'wpverifier' ), 'code' => 'TAB02' ),
+			'verify'      => array( 'title' => __( 'Verification', 'wpverifier' ), 'code' => 'TAB03' ),
+			'results'     => array( 'title' => __( 'Results', 'wpverifier' ), 'code' => 'TAB04' ),
+			'monitoring'  => array( 'title' => __( 'Plugin Monitoring', 'wpverifier' ), 'code' => 'TAB06' ),
+			'test-area'   => array( 'title' => __( 'Test Area', 'wpverifier' ), 'code' => 'TAB07' ),
+			'error-codes' => array( 'title' => __( 'Error Codes', 'wpverifier' ), 'code' => 'TAB08' ),
+			'settings'    => array( 'title' => __( 'Settings', 'wpverifier' ), 'code' => 'TAB09' ),
+			'assets'      => array( 'title' => __( 'Assets', 'wpverifier' ), 'code' => 'TAB10' ),
+			'architecture' => array( 'title' => __( 'Architecture', 'wpverifier' ), 'code' => 'TAB11' ),
+			'roadmap'     => array( 'title' => __( 'Roadmap', 'wpverifier' ), 'code' => 'TAB12' ),
 		);
 	}
 
@@ -62,8 +62,8 @@ class Admin_Page_Tabs {
 	public static function render_coming_soon() {
 		?>
 		<div class="notice notice-info inline">
-			<p><strong><?php esc_html_e( 'Coming Soon', 'wp-verifier' ); ?></strong></p>
-			<p><?php esc_html_e( 'This feature is currently under development and will be available in a future release.', 'wp-verifier' ); ?></p>
+			<p><strong><?php esc_html_e( 'Coming Soon', 'wpverifier' ); ?></strong></p>
+			<p><?php esc_html_e( 'This feature is currently under development and will be available in a future release.', 'wpverifier' ); ?></p>
 		</div>
 		<?php
 	}

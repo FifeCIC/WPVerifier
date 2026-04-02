@@ -62,7 +62,7 @@ class Performant_WP_Query_Params_Check extends Abstract_PHP_CodeSniffer_Check {
 	public function get_description(): string {
 		return sprintf(
 			/* translators: %s WP_Query */
-			__( 'Checks for potentially slow database queries when using %s', 'wp-verifier' ),
+			__( 'Checks for potentially slow database queries when using %s', 'wpverifier' ),
 			'<code>WP_Query</code>'
 		);
 	}
@@ -77,6 +77,6 @@ class Performant_WP_Query_Params_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/apis/database/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/apis/database/', 'wpverifier' );
 	}
 }

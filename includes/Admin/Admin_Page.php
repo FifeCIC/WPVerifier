@@ -7,6 +7,8 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use WordPress\Plugin_Check\Checker\Check;
 use WordPress\Plugin_Check\Checker\Check_Categories;
 use WordPress\Plugin_Check\Checker\Check_Repository;
@@ -77,8 +79,8 @@ final class Admin_Page {
 	 */
 	public function add_page() {
 		$this->hook_suffix = add_plugins_page(
-			__( 'Verify Plugins', 'wp-verifier' ),
-			__( 'Verify Plugins', 'wp-verifier' ),
+			__( 'Verify Plugins', 'wpverifier' ),
+			__( 'Verify Plugins', 'wpverifier' ),
 			'activate_plugins',
 			'wp-verifier',
 			array( $this, 'render_page' )
@@ -138,7 +140,7 @@ final class Admin_Page {
 			return;
 		}
 
-		$line = (int) ( $_GET['line'] ?? 0 );
+		$line = isset( $_GET['line'] ) ? absint( wp_unslash( $_GET['line'] ) ) : 0;
 		if ( ! $line ) {
 			return;
 		}
@@ -247,16 +249,16 @@ final class Admin_Page {
 
 		echo '<div class="wrap">';
 		
-		$page_title = __( 'Verify Plugins', 'wp-verifier' );
+		$page_title = __( 'Verify Plugins', 'wpverifier' );
 		$last_plugin = $this->get_last_selected_plugin();
 		if ( $last_plugin ) {
 			$page_title .= ': ' . esc_html( $last_plugin['name'] );
 		}
 		
-		echo '<h1>' . $page_title . '</h1>';
+		echo '<h1>' . esc_html( $page_title ) . '</h1>';
 		
 		if ( isset( $_GET['ignored'] ) && '1' === $_GET['ignored'] ) {
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Issue ignored successfully. Run a new scan to see updated results.', 'wp-verifier' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Issue ignored successfully. Run a new scan to see updated results.', 'wpverifier' ) . '</p></div>';
 		}
 		
 		Admin_Page_Tabs::render_tabs();
@@ -335,7 +337,7 @@ final class Admin_Page {
 			$actions[] = sprintf(
 				'<a href="%1$s">%2$s</a>',
 				esc_url( admin_url( 'plugins.php?page=wp-verifier' ) ),
-				esc_html__( 'Check a plugin', 'wp-verifier' )
+				esc_html__( 'Check a plugin', 'wpverifier' )
 			);
 			return $actions;
 		}
@@ -344,7 +346,7 @@ final class Admin_Page {
 			$actions[] = sprintf(
 				'<a href="%1$s">%2$s</a>',
 				esc_url( admin_url( "plugins.php?page=wp-verifier&plugin={$plugin_file}" ) ),
-				esc_html__( 'Check this plugin', 'wp-verifier' )
+				esc_html__( 'Check this plugin', 'wpverifier' )
 			);
 		}
 
@@ -453,7 +455,7 @@ final class Admin_Page {
 
 	public function save_ai_config() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wpverifier' ) );
 		}
 
 		check_admin_referer( 'wp_verifier_save_ai_config', 'wp_verifier_ai_nonce' );
@@ -506,24 +508,24 @@ final class Admin_Page {
 		sort( $all_codes );
 		?>
 		<div class="wrap">
-			<h2><?php esc_html_e( 'Error Codes Reference', 'wp-verifier' ); ?></h2>
-			<p><?php esc_html_e( 'This table shows all error codes with their AI guidance and visual metadata. When you "Copy for AI", the guidance will be appended to help AI make better decisions.', 'wp-verifier' ); ?></p>
+			<h2><?php esc_html_e( 'Error Codes Reference', 'wpverifier' ); ?></h2>
+			<p><?php esc_html_e( 'This table shows all error codes with their AI guidance and visual metadata. When you "Copy for AI", the guidance will be appended to help AI make better decisions.', 'wpverifier' ); ?></p>
 			
 			<table class="wp-list-table widefat fixed striped">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Error Code', 'wp-verifier' ); ?></th>
-						<th><?php esc_html_e( 'Icon', 'wp-verifier' ); ?></th>
-						<th><?php esc_html_e( 'Category', 'wp-verifier' ); ?></th>
-						<th><?php esc_html_e( 'Original Message', 'wp-verifier' ); ?></th>
-						<th><?php esc_html_e( 'AI Guidance', 'wp-verifier' ); ?></th>
+						<th><?php esc_html_e( 'Error Code', 'wpverifier' ); ?></th>
+						<th><?php esc_html_e( 'Icon', 'wpverifier' ); ?></th>
+						<th><?php esc_html_e( 'Category', 'wpverifier' ); ?></th>
+						<th><?php esc_html_e( 'Original Message', 'wpverifier' ); ?></th>
+						<th><?php esc_html_e( 'AI Guidance', 'wpverifier' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php 
 					if ( empty( $all_codes ) ) : ?>
 						<tr>
-							<td colspan="5"><?php esc_html_e( 'No error codes configured yet.', 'wp-verifier' ); ?></td>
+							<td colspan="5"><?php esc_html_e( 'No error codes configured yet.', 'wpverifier' ); ?></td>
 						</tr>
 					<?php else : ?>
 						<?php foreach ( $all_codes as $error_code ) : 
@@ -536,7 +538,7 @@ final class Admin_Page {
 								<td>
 									<?php 
 									if ( ! empty( $meta ) ) {
-										echo \WordPress\Plugin_Check\Utilities\Error_Metadata::get_icon_html( $error_code );
+										echo wp_kses_post( \WordPress\Plugin_Check\Utilities\Error_Metadata::get_icon_html( $error_code ) );
 										echo '<br><small style="color: #666;">' . esc_html( $meta['severity'] ?? '' ) . '</small>';
 									} else {
 										echo '<span class="dashicons dashicons-warning" style="color: #666;"></span>';
@@ -552,11 +554,11 @@ final class Admin_Page {
 				</tbody>
 			</table>
 			
-			<h3><?php esc_html_e( 'How to Use', 'wp-verifier' ); ?></h3>
+			<h3><?php esc_html_e( 'How to Use', 'wpverifier' ); ?></h3>
 			<ol>
-				<li><?php esc_html_e( 'Run a plugin verification to generate PHPCS results', 'wp-verifier' ); ?></li>
-				<li><?php esc_html_e( 'In the results, errors will display with colored icons based on their category and severity', 'wp-verifier' ); ?></li>
-				<li><?php esc_html_e( 'Click "Copy for AI" on any issue to copy the enhanced message with AI guidance', 'wp-verifier' ); ?></li>
+				<li><?php esc_html_e( 'Run a plugin verification to generate PHPCS results', 'wpverifier' ); ?></li>
+				<li><?php esc_html_e( 'In the results, errors will display with colored icons based on their category and severity', 'wpverifier' ); ?></li>
+				<li><?php esc_html_e( 'Click "Copy for AI" on any issue to copy the enhanced message with AI guidance', 'wpverifier' ); ?></li>
 			</ol>
 		</div>
 		<?php

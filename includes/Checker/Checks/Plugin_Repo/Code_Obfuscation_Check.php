@@ -103,8 +103,8 @@ class Code_Obfuscation_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: %s: tool name */
-						__( 'Code Obfuscation tools are not permitted. Detected: %s', 'wp-verifier' ),
-						__( 'Zend Guard', 'wp-verifier' )
+						__( 'Code Obfuscation tools are not permitted. Detected: %s', 'wpverifier' ),
+						__( 'Zend Guard', 'wpverifier' )
 					),
 					'obfuscated_code_detected',
 					$file['file'],
@@ -134,8 +134,8 @@ class Code_Obfuscation_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: %s: tool name */
-						__( 'Code Obfuscation tools are not permitted. Detected: %s', 'wp-verifier' ),
-						__( 'Source Guardian', 'wp-verifier' )
+						__( 'Code Obfuscation tools are not permitted. Detected: %s', 'wpverifier' ),
+						__( 'Source Guardian', 'wpverifier' )
 					),
 					'obfuscated_code_detected',
 					$file['file'],
@@ -165,8 +165,8 @@ class Code_Obfuscation_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: %s: tool name */
-						__( 'Code Obfuscation tools are not permitted. Detected: %s', 'wp-verifier' ),
-						__( 'ionCube', 'wp-verifier' )
+						__( 'Code Obfuscation tools are not permitted. Detected: %s', 'wpverifier' ),
+						__( 'ionCube', 'wpverifier' )
 					),
 					'obfuscated_code_detected',
 					$file['file'],
@@ -188,7 +188,7 @@ class Code_Obfuscation_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Detects the usage of code obfuscation tools.', 'wp-verifier' );
+		return __( 'Detects the usage of code obfuscation tools.', 'wpverifier' );
 	}
 
 	/**
@@ -201,6 +201,6 @@ class Code_Obfuscation_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wpverifier' );
 	}
 }

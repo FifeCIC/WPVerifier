@@ -63,7 +63,7 @@ class Direct_DB_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks the escaping in direct database queries.', 'wp-verifier' );
+		return __( 'Checks the escaping in direct database queries.', 'wpverifier' );
 	}
 
 	/**
@@ -76,6 +76,6 @@ class Direct_DB_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/apis/database/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/apis/database/', 'wpverifier' );
 	}
 }

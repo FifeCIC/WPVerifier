@@ -219,7 +219,7 @@ final class Plugin_Check_Command {
 		// Make sure we are using the correct runner instance.
 		if ( ! ( $runner instanceof CLI_Runner ) ) {
 			WP_CLI::error(
-				__( 'CLI Runner was not initialized correctly.', 'wp-verifier' )
+				__( 'CLI Runner was not initialized correctly.', 'wpverifier' )
 			);
 		}
 
@@ -264,7 +264,7 @@ final class Plugin_Check_Command {
 		}
 
 		if ( empty( $errors ) && empty( $warnings ) ) {
-			WP_CLI::success( __( 'Checks complete. No errors found.', 'wp-verifier' ) );
+			WP_CLI::success( __( 'Checks complete. No errors found.', 'wpverifier' ) );
 
 			return;
 		}
@@ -542,7 +542,7 @@ final class Plugin_Check_Command {
 			WP_CLI::error(
 				sprintf(
 					// translators: 1. Output formats.
-					__( 'Invalid format argument, valid value will be one of [%1$s]', 'wp-verifier' ),
+					__( 'Invalid format argument, valid value will be one of [%1$s]', 'wpverifier' ),
 					implode( ', ', $this->output_formats )
 				)
 			);

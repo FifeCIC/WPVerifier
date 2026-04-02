@@ -126,7 +126,7 @@ class File_Type_Check extends Abstract_File_Check {
 			foreach ( $compressed_files as $file ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'Compressed files are not permitted.', 'wp-verifier' ),
+					__( 'Compressed files are not permitted.', 'wpverifier' ),
 					'compressed_files',
 					$file,
 					0,
@@ -152,7 +152,7 @@ class File_Type_Check extends Abstract_File_Check {
 			foreach ( $phar_files as $file ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'Phar files are not permitted.', 'wp-verifier' ),
+					__( 'Phar files are not permitted.', 'wpverifier' ),
 					'phar_files',
 					$file,
 					0,
@@ -196,7 +196,7 @@ class File_Type_Check extends Abstract_File_Check {
 				$this->add_result_message_for_file(
 					$result,
 					$is_error,
-					__( 'Version control checkouts should not be present.', 'wp-verifier' ),
+					__( 'Version control checkouts should not be present.', 'wpverifier' ),
 					'vcs_present',
 					$dir,
 					0,
@@ -237,7 +237,7 @@ class File_Type_Check extends Abstract_File_Check {
 				$this->add_result_message_for_file(
 					$result,
 					$is_error,
-					__( 'Hidden files are not permitted.', 'wp-verifier' ),
+					__( 'Hidden files are not permitted.', 'wpverifier' ),
 					'hidden_files',
 					$file,
 					0,
@@ -266,7 +266,7 @@ class File_Type_Check extends Abstract_File_Check {
 			foreach ( $application_files as $file ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'Application files are not permitted.', 'wp-verifier' ),
+					__( 'Application files are not permitted.', 'wpverifier' ),
 					'application_detected',
 					$file,
 					0,
@@ -311,7 +311,7 @@ class File_Type_Check extends Abstract_File_Check {
 			if ( $badly_name ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'File and folder names must not contain spaces or special characters.', 'wp-verifier' ),
+					__( 'File and folder names must not contain spaces or special characters.', 'wpverifier' ),
 					'badly_named_files',
 					$file,
 					0,
@@ -338,7 +338,7 @@ class File_Type_Check extends Abstract_File_Check {
 		if ( ! empty( $case_sensitive_folders ) ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( 'Multiple folders with the same name but different case were found. This can be problematic on certain file systems.', 'wp-verifier' ),
+				__( 'Multiple folders with the same name but different case were found. This can be problematic on certain file systems.', 'wpverifier' ),
 				'case_sensitive_folders',
 				implode( ', ', $case_sensitive_folders ),
 				0,
@@ -355,7 +355,7 @@ class File_Type_Check extends Abstract_File_Check {
 		if ( ! empty( $case_sensitive_files ) ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( 'Multiple files with the same name but different case were found. This can be problematic on certain file systems.', 'wp-verifier' ),
+				__( 'Multiple files with the same name but different case were found. This can be problematic on certain file systems.', 'wpverifier' ),
 				'case_sensitive_files',
 				implode( ', ', $case_sensitive_files ),
 				0,
@@ -428,7 +428,7 @@ class File_Type_Check extends Abstract_File_Check {
 			if ( preg_match( $combined_pattern, $file ) ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'Library files that are already in the WordPress core are not permitted.', 'wp-verifier' ),
+					__( 'Library files that are already in the WordPress core are not permitted.', 'wpverifier' ),
 					'library_core_files',
 					$file,
 					0,
@@ -464,7 +464,7 @@ class File_Type_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: 1: directory, 2: filename */
-					esc_html__( 'The "%1$s" directory using composer exists, but "%2$s" file is missing.', 'wp-verifier' ),
+					esc_html__( 'The "%1$s" directory using composer exists, but "%2$s" file is missing.', 'wpverifier' ),
 					'/vendor',
 					'composer.json'
 				),
@@ -521,7 +521,7 @@ class File_Type_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: directory name */
-					__( 'AI instruction directory "%s" detected. These directories should not be included in production plugins.', 'wp-verifier' ),
+					__( 'AI instruction directory "%s" detected. These directories should not be included in production plugins.', 'wpverifier' ),
 					$ai_dir
 				),
 				'ai_instruction_directory',
@@ -557,7 +557,7 @@ class File_Type_Check extends Abstract_File_Check {
 		if ( $found_github ) {
 			$this->add_result_warning_for_file(
 				$result,
-				__( 'GitHub workflow directory ".github" detected. This directory should not be included in production plugins.', 'wp-verifier' ),
+				__( 'GitHub workflow directory ".github" detected. This directory should not be included in production plugins.', 'wpverifier' ),
 				'github_directory',
 				$plugin_path . '.github',
 				0,
@@ -598,7 +598,7 @@ class File_Type_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: file name */
-					__( 'Unexpected markdown file "%s" detected in plugin root. Only specific markdown files are expected in production plugins.', 'wp-verifier' ),
+					__( 'Unexpected markdown file "%s" detected in plugin root. Only specific markdown files are expected in production plugins.', 'wpverifier' ),
 					basename( $file )
 				),
 				'unexpected_markdown_file',
@@ -621,7 +621,7 @@ class File_Type_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Detects the usage of hidden and compressed files, VCS directories, application files, badly named files, Library Core Files, AI development directories, and unexpected markdown files.', 'wp-verifier' );
+		return __( 'Detects the usage of hidden and compressed files, VCS directories, application files, badly named files, Library Core Files, AI development directories, and unexpected markdown files.', 'wpverifier' );
 	}
 
 	/**
@@ -634,6 +634,6 @@ class File_Type_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wpverifier' );
 	}
 }

@@ -53,7 +53,7 @@ trait Amend_DB_Base_Prefix {
 		// @phpstan-ignore-next-line isset.property
 		if ( ! isset( $wpdb->base_prefix ) ) {
 			throw new RuntimeException(
-				esc_html__( 'Cannot amend database table prefix as wpdb appears to not be initialized yet.', 'wp-verifier' )
+				esc_html__( 'Cannot amend database table prefix as wpdb appears to not be initialized yet.', 'wpverifier' )
 			);
 		}
 

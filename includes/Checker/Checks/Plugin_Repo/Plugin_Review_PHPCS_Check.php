@@ -59,7 +59,7 @@ class Plugin_Review_PHPCS_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Runs PHP_CodeSniffer to detect certain best practices plugins should follow for submission on WordPress.org.', 'wp-verifier' );
+		return __( 'Runs PHP_CodeSniffer to detect certain best practices plugins should follow for submission on WordPress.org.', 'wpverifier' );
 	}
 
 	/**
@@ -72,7 +72,7 @@ class Plugin_Review_PHPCS_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/plugin-basics/best-practices/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/plugin-basics/best-practices/', 'wpverifier' );
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Plugin_Review_PHPCS_Check extends Abstract_PHP_CodeSniffer_Check {
 	 */
 	protected function add_result_message_for_file( Check_Result $result, $error, $message, $code, $file, $line = 0, $column = 0, string $docs = '', $severity = 5 ) {
 		if ( 'PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound' === $code ) {
-			$message .= ' ' . esc_html__( 'When your plugin is hosted on WordPress.org, you no longer need to manually include this function call for translations under your plugin slug. WordPress will automatically load the translations for you as needed.', 'wp-verifier' );
+			$message .= ' ' . esc_html__( 'When your plugin is hosted on WordPress.org, you no longer need to manually include this function call for translations under your plugin slug. WordPress will automatically load the translations for you as needed.', 'wpverifier' );
 			$docs     = 'https://make.wordpress.org/core/2016/07/06/i18n-improvements-in-4-6/';
 		}
 

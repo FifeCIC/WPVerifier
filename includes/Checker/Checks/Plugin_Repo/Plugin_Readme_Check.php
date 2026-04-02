@@ -75,7 +75,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 		if ( empty( $readme ) ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( 'The plugin readme.txt does not exist.', 'wp-verifier' ),
+				__( 'The plugin readme.txt does not exist.', 'wpverifier' ),
 				'no_plugin_readme',
 				'readme.txt',
 				0,
@@ -143,7 +143,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: Example plugin name header */
-					__( 'Plugin name header in your readme is missing or invalid. Please update your readme with a valid plugin name header. Eg: "%s"', 'wp-verifier' ),
+					__( 'Plugin name header in your readme is missing or invalid. Please update your readme with a valid plugin name header. Eg: "%s"', 'wpverifier' ),
 					'=== Example Name ==='
 				),
 				'invalid_plugin_name',
@@ -158,7 +158,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: Example plugin name header */
-					__( 'We cannot find a plugin name in your readme. Please update your readme with a valid plugin name header. Eg: "%s"', 'wp-verifier' ),
+					__( 'We cannot find a plugin name in your readme. Please update your readme with a valid plugin name header. Eg: "%s"', 'wpverifier' ),
 					'=== Example Name ==='
 				),
 				'empty_plugin_name',
@@ -179,7 +179,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: 1: Plugin name, 2: Name in plugin header */
-						__( 'Plugin name "%1$s" is different from the name declared in plugin header "%2$s".', 'wp-verifier' ),
+						__( 'Plugin name "%1$s" is different from the name declared in plugin header "%2$s".', 'wpverifier' ),
 						$plugin_readme_name,
 						$plugin_header_name
 					),
@@ -211,11 +211,11 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 
 		$fields = array(
 			'tested'       => array(
-				'label'      => __( 'Tested up to', 'wp-verifier' ),
+				'label'      => __( 'Tested up to', 'wpverifier' ),
 				'ignore_key' => 'tested_header_ignored',
 			),
 			'contributors' => array(
-				'label'      => __( 'Contributors', 'wp-verifier' ),
+				'label'      => __( 'Contributors', 'wpverifier' ),
 				'ignore_key' => 'contributor_ignored',
 			),
 		);
@@ -242,7 +242,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 								$result,
 								sprintf(
 									/* translators: %s: currently used version */
-									__( '<strong>Tested up to: %1$s</strong><br>The version number should only include major versions %2$s.', 'wp-verifier' ),
+									__( '<strong>Tested up to: %1$s</strong><br>The version number should only include major versions %2$s.', 'wpverifier' ),
 									$tested_upto,
 									$tested_upto_major
 								),
@@ -260,7 +260,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 								$result,
 								sprintf(
 									/* translators: 1: currently used version, 2: latest stable WordPress version, 3: 'Tested up to' */
-									__( '<strong>Tested up to: %1$s &lt; %2$s.</strong><br>The "%3$s" value in your plugin is not set to the current version of WordPress. This means your plugin will not show up in searches, as we require plugins to be compatible and documented as tested up to the most recent version of WordPress.', 'wp-verifier' ),
+									__( '<strong>Tested up to: %1$s &lt; %2$s.</strong><br>The "%3$s" value in your plugin is not set to the current version of WordPress. This means your plugin will not show up in searches, as we require plugins to be compatible and documented as tested up to the most recent version of WordPress.', 'wpverifier' ),
 									$tested_upto_major,
 									$latest_wordpress_version,
 									'Tested up to'
@@ -277,7 +277,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 								$result,
 								sprintf(
 									/* translators: 1: currently used version, 2: 'Tested up to' */
-									__( '<strong>Tested up to: %1$s.</strong><br>The "%2$s" value in your plugin is not valid. This version of WordPress does not exist (yet).', 'wp-verifier' ),
+									__( '<strong>Tested up to: %1$s.</strong><br>The "%2$s" value in your plugin is not valid. This version of WordPress does not exist (yet).', 'wpverifier' ),
 									$tested_upto_major,
 									'Tested up to'
 								),
@@ -296,7 +296,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 							$result,
 							sprintf(
 								/* translators: %s: readme header field */
-								__( 'The "%s" header is missing in the readme file.', 'wp-verifier' ),
+								__( 'The "%s" header is missing in the readme file.', 'wpverifier' ),
 								$field['label']
 							),
 							'missing_readme_header_' . $field_key,
@@ -331,7 +331,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 		) {
 			$this->add_result_error_for_file(
 				$result,
-				__( '<strong>The readme appears to contain default text.</strong><br>This means your readme has to have headers as well as a proper description and documentation as to how it works and how one can use it.', 'wp-verifier' ),
+				__( '<strong>The readme appears to contain default text.</strong><br>This means your readme has to have headers as well as a proper description and documentation as to how it works and how one can use it.', 'wpverifier' ),
 				'default_readme_text',
 				$readme_file,
 				0,
@@ -362,7 +362,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: readme header field */
-					__( '<strong>Missing "%s".</strong><br>Please update your readme with a valid GPLv2 (or later) compatible license.', 'wp-verifier' ),
+					__( '<strong>Missing "%s".</strong><br>Please update your readme with a valid GPLv2 (or later) compatible license.', 'wpverifier' ),
 					'License'
 				),
 				'no_license',
@@ -382,7 +382,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 		if ( ! $this->is_license_valid_identifier( $license ) ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( '<strong>Your plugin has an invalid license declared.</strong><br>Please update your readme with a valid SPDX license identifier.', 'wp-verifier' ),
+				__( '<strong>Your plugin has an invalid license declared.</strong><br>Please update your readme with a valid SPDX license identifier.', 'wpverifier' ),
 				'invalid_license',
 				$readme_file,
 				0,
@@ -405,7 +405,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 		if ( ! empty( $plugin_license ) && ! empty( $license ) && $license !== $plugin_license ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( '<strong>Your plugin has a different license declared in the readme file and plugin header.</strong><br>Please update your readme with a valid GPL license identifier.', 'wp-verifier' ),
+				__( '<strong>Your plugin has a different license declared in the readme file and plugin header.</strong><br>Please update your readme with a valid GPL license identifier.', 'wpverifier' ),
 				'license_mismatch',
 				$readme_file,
 				0,
@@ -433,7 +433,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: 1: readme header tag, 2: plugin header tag */
-					__( '<strong>Invalid or missing %1$s.</strong><br>Your %1$s is meant to be the stable version of your plugin and it needs to be exactly the same with the %2$s in your main plugin file\'s header. Any mismatch can prevent users from downloading the correct plugin files from WordPress.org.', 'wp-verifier' ),
+					__( '<strong>Invalid or missing %1$s.</strong><br>Your %1$s is meant to be the stable version of your plugin and it needs to be exactly the same with the %2$s in your main plugin file\'s header. Any mismatch can prevent users from downloading the correct plugin files from WordPress.org.', 'wpverifier' ),
 					'Stable Tag',
 					'Version'
 				),
@@ -453,7 +453,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: 1: readme header tag, 2: example tag, 3: plugin header tag */
-					__( '<strong>Incorrect %1$s.</strong><br>It\'s recommended not to use "%2$s". Your %1$s is meant to be the stable version of your plugin and it needs to be exactly the same with the %3$s in your main plugin file\'s header. Any mismatch can prevent users from downloading the correct plugin files from WordPress.org.', 'wp-verifier' ),
+					__( '<strong>Incorrect %1$s.</strong><br>It\'s recommended not to use "%2$s". Your %1$s is meant to be the stable version of your plugin and it needs to be exactly the same with the %3$s in your main plugin file\'s header. Any mismatch can prevent users from downloading the correct plugin files from WordPress.org.', 'wpverifier' ),
 					'Stable Tag',
 					'Stable Tag: trunk',
 					'Version'
@@ -480,7 +480,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: 1: readme header tag, 2: versions comparison, 3: plugin header tag */
-					__( '<strong>Mismatched %1$s: %2$s.</strong><br>Your %1$s is meant to be the stable version of your plugin and it needs to be exactly the same with the %3$s in your main plugin file\'s header. Any mismatch can prevent users from downloading the correct plugin files from WordPress.org.', 'wp-verifier' ),
+					__( '<strong>Mismatched %1$s: %2$s.</strong><br>Your %1$s is meant to be the stable version of your plugin and it needs to be exactly the same with the %3$s in your main plugin file\'s header. Any mismatch can prevent users from downloading the correct plugin files from WordPress.org.', 'wpverifier' ),
 					'Stable Tag',
 					esc_html( $stable_tag ) . ' != ' . esc_html( $plugin_data['Version'] ),
 					'Version'
@@ -518,10 +518,10 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			if ( strlen( $notice ) > $maximum_characters ) {
 				if ( empty( $version ) ) {
 					/* translators: %d: maximum limit. */
-					$message = sprintf( _n( 'The upgrade notice exceeds the limit of %d character.', 'The upgrade notice exceeds the limit of %d characters.', $maximum_characters, 'wp-verifier' ), $maximum_characters );
+					$message = sprintf( _n( 'The upgrade notice exceeds the limit of %d character.', 'The upgrade notice exceeds the limit of %d characters.', $maximum_characters, 'wpverifier' ), $maximum_characters );
 				} else {
 					/* translators: 1: version, 2: maximum limit. */
-					$message = sprintf( _n( 'The upgrade notice for "%1$s" exceeds the limit of %2$d character.', 'The upgrade notice for "%1$s" exceeds the limit of %2$d characters.', $maximum_characters, 'wp-verifier' ), $version, $maximum_characters );
+					$message = sprintf( _n( 'The upgrade notice for "%1$s" exceeds the limit of %2$d character.', 'The upgrade notice for "%1$s" exceeds the limit of %2$d characters.', $maximum_characters, 'wpverifier' ), $version, $maximum_characters );
 				}
 
 				$this->add_result_warning_for_file( $result, $message, 'upgrade_notice_limit', $readme_file );
@@ -560,14 +560,14 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			'contributor_ignored'          => array(
 				'message' => sprintf(
 					/* translators: %s: plugin header tag */
-					__( 'One or more contributors listed were ignored. The "%s" field should only contain WordPress.org usernames. Remember that usernames are case-sensitive.', 'wp-verifier' ),
+					__( 'One or more contributors listed were ignored. The "%s" field should only contain WordPress.org usernames. Remember that usernames are case-sensitive.', 'wpverifier' ),
 					'Contributors'
 				),
 			),
 			'requires_php_header_ignored'  => array(
 				'message' => sprintf(
 					/* translators: 1: plugin header tag; 2: Example version 5.2.4. 3: Example version 7.0. */
-					__( 'The "%1$s" field was ignored. This field should only contain a PHP version such as "%2$s" or "%3$s".', 'wp-verifier' ),
+					__( 'The "%1$s" field was ignored. This field should only contain a PHP version such as "%2$s" or "%3$s".', 'wpverifier' ),
 					'Requires PHP',
 					'5.2.4',
 					'7.0'
@@ -576,7 +576,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			'tested_header_ignored'        => array(
 				'message'  => sprintf(
 					/* translators: 1: plugin header tag; 2: Example version 5.0. 3: Example version 5.1. */
-					__( 'The "%1$s" field was ignored. This field should only contain a valid WordPress version such as "%2$s" or "%3$s".', 'wp-verifier' ),
+					__( 'The "%1$s" field was ignored. This field should only contain a valid WordPress version such as "%2$s" or "%3$s".', 'wpverifier' ),
 					'Tested up to',
 					! empty( $latest_wordpress_version ) ? number_format( (float) $latest_wordpress_version, 1 ) : '5.0',
 					! empty( $latest_wordpress_version ) ? number_format( (float) $latest_wordpress_version + 0.1, 1 ) : '5.1'
@@ -586,7 +586,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			'requires_header_ignored'      => array(
 				'message' => sprintf(
 					/* translators: 1: plugin header tag; 2: Example version 5.0. 3: Example version 4.9. */
-					__( 'The "%1$s" field was ignored. This field should only contain a valid WordPress version such as "%2$s" or "%3$s".', 'wp-verifier' ),
+					__( 'The "%1$s" field was ignored. This field should only contain a valid WordPress version such as "%2$s" or "%3$s".', 'wpverifier' ),
 					'Requires at least',
 					! empty( $latest_wordpress_version ) ? number_format( (float) $latest_wordpress_version, 1 ) : '5.0',
 					! empty( $latest_wordpress_version ) ? number_format( (float) $latest_wordpress_version - 0.1, 1 ) : '4.9'
@@ -595,28 +595,28 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			'too_many_tags'                => array(
 				'message' => sprintf(
 					/* translators: %d: maximum tags limit */
-					__( 'One or more tags were ignored. Please limit your plugin to %d tags.', 'wp-verifier' ),
+					__( 'One or more tags were ignored. Please limit your plugin to %d tags.', 'wpverifier' ),
 					5
 				),
 			),
 			'ignored_tags'                 => array(
 				'message' => sprintf(
 					/* translators: %s: list of tags not supported */
-					__( 'One or more tags were ignored. The following tags are not permitted: %s', 'wp-verifier' ),
+					__( 'One or more tags were ignored. The following tags are not permitted: %s', 'wpverifier' ),
 					'"' . implode( '", "', $parser->ignore_tags ) . '"'
 				),
 			),
 			'no_short_description_present' => array(
 				'message' => sprintf(
 					/* translators: %s: section title */
-					__( 'The "%s" section is missing. An excerpt was generated from your main plugin description.', 'wp-verifier' ),
+					__( 'The "%s" section is missing. An excerpt was generated from your main plugin description.', 'wpverifier' ),
 					'Short Description'
 				),
 			),
 			'trimmed_short_description'    => array(
 				'message'  => sprintf(
 					/* translators: 1: section title; 2: maximum limit */
-					_n( 'The "%1$s" section is too long and was truncated. A maximum of %2$d character is supported.', 'The "%1$s" section is too long and was truncated. A maximum of %2$d characters is supported.', 150, 'wp-verifier' ),
+					_n( 'The "%1$s" section is too long and was truncated. A maximum of %2$d character is supported.', 'The "%1$s" section is too long and was truncated. A maximum of %2$d characters is supported.', 150, 'wpverifier' ),
 					'Short Description',
 					150
 				),
@@ -639,7 +639,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$warning_details[ 'trimmed_section_' . $section ] = array(
 					'message'  => sprintf(
 						/* translators: 1: section title; 2: maximum limit */
-						_n( 'The "%1$s" section is too long and was truncated. A maximum of %2$d character is supported.', 'The "%1$s" section is too long and was truncated. A maximum of %2$d characters is supported.', $max_length, 'wp-verifier' ),
+						_n( 'The "%1$s" section is too long and was truncated. A maximum of %2$d character is supported.', 'The "%1$s" section is too long and was truncated. A maximum of %2$d characters is supported.', $max_length, 'wpverifier' ),
 						$section_title,
 						$max_length
 					),
@@ -656,7 +656,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			foreach ( $warning_keys as $warning ) {
 				$warning_message = isset( $warning_details[ $warning ]['message'] ) ? $warning_details[ $warning ]['message'] : sprintf(
 					/* translators: %s: warning code */
-					__( 'Readme parser warning detected: %s', 'wp-verifier' ),
+					__( 'Readme parser warning detected: %s', 'wpverifier' ),
 					esc_html( $warning )
 				);
 
@@ -696,7 +696,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: readme header field */
-					__( 'The "%s" header in the readme file must be a valid URL.', 'wp-verifier' ),
+					__( 'The "%s" header in the readme file must be a valid URL.', 'wpverifier' ),
 					'Donate link'
 				),
 				'readme_invalid_donate_link',
@@ -718,7 +718,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: 1: readme header field, 2: domain */
-					__( 'The "%1$s" header in the readme file is not valid. Discouraged domain "%2$s" found. This is the URL for users to support plugin author financially.', 'wp-verifier' ),
+					__( 'The "%1$s" header in the readme file is not valid. Discouraged domain "%2$s" found. This is the URL for users to support plugin author financially.', 'wpverifier' ),
 					'Donate link',
 					esc_html( $matched_domain )
 				),
@@ -772,7 +772,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: plugin header field */
-					__( 'The "%s" header in the readme file must be a comma-separated list of WordPress.org-formatted usernames.', 'wp-verifier' ),
+					__( 'The "%s" header in the readme file must be a comma-separated list of WordPress.org-formatted usernames.', 'wpverifier' ),
 					'Contributors'
 				),
 				'readme_invalid_contributors',
@@ -805,7 +805,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: 1: plugin header field, 2: usernames */
-						__( 'The "%1$s" header in the readme file contains restricted username(s). Found: %2$s', 'wp-verifier' ),
+						__( 'The "%1$s" header in the readme file contains restricted username(s). Found: %2$s', 'wpverifier' ),
 						'Contributors',
 						'"' . implode( '", "', $disallowed_usernames ) . '"'
 					),
@@ -836,7 +836,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: 1: plugin header field, 2: usernames */
-						__( 'The "%1$s" header in the readme file contains reserved username(s). Found: %2$s', 'wp-verifier' ),
+						__( 'The "%1$s" header in the readme file contains reserved username(s). Found: %2$s', 'wpverifier' ),
 						'Contributors',
 						'"' . implode( '", "', $reserved_usernames ) . '"'
 					),
@@ -899,7 +899,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: 1: readme header tag, 2: versions comparison */
-						__( '<strong>Mismatched %1$s: %2$s.</strong><br>"%1$s" needs to be exactly the same with that in your main plugin file\'s header.', 'wp-verifier' ),
+						__( '<strong>Mismatched %1$s: %2$s.</strong><br>"%1$s" needs to be exactly the same with that in your main plugin file\'s header.', 'wpverifier' ),
 						esc_html( $requires[ $require ]['label'] ),
 						esc_html( $readme_value ) . ' != ' . esc_html( $plugin_value )
 					),
@@ -928,7 +928,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 		if ( ! $check_language ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( 'The readme short description contains unofficial language. It must be written in standard English.', 'wp-verifier' ),
+				__( 'The readme short description contains unofficial language. It must be written in standard English.', 'wpverifier' ),
 				'readme_short_description_non_official_language',
 				$readme_file,
 				0,
@@ -944,7 +944,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 			if ( ! $check_language ) {
 				$this->add_result_error_for_file(
 					$result,
-					__( 'The readme description contains unofficial language. It must be written in standard English.', 'wp-verifier' ),
+					__( 'The readme description contains unofficial language. It must be written in standard English.', 'wpverifier' ),
 					'readme_description_non_official_language',
 					$readme_file,
 					0,
@@ -1002,7 +1002,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: 1: Tested up to value from readme, 2: Tested up to value from plugin header */
-					__( '<strong>Mismatched "Tested up to": %1$s != %2$s.</strong><br>The "Tested up to" value in the readme file must match the "Tested up to" value in the plugin header. If the plugin header has a "Tested up to" value, it will override the readme value, which can cause confusion.', 'wp-verifier' ),
+					__( '<strong>Mismatched "Tested up to": %1$s != %2$s.</strong><br>The "Tested up to" value in the readme file must match the "Tested up to" value in the plugin header. If the plugin header has a "Tested up to" value, it will override the readme value, which can cause confusion.', 'wpverifier' ),
 					esc_html( $readme_tested_normalized ),
 					esc_html( $plugin_tested_normalized )
 				),
@@ -1085,7 +1085,7 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 	public function get_description(): string {
 		return sprintf(
 			/* translators: %s: readme.txt */
-			__( 'Checks adherence to the %s requirements.', 'wp-verifier' ),
+			__( 'Checks adherence to the %s requirements.', 'wpverifier' ),
 			'<code>readme.txt</code>'
 		);
 	}
@@ -1100,6 +1100,6 @@ class Plugin_Readme_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/', 'wpverifier' );
 	}
 }

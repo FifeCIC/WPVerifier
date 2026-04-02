@@ -47,7 +47,7 @@ if ( isset( $_POST['set_active_plugin'] ) && isset( $_POST['plugin'] ) && ! empt
 	$config_storage = new \WordPress\Plugin_Check\Verification\Config_Storage( $plugin_basename );
 	$config_storage->save_config_data( $config_storage->load_config_data() );
 	
-	$success_message = __( 'Plugin selected successfully and WPV files initialized. Go to the Configuration tab to view the results.', 'wp-verifier' );
+	$success_message = __( 'Plugin selected successfully and WPV files initialized. Go to the Configuration tab to view the results.', 'wpverifier' );
 }
 
 $available_plugins = array();
@@ -85,7 +85,7 @@ function wpv_check_files_exist( $plugin_basename ) {
 
 <div class="wrap">
 	<h2><?php wpverifier_header( 'Select Plugin - Choose Active Plugin', 'TAB01' ); ?></h2>
-	<p><?php esc_html_e( 'Select the plugin you want to verify. This will be used across all verification tabs.', 'wp-verifier' ); ?></p>
+	<p><?php esc_html_e( 'Select the plugin you want to verify. This will be used across all verification tabs.', 'wpverifier' ); ?></p>
 
 	<?php if ( isset( $success_message ) ) : ?>
 		<div class="notice notice-success is-dismissible">
@@ -98,10 +98,10 @@ function wpv_check_files_exist( $plugin_basename ) {
 			<div style="max-width: 800px;">
 				<table class="form-table">
 					<tr>
-						<th><label for="plugin-select"><?php esc_html_e( 'Available Plugins:', 'wp-verifier' ); ?></label></th>
+						<th><label for="plugin-select"><?php esc_html_e( 'Available Plugins:', 'wpverifier' ); ?></label></th>
 						<td>
 							<select id="plugin-select" name="plugin" style="min-width: 400px;" onchange="this.form.submit()">
-								<option value=""><?php esc_html_e( '-- Select Plugin --', 'wp-verifier' ); ?></option>
+								<option value=""><?php esc_html_e( '-- Select Plugin --', 'wpverifier' ); ?></option>
 								<?php foreach ( $available_plugins as $basename => $data ) : ?>
 									<option value="<?php echo esc_attr( $basename ); ?>" <?php selected( $selected_plugin, $basename ); ?>>
 										<?php echo esc_html( $data['Name'] ); ?>
@@ -114,7 +114,7 @@ function wpv_check_files_exist( $plugin_basename ) {
 
 				<p>
 					<button type="submit" name="set_active_plugin" class="button button-primary" <?php echo empty( $selected_plugin ) ? 'disabled' : ''; ?>>
-						<?php esc_html_e( 'Set as Active Plugin', 'wp-verifier' ); ?>
+						<?php esc_html_e( 'Set as Active Plugin', 'wpverifier' ); ?>
 					</button>
 				</p>
 
@@ -169,7 +169,7 @@ function wpv_check_files_exist( $plugin_basename ) {
 			</div>
 		</form>
 	<?php else : ?>
-		<p><?php esc_html_e( 'No plugins found.', 'wp-verifier' ); ?></p>
+		<p><?php esc_html_e( 'No plugins found.', 'wpverifier' ); ?></p>
 	<?php endif; ?>
 
 </div>

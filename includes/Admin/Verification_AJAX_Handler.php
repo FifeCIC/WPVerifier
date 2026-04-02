@@ -67,12 +67,12 @@ class Verification_AJAX_Handler {
 			);
 		}
 
-		$message = __( 'No runtime checks, runtime environment was not setup.', 'wp-verifier' );
+		$message = __( 'No runtime checks, runtime environment was not setup.', 'wpverifier' );
 
 		if ( $this->has_runtime_check( $checks_to_run ) ) {
 			$runtime = new Runtime_Environment_Setup();
 			$runtime->set_up();
-			$message = __( 'Runtime environment setup successful.', 'wp-verifier' );
+			$message = __( 'Runtime environment setup successful.', 'wpverifier' );
 		}
 
 		wp_send_json_success(
@@ -94,9 +94,9 @@ class Verification_AJAX_Handler {
 		$runtime = new Runtime_Environment_Setup();
 		if ( $runtime->is_set_up() ) {
 			$runtime->clean_up();
-			$message = __( 'Runtime environment cleanup successful.', 'wp-verifier' );
+			$message = __( 'Runtime environment cleanup successful.', 'wpverifier' );
 		} else {
-			$message = __( 'Runtime environment was not prepared, cleanup was not run.', 'wp-verifier' );
+			$message = __( 'Runtime environment was not prepared, cleanup was not run.', 'wpverifier' );
 		}
 
 		wp_send_json_success(
@@ -293,7 +293,7 @@ class Verification_AJAX_Handler {
 		}
 
 		$response = array(
-			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
+			'message'  => __( 'Checks run successfully', 'wpverifier' ),
 			'errors'   => array(),
 			'warnings' => array(),
 		);
@@ -318,7 +318,7 @@ class Verification_AJAX_Handler {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin ) ) {
-				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Structure_Validator' ) ) {
@@ -367,7 +367,7 @@ class Verification_AJAX_Handler {
 		}
 
 		if ( ! ( $runner instanceof AJAX_Runner ) ) {
-			return new WP_Error( 'invalid-runner', __( 'AJAX Runner was not initialized correctly.', 'wp-verifier' ) );
+			return new WP_Error( 'invalid-runner', __( 'AJAX Runner was not initialized correctly.', 'wpverifier' ) );
 		}
 
 		return $runner;
@@ -452,7 +452,7 @@ class Verification_AJAX_Handler {
 	 */
 	private function prepare_results_response( $results, array $types ) {
 		$response = array(
-			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
+			'message'  => __( 'Checks run successfully', 'wpverifier' ),
 			'errors'   => array(),
 			'warnings' => array(),
 			'html_output' => '',
@@ -512,8 +512,8 @@ class Verification_AJAX_Handler {
 		$total_issues = $total_errors + $total_warnings;
 
 		if ( $total_issues === 0 ) {
-			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wp-verifier' ), $elapsed_seconds ) : '';
-			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
+			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wpverifier' ), $elapsed_seconds ) : '';
+			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wpverifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
 		}
 
 		ob_start();
@@ -521,16 +521,16 @@ class Verification_AJAX_Handler {
 		<div class="plugin-check-results">
 			<div class="results-summary" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
 				<h3>
-					<?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Verification Results Summary', 'wpverifier' ); ?>
 					<?php if ( $elapsed_seconds > 0 ) : ?>
 						<span style="font-size: 13px; font-weight: normal; color: #646970; margin-left: 10px;">
 							<?php
 							if ( $elapsed_seconds >= 60 ) {
 								$minutes = floor( $elapsed_seconds / 60 );
 								$seconds = round( $elapsed_seconds - ( $minutes * 60 ), 1 );
-								printf( esc_html__( 'Completed in %1$dm %2$ss', 'wp-verifier' ), $minutes, $seconds );
+								printf( esc_html__( 'Completed in %1$dm %2$ss', 'wpverifier' ), $minutes, $seconds );
 							} else {
-								printf( esc_html__( 'Completed in %ss', 'wp-verifier' ), $elapsed_seconds );
+								printf( esc_html__( 'Completed in %ss', 'wpverifier' ), $elapsed_seconds );
 							}
 							?>
 						</span>
@@ -539,29 +539,29 @@ class Verification_AJAX_Handler {
 				<div style="display: flex; gap: 20px; margin: 15px 0;">
 					<div style="flex: 1; text-align: center; padding: 15px; background: #dc3232; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_errors ); ?></div>
-						<div><?php esc_html_e( 'Errors', 'wp-verifier' ); ?></div>
+						<div><?php esc_html_e( 'Errors', 'wpverifier' ); ?></div>
 					</div>
 					<div style="flex: 1; text-align: center; padding: 15px; background: #ffb900; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_warnings ); ?></div>
-						<div><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?></div>
+						<div><?php esc_html_e( 'Warnings', 'wpverifier' ); ?></div>
 					</div>
 					<div style="flex: 1; text-align: center; padding: 15px; background: #666; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_issues ); ?></div>
-						<div><?php esc_html_e( 'Total Issues', 'wp-verifier' ); ?></div>
+						<div><?php esc_html_e( 'Total Issues', 'wpverifier' ); ?></div>
 					</div>
 				</div>
 			</div>
 
 			<?php if ( ! empty( $errors ) ) : ?>
 				<div class="errors-section" style="margin-bottom: 30px;">
-					<h3 style="color: #dc3232;"><?php esc_html_e( 'Errors', 'wp-verifier' ); ?> (<?php echo esc_html( $total_errors ); ?>)</h3>
+					<h3 style="color: #dc3232;"><?php esc_html_e( 'Errors', 'wpverifier' ); ?> (<?php echo esc_html( $total_errors ); ?>)</h3>
 					<?php echo $this->render_issues_table( $errors, 'error' ); ?>
 				</div>
 			<?php endif; ?>
 
 			<?php if ( ! empty( $warnings ) ) : ?>
 				<div class="warnings-section" style="margin-bottom: 30px;">
-					<h3 style="color: #ffb900;"><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?> (<?php echo esc_html( $total_warnings ); ?>)</h3>
+					<h3 style="color: #ffb900;"><?php esc_html_e( 'Warnings', 'wpverifier' ); ?> (<?php echo esc_html( $total_warnings ); ?>)</h3>
 					<?php echo $this->render_issues_table( $warnings, 'warning' ); ?>
 				</div>
 			<?php endif; ?>
@@ -583,10 +583,10 @@ class Verification_AJAX_Handler {
 		<table class="wp-list-table widefat fixed striped">
 			<thead>
 				<tr>
-					<th style="width: 40%;"><?php esc_html_e( 'File', 'wp-verifier' ); ?></th>
-					<th style="width: 10%;"><?php esc_html_e( 'Line', 'wp-verifier' ); ?></th>
-					<th style="width: 15%;"><?php esc_html_e( 'Code', 'wp-verifier' ); ?></th>
-					<th style="width: 35%;"><?php esc_html_e( 'Message', 'wp-verifier' ); ?></th>
+					<th style="width: 40%;"><?php esc_html_e( 'File', 'wpverifier' ); ?></th>
+					<th style="width: 10%;"><?php esc_html_e( 'Line', 'wpverifier' ); ?></th>
+					<th style="width: 15%;"><?php esc_html_e( 'Code', 'wpverifier' ); ?></th>
+					<th style="width: 35%;"><?php esc_html_e( 'Message', 'wpverifier' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -623,20 +623,20 @@ class Verification_AJAX_Handler {
 		ob_start();
 		?>
 		<div class="export-controls" style="margin: 20px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
-			<h4><?php esc_html_e( 'Export Results', 'wp-verifier' ); ?></h4>
-			<p><?php esc_html_e( 'Download or save verification results in different formats:', 'wp-verifier' ); ?></p>
+			<h4><?php esc_html_e( 'Export Results', 'wpverifier' ); ?></h4>
+			<p><?php esc_html_e( 'Download or save verification results in different formats:', 'wpverifier' ); ?></p>
 			<div style="display: flex; gap: 10px; flex-wrap: wrap;">
 				<button type="button" class="button button-secondary plugin-check__export-button" data-export-format="csv" data-export-action="download">
-					<?php esc_html_e( 'Download CSV', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Download CSV', 'wpverifier' ); ?>
 				</button>
 				<button type="button" class="button button-secondary plugin-check__export-button" data-export-format="json" data-export-action="download">
-					<?php esc_html_e( 'Download JSON', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Download JSON', 'wpverifier' ); ?>
 				</button>
 				<button type="button" class="button button-secondary plugin-check__export-button" data-export-format="markdown" data-export-action="download">
-					<?php esc_html_e( 'Download Markdown', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Download Markdown', 'wpverifier' ); ?>
 				</button>
 				<button type="button" class="button button-primary plugin-check__save-button" data-export-format="json" data-export-action="save">
-					<?php esc_html_e( 'Save Results', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Save Results', 'wpverifier' ); ?>
 				</button>
 			</div>
 		</div>
@@ -825,11 +825,11 @@ class Verification_AJAX_Handler {
 	 */
 	private function verify_request( $nonce ) {
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_KEY ) ) {
-			return new WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wp-verifier' ) );
+			return new WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wpverifier' ) );
 		}
 
 		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return new WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wp-verifier' ) );
+			return new WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wpverifier' ) );
 		}
 
 		return true;
@@ -949,7 +949,7 @@ class Verification_AJAX_Handler {
 	 */
 	private function prepare_results_response_with_arrays( $errors, $warnings, array $types, $is_limited = false, $elapsed_seconds = 0, $total_before_limit = 0, $max_issues = 0 ) {
 		$response = array(
-			'message'  => __( 'Checks run successfully', 'wp-verifier' ),
+			'message'  => __( 'Checks run successfully', 'wpverifier' ),
 			'errors'   => array(),
 			'warnings' => array(),
 			'html_output' => '',
@@ -1007,8 +1007,8 @@ class Verification_AJAX_Handler {
 		$total_issues = $total_errors + $total_warnings;
 
 		if ( $total_issues === 0 ) {
-			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wp-verifier' ), $elapsed_seconds ) : '';
-			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wp-verifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
+			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wpverifier' ), $elapsed_seconds ) : '';
+			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wpverifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
 		}
 
 		ob_start();
@@ -1016,10 +1016,10 @@ class Verification_AJAX_Handler {
 		<div class="plugin-check-results">
 			<?php if ( $is_limited && $total_before_limit > 0 ) : ?>
 				<div class="notice notice-warning" style="margin-bottom: 20px;">
-					<p><strong><?php esc_html_e( 'Results Limited:', 'wp-verifier' ); ?></strong>
+					<p><strong><?php esc_html_e( 'Results Limited:', 'wpverifier' ); ?></strong>
 					<?php
 						printf(
-							esc_html__( '%1$d issues were found but only the first %2$d are shown. Resolve these issues and run verification again to see more.', 'wp-verifier' ),
+							esc_html__( '%1$d issues were found but only the first %2$d are shown. Resolve these issues and run verification again to see more.', 'wpverifier' ),
 							$total_before_limit,
 							$max_issues
 						);
@@ -1030,16 +1030,16 @@ class Verification_AJAX_Handler {
 			
 			<div class="results-summary" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
 				<h3>
-					<?php esc_html_e( 'Verification Results Summary', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Verification Results Summary', 'wpverifier' ); ?>
 					<?php if ( $elapsed_seconds > 0 ) : ?>
 						<span style="font-size: 13px; font-weight: normal; color: #646970; margin-left: 10px;">
 							<?php
 							if ( $elapsed_seconds >= 60 ) {
 								$minutes = floor( $elapsed_seconds / 60 );
 								$seconds = round( $elapsed_seconds - ( $minutes * 60 ), 1 );
-								printf( esc_html__( 'Completed in %1$dm %2$ss', 'wp-verifier' ), $minutes, $seconds );
+								printf( esc_html__( 'Completed in %1$dm %2$ss', 'wpverifier' ), $minutes, $seconds );
 							} else {
-								printf( esc_html__( 'Completed in %ss', 'wp-verifier' ), $elapsed_seconds );
+								printf( esc_html__( 'Completed in %ss', 'wpverifier' ), $elapsed_seconds );
 							}
 							?>
 						</span>
@@ -1048,29 +1048,29 @@ class Verification_AJAX_Handler {
 				<div style="display: flex; gap: 20px; margin: 15px 0;">
 					<div style="flex: 1; text-align: center; padding: 15px; background: #dc3232; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_errors ); ?></div>
-						<div><?php esc_html_e( 'Errors', 'wp-verifier' ); ?></div>
+						<div><?php esc_html_e( 'Errors', 'wpverifier' ); ?></div>
 					</div>
 					<div style="flex: 1; text-align: center; padding: 15px; background: #ffb900; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_warnings ); ?></div>
-						<div><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?></div>
+						<div><?php esc_html_e( 'Warnings', 'wpverifier' ); ?></div>
 					</div>
 					<div style="flex: 1; text-align: center; padding: 15px; background: #666; color: white; border-radius: 4px;">
 						<div style="font-size: 24px; font-weight: bold;"><?php echo esc_html( $total_issues ); ?></div>
-						<div><?php esc_html_e( 'Total Issues', 'wp-verifier' ); ?></div>
+						<div><?php esc_html_e( 'Total Issues', 'wpverifier' ); ?></div>
 					</div>
 				</div>
 			</div>
 
 			<?php if ( ! empty( $errors ) ) : ?>
 				<div class="errors-section" style="margin-bottom: 30px;">
-					<h3 style="color: #dc3232;"><?php esc_html_e( 'Errors', 'wp-verifier' ); ?> (<?php echo esc_html( $total_errors ); ?>)</h3>
+					<h3 style="color: #dc3232;"><?php esc_html_e( 'Errors', 'wpverifier' ); ?> (<?php echo esc_html( $total_errors ); ?>)</h3>
 					<?php echo $this->render_issues_table( $errors, 'error' ); ?>
 				</div>
 			<?php endif; ?>
 
 			<?php if ( ! empty( $warnings ) ) : ?>
 				<div class="warnings-section" style="margin-bottom: 30px;">
-					<h3 style="color: #ffb900;"><?php esc_html_e( 'Warnings', 'wp-verifier' ); ?> (<?php echo esc_html( $total_warnings ); ?>)</h3>
+					<h3 style="color: #ffb900;"><?php esc_html_e( 'Warnings', 'wpverifier' ); ?> (<?php echo esc_html( $total_warnings ); ?>)</h3>
 					<?php echo $this->render_issues_table( $warnings, 'warning' ); ?>
 				</div>
 			<?php endif; ?>
@@ -1107,20 +1107,20 @@ class Verification_AJAX_Handler {
 		$plugin   = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( empty( $issue_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wpverifier' ) ), 400 );
 		}
 		if ( empty( $plugin ) ) {
-			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wp-verifier' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wpverifier' ) ), 400 );
 		}
 
 		$results_file = Path_Builder::get_results_file_path( $plugin );
 		if ( ! file_exists( $results_file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
+			wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wpverifier' ) ), 404 );
 		}
 
 		$results_data = json_decode( file_get_contents( $results_file ), true );
 		if ( ! $results_data ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wp-verifier' ) ), 500 );
+			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wpverifier' ) ), 500 );
 		}
 
 		$found          = false;
@@ -1140,7 +1140,7 @@ class Verification_AJAX_Handler {
 		}
 
 		if ( ! $found ) {
-			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wp-verifier' ) ), 404 );
+			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wpverifier' ) ), 404 );
 		}
 
 		// Check if every issue in the affected file is now ignored.
@@ -1163,8 +1163,8 @@ class Verification_AJAX_Handler {
 
 		wp_send_json_success( array(
 			'message'      => $file_ignored
-				? __( 'All issues in file ignored — file marked as ignored.', 'wp-verifier' )
-				: __( 'Issue marked as ignored.', 'wp-verifier' ),
+				? __( 'All issues in file ignored — file marked as ignored.', 'wpverifier' )
+				: __( 'Issue marked as ignored.', 'wpverifier' ),
 			'issue_id'     => $issue_id,
 			'file_ignored' => $file_ignored,
 		) );
@@ -1246,22 +1246,22 @@ class Verification_AJAX_Handler {
 		$plugin   = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( empty( $issue_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wpverifier' ) ), 400 );
 		}
 
 		if ( empty( $plugin ) ) {
-			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wp-verifier' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wpverifier' ) ), 400 );
 		}
 
 		$results_file = Path_Builder::get_results_file_path( $plugin );
 
 		if ( ! file_exists( $results_file ) ) {
-			wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
+			wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wpverifier' ) ), 404 );
 		}
 
 		$results_data = json_decode( file_get_contents( $results_file ), true );
 		if ( ! $results_data ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wp-verifier' ) ), 500 );
+			wp_send_json_error( array( 'message' => __( 'Invalid results file.', 'wpverifier' ) ), 500 );
 		}
 
 		$found = false;
@@ -1279,13 +1279,13 @@ class Verification_AJAX_Handler {
 		}
 
 		if ( ! $found ) {
-			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wp-verifier' ) ), 404 );
+			wp_send_json_error( array( 'message' => __( 'Issue not found.', 'wpverifier' ) ), 404 );
 		}
 
 		file_put_contents( $results_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 
 		wp_send_json_success( array(
-			'message'  => __( 'Issue unmarked as ignored.', 'wp-verifier' ),
+			'message'  => __( 'Issue unmarked as ignored.', 'wpverifier' ),
 			'issue_id' => $issue_id,
 		) );
 	}
@@ -1304,28 +1304,28 @@ class Verification_AJAX_Handler {
 		$plugin   = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( empty( $issue_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wp-verifier' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Issue ID is required.', 'wpverifier' ) ), 400 );
 		}
 
 		if ( empty( $plugin ) ) {
-			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wp-verifier' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wpverifier' ) ), 400 );
 		}
 
 		try {
 			$results_file = Path_Builder::get_results_file_path( $plugin );
 
 			if ( ! file_exists( $results_file ) ) {
-				wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wp-verifier' ) ), 404 );
+				wp_send_json_error( array( 'message' => __( 'Results file not found.', 'wpverifier' ) ), 404 );
 			}
 
 			$results_content = file_get_contents( $results_file );
 			if ( false === $results_content ) {
-				wp_send_json_error( array( 'message' => __( 'Failed to read results file.', 'wp-verifier' ) ), 500 );
+				wp_send_json_error( array( 'message' => __( 'Failed to read results file.', 'wpverifier' ) ), 500 );
 			}
 
 			$results_data = json_decode( $results_content, true );
 			if ( null === $results_data ) {
-				wp_send_json_error( array( 'message' => __( 'Invalid results file format.', 'wp-verifier' ) ), 500 );
+				wp_send_json_error( array( 'message' => __( 'Invalid results file format.', 'wpverifier' ) ), 500 );
 			}
 
 			$issue_found   = false;
@@ -1352,7 +1352,7 @@ class Verification_AJAX_Handler {
 			}
 
 			if ( ! $issue_found ) {
-				wp_send_json_error( array( 'message' => __( 'Issue not found in results.', 'wp-verifier' ) ), 404 );
+				wp_send_json_error( array( 'message' => __( 'Issue not found in results.', 'wpverifier' ) ), 404 );
 			}
 
 			// If remaining issues in the file are all ignored (or file is now empty), trigger file-level ignore.
@@ -1394,13 +1394,13 @@ class Verification_AJAX_Handler {
 			}
 
 			if ( false === file_put_contents( $results_file, wp_json_encode( $results_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ) ) {
-				wp_send_json_error( array( 'message' => __( 'Failed to save updated results.', 'wp-verifier' ) ), 500 );
+				wp_send_json_error( array( 'message' => __( 'Failed to save updated results.', 'wpverifier' ) ), 500 );
 			}
 
 			wp_send_json_success( array(
 				'message'      => $file_ignored
-					? __( 'Issue fixed — all remaining issues in file were ignored, file marked as ignored.', 'wp-verifier' )
-					: __( 'Issue marked as fixed and removed from results.', 'wp-verifier' ),
+					? __( 'Issue fixed — all remaining issues in file were ignored, file marked as ignored.', 'wpverifier' )
+					: __( 'Issue marked as fixed and removed from results.', 'wpverifier' ),
 				'issue_id'     => $issue_id,
 				'file_ignored' => $file_ignored,
 			) );

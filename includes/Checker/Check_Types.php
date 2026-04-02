@@ -27,8 +27,8 @@ class Check_Types {
 	 */
 	public static function get_types() {
 		$default_types = array(
-			self::TYPE_ERROR   => __( 'Error', 'wp-verifier' ),
-			self::TYPE_WARNING => __( 'Warning', 'wp-verifier' ),
+			self::TYPE_ERROR   => __( 'Error', 'wpverifier' ),
+			self::TYPE_WARNING => __( 'Warning', 'wpverifier' ),
 		);
 
 		/**

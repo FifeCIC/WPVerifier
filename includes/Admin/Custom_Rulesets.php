@@ -7,6 +7,9 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+
 use WordPress\Plugin_Check\Checker\Check_Categories;
 
 /**
@@ -39,7 +42,7 @@ class Custom_Rulesets {
 
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Custom Rulesets', 'wp-verifier' ); ?></h1>
+			<h1><?php esc_html_e( 'Custom Rulesets', 'wpverifier' ); ?></h1>
 			<?php
 			if ( 'edit' === $action || 'new' === $action ) {
 				$this->render_edit_form( $ruleset_id, $rulesets );
@@ -58,34 +61,34 @@ class Custom_Rulesets {
 	 */
 	private function render_list( $rulesets ) {
 		?>
-		<p><?php esc_html_e( 'Create custom rulesets to enforce specific coding standards in your ecosystem.', 'wp-verifier' ); ?></p>
+		<p><?php esc_html_e( 'Create custom rulesets to enforce specific coding standards in your ecosystem.', 'wpverifier' ); ?></p>
 		<p>
 			<a href="<?php echo esc_url( admin_url( 'tools.php?page=wp-verifier-rulesets&action=new' ) ); ?>" class="button button-primary">
-				<?php esc_html_e( 'Add New Ruleset', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Add New Ruleset', 'wpverifier' ); ?>
 			</a>
-			<a href="#" class="button" id="import-ruleset-btn"><?php esc_html_e( 'Import Ruleset', 'wp-verifier' ); ?></a>
+			<a href="#" class="button" id="import-ruleset-btn"><?php esc_html_e( 'Import Ruleset', 'wpverifier' ); ?></a>
 		</p>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data" id="import-form" style="display:none;">
 			<?php wp_nonce_field( 'import_custom_ruleset', 'import_nonce' ); ?>
 			<input type="hidden" name="action" value="import_custom_ruleset" />
 			<input type="file" name="ruleset_file" accept=".json" required />
-			<button type="submit" class="button"><?php esc_html_e( 'Upload', 'wp-verifier' ); ?></button>
+			<button type="submit" class="button"><?php esc_html_e( 'Upload', 'wpverifier' ); ?></button>
 		</form>
 
 		<table class="wp-list-table widefat fixed striped">
 			<thead>
 				<tr>
-					<th><?php esc_html_e( 'Name', 'wp-verifier' ); ?></th>
-					<th><?php esc_html_e( 'Description', 'wp-verifier' ); ?></th>
-					<th><?php esc_html_e( 'Categories', 'wp-verifier' ); ?></th>
-					<th><?php esc_html_e( 'Actions', 'wp-verifier' ); ?></th>
+					<th><?php esc_html_e( 'Name', 'wpverifier' ); ?></th>
+					<th><?php esc_html_e( 'Description', 'wpverifier' ); ?></th>
+					<th><?php esc_html_e( 'Categories', 'wpverifier' ); ?></th>
+					<th><?php esc_html_e( 'Actions', 'wpverifier' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php if ( empty( $rulesets ) ) : ?>
 					<tr>
-						<td colspan="4"><?php esc_html_e( 'No custom rulesets found. Create your first ruleset to get started.', 'wp-verifier' ); ?></td>
+						<td colspan="4"><?php esc_html_e( 'No custom rulesets found. Create your first ruleset to get started.', 'wpverifier' ); ?></td>
 					</tr>
 				<?php else : ?>
 					<?php foreach ( $rulesets as $id => $ruleset ) : ?>
@@ -95,14 +98,14 @@ class Custom_Rulesets {
 							<td><?php echo esc_html( implode( ', ', $ruleset['categories'] ) ); ?></td>
 							<td>
 								<a href="<?php echo esc_url( admin_url( 'tools.php?page=wp-verifier-rulesets&action=edit&ruleset=' . $id ) ); ?>">
-									<?php esc_html_e( 'Edit', 'wp-verifier' ); ?>
+									<?php esc_html_e( 'Edit', 'wpverifier' ); ?>
 								</a> |
 								<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=export_custom_ruleset&ruleset=' . $id ), 'export_ruleset_' . $id ) ); ?>">
-									<?php esc_html_e( 'Export', 'wp-verifier' ); ?>
+									<?php esc_html_e( 'Export', 'wpverifier' ); ?>
 								</a> |
 								<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=delete_custom_ruleset&ruleset=' . $id ), 'delete_ruleset_' . $id ) ); ?>" 
-								   onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this ruleset?', 'wp-verifier' ); ?>');">
-									<?php esc_html_e( 'Delete', 'wp-verifier' ); ?>
+								   onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this ruleset?', 'wpverifier' ); ?>');">
+									<?php esc_html_e( 'Delete', 'wpverifier' ); ?>
 								</a>
 							</td>
 						</tr>
@@ -143,19 +146,19 @@ class Custom_Rulesets {
 
 			<table class="form-table">
 				<tr>
-					<th><label for="ruleset_name"><?php esc_html_e( 'Ruleset Name', 'wp-verifier' ); ?></label></th>
+					<th><label for="ruleset_name"><?php esc_html_e( 'Ruleset Name', 'wpverifier' ); ?></label></th>
 					<td>
 						<input type="text" id="ruleset_name" name="ruleset_name" value="<?php echo esc_attr( $ruleset['name'] ); ?>" class="regular-text" required />
 					</td>
 				</tr>
 				<tr>
-					<th><label for="ruleset_description"><?php esc_html_e( 'Description', 'wp-verifier' ); ?></label></th>
+					<th><label for="ruleset_description"><?php esc_html_e( 'Description', 'wpverifier' ); ?></label></th>
 					<td>
 						<textarea id="ruleset_description" name="ruleset_description" rows="3" class="large-text"><?php echo esc_textarea( $ruleset['description'] ); ?></textarea>
 					</td>
 				</tr>
 				<tr>
-					<th><?php esc_html_e( 'Check Categories', 'wp-verifier' ); ?></th>
+					<th><?php esc_html_e( 'Check Categories', 'wpverifier' ); ?></th>
 					<td>
 						<?php
 						$available_categories = Check_Categories::get_categories();
@@ -172,8 +175,8 @@ class Custom_Rulesets {
 			</table>
 
 			<p class="submit">
-				<button type="submit" class="button button-primary"><?php echo $is_new ? esc_html__( 'Create Ruleset', 'wp-verifier' ) : esc_html__( 'Update Ruleset', 'wp-verifier' ); ?></button>
-				<a href="<?php echo esc_url( admin_url( 'tools.php?page=wp-verifier-rulesets' ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'wp-verifier' ); ?></a>
+				<button type="submit" class="button button-primary"><?php echo $is_new ? esc_html__( 'Create Ruleset', 'wpverifier' ) : esc_html__( 'Update Ruleset', 'wpverifier' ); ?></button>
+				<a href="<?php echo esc_url( admin_url( 'tools.php?page=wp-verifier-rulesets' ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'wpverifier' ); ?></a>
 			</p>
 		</form>
 		<?php
@@ -184,7 +187,7 @@ class Custom_Rulesets {
 	 */
 	public function save_ruleset() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wpverifier' ) );
 		}
 
 		check_admin_referer( 'save_custom_ruleset', 'ruleset_nonce' );
@@ -217,7 +220,7 @@ class Custom_Rulesets {
 	 */
 	public function delete_ruleset() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wpverifier' ) );
 		}
 
 		$ruleset_id = isset( $_GET['ruleset'] ) ? sanitize_text_field( wp_unslash( $_GET['ruleset'] ) ) : '';
@@ -236,7 +239,7 @@ class Custom_Rulesets {
 	 */
 	public function export_ruleset() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wpverifier' ) );
 		}
 
 		$ruleset_id = isset( $_GET['ruleset'] ) ? sanitize_text_field( wp_unslash( $_GET['ruleset'] ) ) : '';
@@ -244,7 +247,7 @@ class Custom_Rulesets {
 
 		$rulesets = $this->get_rulesets();
 		if ( ! isset( $rulesets[ $ruleset_id ] ) ) {
-			wp_die( esc_html__( 'Ruleset not found.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'Ruleset not found.', 'wpverifier' ) );
 		}
 
 		$ruleset = $rulesets[ $ruleset_id ];
@@ -261,20 +264,20 @@ class Custom_Rulesets {
 	 */
 	public function import_ruleset() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'wpverifier' ) );
 		}
 
 		check_admin_referer( 'import_custom_ruleset', 'import_nonce' );
 
-		if ( ! isset( $_FILES['ruleset_file'] ) || $_FILES['ruleset_file']['error'] !== UPLOAD_ERR_OK ) {
-			wp_die( esc_html__( 'File upload failed.', 'wp-verifier' ) );
+		if ( ! isset( $_FILES['ruleset_file']['error'] ) || $_FILES['ruleset_file']['error'] !== UPLOAD_ERR_OK ) {
+			wp_die( esc_html__( 'File upload failed.', 'wpverifier' ) );
 		}
 
-		$file_content = file_get_contents( $_FILES['ruleset_file']['tmp_name'] );
+		$file_content = file_get_contents( sanitize_text_field( wp_unslash( $_FILES['ruleset_file']['tmp_name'] ) ) );
 		$ruleset = json_decode( $file_content, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $ruleset ) ) {
-			wp_die( esc_html__( 'Invalid ruleset file.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'Invalid ruleset file.', 'wpverifier' ) );
 		}
 
 		$rulesets = $this->get_rulesets();

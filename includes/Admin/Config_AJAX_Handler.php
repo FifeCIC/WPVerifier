@@ -10,6 +10,8 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use InvalidArgumentException;
 use WordPress\Plugin_Check\Verification\Config_Storage;
 use WordPress\Plugin_Check\Admin\Vendor_Detector;
@@ -47,7 +49,7 @@ class Config_AJAX_Handler {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin ) ) {
-				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wpverifier' ) );
 			}
 
 			$config_storage = new Config_Storage( $plugin );
@@ -72,20 +74,15 @@ class Config_AJAX_Handler {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			$config_json = isset( $_POST['config_data'] ) ? wp_unslash( $_POST['config_data'] ) : '';
-			
-			// Debug logging
-			error_log( 'WPV DEBUG: Raw config_json from POST: ' . $config_json );
 
 			if ( empty( $plugin ) || empty( $config_json ) ) {
-				throw new InvalidArgumentException( __( 'Plugin and config data are required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin and config data are required.', 'wpverifier' ) );
 			}
 
 			$form_config = json_decode( $config_json, true );
 			if ( ! $form_config ) {
-				throw new InvalidArgumentException( __( 'Invalid config data.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Invalid config data.', 'wpverifier' ) );
 			}
-			
-			error_log( 'WPV DEBUG: Decoded form_config: ' . print_r( $form_config, true ) );
 
 			$config_storage = new Config_Storage( $plugin );
 			$full_config = $config_storage->load_config_data();
@@ -115,33 +112,22 @@ class Config_AJAX_Handler {
 			
 			// Handle vendor folders as ignored paths
 			if ( ! empty( $form_config['vendor_folders'] ) ) {
-				// Debug logging
-				error_log( 'WPV DEBUG: Raw vendor_folders from form: ' . print_r( $form_config['vendor_folders'], true ) );
-				
 				$full_config['ignored_paths'] = array();
 				foreach ( $form_config['vendor_folders'] as $folder ) {
-					error_log( 'WPV DEBUG: Original folder path: ' . $folder );
-					
-					// Remove escaped slashes and normalize path
 					$clean_path = str_replace( '\/', '/', $folder );
 					$normalized_path = wp_normalize_path( $clean_path );
-					error_log( 'WPV DEBUG: Clean path: ' . $clean_path );
-					error_log( 'WPV DEBUG: Normalized path: ' . $normalized_path );
-					
 					$full_config['ignored_paths'][] = array(
 						'path' => $normalized_path,
 						'reason' => 'vendor',
 						'added_at' => current_time( 'mysql' )
 					);
 				}
-				
-				error_log( 'WPV DEBUG: Final ignored_paths before save: ' . print_r( $full_config['ignored_paths'], true ) );
 			}
 			
 			$result = $config_storage->save_config_data( $full_config );
 
 			if ( ! $result ) {
-				throw new InvalidArgumentException( __( 'Failed to save configuration.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Failed to save configuration.', 'wpverifier' ) );
 			}
 
 			// Build detailed response
@@ -176,19 +162,19 @@ class Config_AJAX_Handler {
 			$config_json = isset( $_POST['config'] ) ? wp_unslash( $_POST['config'] ) : '';
 
 			if ( empty( $plugin ) || empty( $config_json ) ) {
-				throw new InvalidArgumentException( __( 'Plugin and config are required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin and config are required.', 'wpverifier' ) );
 			}
 
 			$config = json_decode( $config_json, true );
 			if ( ! $config ) {
-				throw new InvalidArgumentException( __( 'Invalid config data.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Invalid config data.', 'wpverifier' ) );
 			}
 
 			$config_storage = new Config_Storage( $plugin );
 			$result = $config_storage->save_config_data( $config );
 
 			if ( ! $result ) {
-				throw new InvalidArgumentException( __( 'Failed to save configuration file.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Failed to save configuration file.', 'wpverifier' ) );
 			}
 
 			// Initialize verification file
@@ -199,7 +185,7 @@ class Config_AJAX_Handler {
 			\WordPress\Plugin_Check\Verification\JSON_Storage::initialize_verification_file( $plugin_folder );
 
 			wp_send_json_success( array(
-				'message' => __( 'Configuration saved to .wpv-config.json successfully.', 'wp-verifier' ),
+				'message' => __( 'Configuration saved to .wpv-config.json successfully.', 'wpverifier' ),
 			) );
 
 		} catch ( \Exception $exception ) {
@@ -219,7 +205,7 @@ class Config_AJAX_Handler {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin ) ) {
-				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wpverifier' ) );
 			}
 
 			$vendors_raw = Vendor_Detector::detect_vendors( $plugin );
@@ -264,7 +250,7 @@ class Config_AJAX_Handler {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin ) ) {
-				throw new InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin is required.', 'wpverifier' ) );
 			}
 
 			$vendors = Vendor_Detector::detect_vendors( $plugin );
@@ -292,7 +278,7 @@ class Config_AJAX_Handler {
 			$paths = isset( $_POST['paths'] ) ? json_decode( wp_unslash( $_POST['paths'] ), true ) : array();
 
 			if ( empty( $plugin ) || empty( $paths ) ) {
-				throw new InvalidArgumentException( __( 'Plugin and paths are required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin and paths are required.', 'wpverifier' ) );
 			}
 
 			$ignored_paths = array();
@@ -311,11 +297,11 @@ class Config_AJAX_Handler {
 			$result = $config_storage->set_ignored_paths( $ignored_paths );
 
 			if ( ! $result ) {
-				throw new InvalidArgumentException( __( 'Failed to save ignored paths.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Failed to save ignored paths.', 'wpverifier' ) );
 			}
 
 			wp_send_json_success( array(
-				'message' => __( 'Ignored paths saved successfully.', 'wp-verifier' ),
+				'message' => __( 'Ignored paths saved successfully.', 'wpverifier' ),
 			) );
 
 		} catch ( InvalidArgumentException $exception ) {
@@ -378,11 +364,11 @@ class Config_AJAX_Handler {
 	 */
 	private function verify_request( $nonce ) {
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_KEY ) ) {
-			return new \WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wp-verifier' ) );
+			return new \WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wpverifier' ) );
 		}
 
 		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return new \WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wp-verifier' ) );
+			return new \WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wpverifier' ) );
 		}
 
 		return true;

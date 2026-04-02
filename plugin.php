@@ -9,9 +9,10 @@
  * Author: WordPress Performance Team and Plugin Review Team
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * Text Domain: wp-verifier
+ * Text Domain: wpverifier
  *
- * @package plugin-check
+ * @package wpverifier
+ * @author  Ryan Bayne
  */
 
 use WordPress\Plugin_Check\Plugin_Main;
@@ -63,7 +64,7 @@ function wp_plugin_check_display_php_version_notice() {
 	echo '<div class="notice notice-error"><p>';
 	printf(
 		/* translators: 1: required version, 2: currently used version */
-		esc_html__( 'Plugin Check requires at least PHP version %1$s. Your site is currently running on PHP %2$s.', 'wp-verifier' ),
+		esc_html__( 'Plugin Check requires at least PHP version %1$s. Your site is currently running on PHP %2$s.', 'wpverifier' ),
 		esc_html( WP_PLUGIN_CHECK_MINIMUM_PHP ),
 		esc_html( phpversion() )
 	);
@@ -79,7 +80,7 @@ function wp_plugin_check_display_composer_autoload_notice() {
 	echo '<div class="notice notice-error"><p>';
 	printf(
 		/* translators: composer command. */
-		esc_html__( 'Your installation of the Plugin Check plugin is incomplete. Please run %s.', 'wp-verifier' ),
+		esc_html__( 'Your installation of the Plugin Check plugin is incomplete. Please run %s.', 'wpverifier' ),
 		'<code>composer install</code>'
 	);
 	echo '</p></div>';

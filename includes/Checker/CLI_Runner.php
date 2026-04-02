@@ -76,7 +76,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 
 		if ( empty( $plugin ) ) {
 			throw new Exception(
-				__( 'Invalid plugin: Plugin parameter must not be empty.', 'wp-verifier' )
+				__( 'Invalid plugin: Plugin parameter must not be empty.', 'wpverifier' )
 			);
 		}
 

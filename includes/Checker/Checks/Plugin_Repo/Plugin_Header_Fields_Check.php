@@ -95,7 +95,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file is not valid.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file is not valid.', 'wpverifier' ),
 						esc_html( $labels['Name'] )
 					),
 					'plugin_header_invalid_plugin_name',
@@ -115,7 +115,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 							$result,
 							sprintf(
 								/* translators: %s: plugin header field */
-								__( 'The "%s" header in the plugin file is not valid. It needs to contain at least 5 latin letters (a-Z) and/or numbers. This is necessary because the initial plugin slug is generated from the name.', 'wp-verifier' ),
+								__( 'The "%s" header in the plugin file is not valid. It needs to contain at least 5 latin letters (a-Z) and/or numbers. This is necessary because the initial plugin slug is generated from the name.', 'wpverifier' ),
 								esc_html( $labels['Name'] )
 							),
 							'plugin_header_unsupported_plugin_name',
@@ -136,7 +136,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file is not valid.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file is not valid.', 'wpverifier' ),
 						esc_html( $labels['PluginURI'] )
 					),
 					'plugin_header_invalid_plugin_uri',
@@ -153,7 +153,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 						$result,
 						sprintf(
 							/* translators: 1: plugin header field, 2: domain */
-							__( 'The "%1$s" header in the plugin file is not valid. Discouraged domain "%2$s" found. This is the homepage of the plugin, which should be a unique URL, preferably on your own website.', 'wp-verifier' ),
+							__( 'The "%1$s" header in the plugin file is not valid. Discouraged domain "%2$s" found. This is the homepage of the plugin, which should be a unique URL, preferably on your own website.', 'wpverifier' ),
 							esc_html( $labels['PluginURI'] ),
 							esc_html( $matched_domain )
 						),
@@ -173,14 +173,14 @@ class Plugin_Header_Fields_Check implements Static_Check {
 				$result,
 				sprintf(
 					/* translators: %s: plugin header field */
-					__( 'The "%s" header is missing in the plugin file.', 'wp-verifier' ),
+					__( 'The "%s" header is missing in the plugin file.', 'wpverifier' ),
 					esc_html( $labels['Description'] )
 				),
 				'plugin_header_missing_plugin_description',
 				$plugin_main_file,
 				0,
 				0,
-				__( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wp-verifier' ),
+				__( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wpverifier' ),
 				7
 			);
 		} else {
@@ -193,7 +193,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file should not contain default text.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file should not contain default text.', 'wpverifier' ),
 						esc_html( $labels['Description'] )
 					),
 					'plugin_header_invalid_plugin_description',
@@ -211,14 +211,14 @@ class Plugin_Header_Fields_Check implements Static_Check {
 				$result,
 				sprintf(
 					/* translators: %s: plugin header field */
-					__( 'The "%s" header is missing in the plugin file.', 'wp-verifier' ),
+					__( 'The "%s" header is missing in the plugin file.', 'wpverifier' ),
 					esc_html( $labels['Version'] )
 				),
 				'plugin_header_missing_plugin_version',
 				$plugin_main_file,
 				0,
 				0,
-				__( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wp-verifier' ),
+				__( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wpverifier' ),
 				7
 			);
 		} else {
@@ -227,14 +227,14 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file should only contain numbers, letters, periods, and hyphens.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file should only contain numbers, letters, periods, and hyphens.', 'wpverifier' ),
 						esc_html( $labels['Version'] )
 					),
 					'plugin_header_invalid_plugin_version',
 					$plugin_main_file,
 					0,
 					0,
-					__( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wp-verifier' ),
+					__( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wpverifier' ),
 					7
 				);
 			}
@@ -246,7 +246,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file is not valid.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file is not valid.', 'wpverifier' ),
 						esc_html( $labels['AuthorURI'] )
 					),
 					'plugin_header_invalid_author_uri',
@@ -263,7 +263,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 						$result,
 						sprintf(
 							/* translators: 1: plugin header field, 2: domain */
-							__( 'The "%1$s" header in the plugin file is not valid. Discouraged domain "%2$s" found. This is the author\'s website or profile on another website.', 'wp-verifier' ),
+							__( 'The "%1$s" header in the plugin file is not valid. Discouraged domain "%2$s" found. This is the author\'s website or profile on another website.', 'wpverifier' ),
 							esc_html( $labels['AuthorURI'] ),
 							esc_html( $matched_domain )
 						),
@@ -284,7 +284,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file is not valid. Can only be set to true, and should be left out when not needed.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file is not valid. Can only be set to true, and should be left out when not needed.', 'wpverifier' ),
 						esc_html( $labels['Network'] )
 					),
 					'plugin_header_invalid_network',
@@ -311,7 +311,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 							$result,
 							sprintf(
 								/* translators: 1: plugin header field, 2: Example version 6.7, 3: Example version 6.6 */
-								__( 'The "%1$s" header in the plugin file should only contain a WordPress version such as "%2$s" or "%3$s".', 'wp-verifier' ),
+								__( 'The "%1$s" header in the plugin file should only contain a WordPress version such as "%2$s" or "%3$s".', 'wpverifier' ),
 								esc_html( $labels['RequiresWP'] ),
 								esc_html( $latest_wp_version ),
 								esc_html( $previous_wp_version )
@@ -334,7 +334,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 								$result,
 								sprintf(
 									/* translators: 1: plugin header field, 2: currently used version */
-									__( '<strong>%1$s: %2$s.</strong><br>The "%1$s" value in your plugin header is not valid. This version of WordPress does not exist (yet).', 'wp-verifier' ),
+									__( '<strong>%1$s: %2$s.</strong><br>The "%1$s" value in your plugin header is not valid. This version of WordPress does not exist (yet).', 'wpverifier' ),
 									esc_html( $labels['RequiresWP'] ),
 									esc_html( $plugin_header['RequiresWP'] )
 								),
@@ -356,7 +356,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: 1: plugin header field; 2: Example version 5.2.4. 3: Example version 7.0. */
-						__( 'The "%1$s" header in the plugin file should only contain a PHP version such as "%2$s" or "%3$s".', 'wp-verifier' ),
+						__( 'The "%1$s" header in the plugin file should only contain a PHP version such as "%2$s" or "%3$s".', 'wpverifier' ),
 						esc_html( $labels['RequiresPHP'] ),
 						'5.2.4',
 						'7.0'
@@ -377,7 +377,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: %s: plugin header field */
-						__( 'The "%s" header in the plugin file must contain a comma-separated list of WordPress.org-formatted slugs.', 'wp-verifier' ),
+						__( 'The "%s" header in the plugin file must contain a comma-separated list of WordPress.org-formatted slugs.', 'wpverifier' ),
 						esc_html( $labels['RequiresPlugins'] )
 					),
 					'plugin_header_invalid_requires_plugins',
@@ -395,7 +395,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 				$result,
 				sprintf(
 					/* translators: %s: plugin header field */
-					__( '<strong>Missing "%s" in Plugin Header.</strong><br>Please update your Plugin Header with a valid GPLv2 (or later) compatible license.', 'wp-verifier' ),
+					__( '<strong>Missing "%s" in Plugin Header.</strong><br>Please update your Plugin Header with a valid GPLv2 (or later) compatible license.', 'wpverifier' ),
 					esc_html( $labels['License'] )
 				),
 				'plugin_header_no_license',
@@ -412,7 +412,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 					$result,
 					sprintf(
 						/* translators: 1: plugin header field, 2: license */
-						__( '<strong>Invalid %1$s: %2$s.</strong><br>Please update your Plugin Header with a valid GPLv2 (or later) compatible license.', 'wp-verifier' ),
+						__( '<strong>Invalid %1$s: %2$s.</strong><br>Please update your Plugin Header with a valid GPLv2 (or later) compatible license.', 'wpverifier' ),
 						esc_html( $labels['License'] ),
 						esc_html( $plugin_header['License'] )
 					),
@@ -439,7 +439,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 				$result,
 				sprintf(
 					/* translators: %s: header fields */
-					__( 'Restricted plugin header field(s) found: %s', 'wp-verifier' ),
+					__( 'Restricted plugin header field(s) found: %s', 'wpverifier' ),
 					"'" . implode( "', '", array_values( $found_headers ) ) . "'"
 				),
 				'plugin_header_restricted_fields',
@@ -458,7 +458,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 						$result,
 						sprintf(
 							/* translators: 1: plugin header field, 2: text domain */
-							__( 'The "%1$s" header in the plugin file should only contain lowercase letters, numbers, and hyphens. Found "%2$s".', 'wp-verifier' ),
+							__( 'The "%1$s" header in the plugin file should only contain lowercase letters, numbers, and hyphens. Found "%2$s".', 'wpverifier' ),
 							esc_html( $labels['TextDomain'] ),
 							esc_html( $plugin_header['TextDomain'] )
 						),
@@ -477,7 +477,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 							$result,
 							sprintf(
 								/* translators: 1: plugin header field, 2: plugin header text domain, 3: plugin slug */
-								__( 'The "%1$s" header in the plugin file does not match the slug. Found "%2$s", expected "%3$s".', 'wp-verifier' ),
+								__( 'The "%1$s" header in the plugin file does not match the slug. Found "%2$s", expected "%3$s".', 'wpverifier' ),
 								esc_html( $labels['TextDomain'] ),
 								esc_html( $plugin_header['TextDomain'] ),
 								esc_html( $plugin_slug )
@@ -499,7 +499,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 						$result,
 						sprintf(
 							/* translators: %s: plugin header field */
-							__( 'The "%s" header in the plugin file must start with forward slash.', 'wp-verifier' ),
+							__( 'The "%s" header in the plugin file must start with forward slash.', 'wpverifier' ),
 							esc_html( $labels['DomainPath'] )
 						),
 						'plugin_header_invalid_domain_path',
@@ -520,7 +520,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 						$result,
 						sprintf(
 							/* translators: 1: plugin header field, 2: domain path */
-							__( 'The "%1$s" header in the plugin file must point to an existing folder. Found: "%2$s"', 'wp-verifier' ),
+							__( 'The "%1$s" header in the plugin file must point to an existing folder. Found: "%2$s"', 'wpverifier' ),
 							esc_html( $labels['DomainPath'] ),
 							$domain_path
 						),
@@ -559,7 +559,7 @@ class Plugin_Header_Fields_Check implements Static_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks adherence to the Headers requirements.', 'wp-verifier' );
+		return __( 'Checks adherence to the Headers requirements.', 'wpverifier' );
 	}
 
 	/**
@@ -572,6 +572,6 @@ class Plugin_Header_Fields_Check implements Static_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/plugin-basics/header-requirements/', 'wpverifier' );
 	}
 }

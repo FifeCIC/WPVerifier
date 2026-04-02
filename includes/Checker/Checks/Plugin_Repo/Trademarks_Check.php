@@ -346,7 +346,7 @@ class Trademarks_Check extends Abstract_File_Check {
 			// Trademarks that do NOT end in "-", but are within the FOR_USE_EXCEPTIONS array can be used, but only with allowed patterns.
 			$message = sprintf(
 				/* translators: 1: plugin name, 2: found trademarked term */
-				__( 'The plugin name includes a restricted term. Your chosen plugin name - "%1$s" - contains the restricted term "%2$s" which cannot be used within in your plugin name, unless your plugin name contains one of the allowed patterns: "for %2$s", "with %2$s", "using %2$s", or "and %2$s". The term must still not appear anywhere else in your name.', 'wp-verifier' ),
+				__( 'The plugin name includes a restricted term. Your chosen plugin name - "%1$s" - contains the restricted term "%2$s" which cannot be used within in your plugin name, unless your plugin name contains one of the allowed patterns: "for %2$s", "with %2$s", "using %2$s", or "and %2$s". The term must still not appear anywhere else in your name.', 'wpverifier' ),
 				esc_html( $plugin_name ),
 				esc_html( trim( $check, '-' ) )
 			);
@@ -354,7 +354,7 @@ class Trademarks_Check extends Abstract_File_Check {
 			// Trademarks that do NOT end in "-" indicate slug cannot contain term at all.
 			$message = sprintf(
 				/* translators: 1: plugin name, 2: found trademarked term */
-				__( 'The plugin name includes a restricted term. Your chosen plugin name - "%1$s" - contains the restricted term "%2$s" which cannot be used at all in your plugin name.', 'wp-verifier' ),
+				__( 'The plugin name includes a restricted term. Your chosen plugin name - "%1$s" - contains the restricted term "%2$s" which cannot be used at all in your plugin name.', 'wpverifier' ),
 				esc_html( $plugin_name ),
 				esc_html( trim( $check, '-' ) )
 			);
@@ -362,7 +362,7 @@ class Trademarks_Check extends Abstract_File_Check {
 			// Trademarks ending in "-" indicate slug cannot BEGIN with that term.
 			$message = sprintf(
 				/* translators: 1: plugin name, 2: found trademarked term */
-				__( 'The plugin name includes a restricted term. Your chosen plugin name - "%1$s" - contains the restricted term "%2$s" and cannot be used to begin your plugin name. We disallow the use of certain terms in ways that are abused, or potentially infringe on and/or are misleading with regards to trademarks. You may use the term "%2$s" elsewhere in your plugin name, such as "... for %2$s".', 'wp-verifier' ),
+				__( 'The plugin name includes a restricted term. Your chosen plugin name - "%1$s" - contains the restricted term "%2$s" and cannot be used to begin your plugin name. We disallow the use of certain terms in ways that are abused, or potentially infringe on and/or are misleading with regards to trademarks. You may use the term "%2$s" elsewhere in your plugin name, such as "... for %2$s".', 'wpverifier' ),
 				esc_html( $plugin_name ),
 				esc_html( trim( $check, '-' ) )
 			);
@@ -393,7 +393,7 @@ class Trademarks_Check extends Abstract_File_Check {
 			// Trademarks that do NOT end in "-", but are within the FOR_USE_EXCEPTIONS array can be used, but only with allowed patterns.
 			$message = sprintf(
 				/* translators: 1: plugin slug, 2: found trademarked term */
-				__( 'The plugin slug includes a restricted term. Your plugin slug - "%1$s" - contains the restricted term "%2$s" which cannot be used within in your plugin slug, unless your plugin slug contains one of the allowed patterns: "for %2$s", "with %2$s", "using %2$s", or "and %2$s". The term must still not appear anywhere else in your plugin slug.', 'wp-verifier' ),
+				__( 'The plugin slug includes a restricted term. Your plugin slug - "%1$s" - contains the restricted term "%2$s" which cannot be used within in your plugin slug, unless your plugin slug contains one of the allowed patterns: "for %2$s", "with %2$s", "using %2$s", or "and %2$s". The term must still not appear anywhere else in your plugin slug.', 'wpverifier' ),
 				esc_html( $plugin_slug ),
 				esc_html( trim( $check, '-' ) )
 			);
@@ -401,7 +401,7 @@ class Trademarks_Check extends Abstract_File_Check {
 			// Trademarks that do NOT end in "-" indicate slug cannot contain term at all.
 			$message = sprintf(
 				/* translators: 1: plugin slug, 2: found trademarked term */
-				__( 'The plugin slug includes a restricted term. Your plugin slug - "%1$s" - contains the restricted term "%2$s" which cannot be used at all in your plugin slug.', 'wp-verifier' ),
+				__( 'The plugin slug includes a restricted term. Your plugin slug - "%1$s" - contains the restricted term "%2$s" which cannot be used at all in your plugin slug.', 'wpverifier' ),
 				esc_html( $plugin_slug ),
 				esc_html( trim( $check, '-' ) )
 			);
@@ -409,7 +409,7 @@ class Trademarks_Check extends Abstract_File_Check {
 			// Trademarks ending in "-" indicate slug cannot BEGIN with that term.
 			$message = sprintf(
 				/* translators: 1: plugin slug, 2: found trademarked term */
-				__( 'The plugin slug includes a restricted term. Your plugin slug - "%1$s" - contains the restricted term "%2$s" and cannot be used to begin your plugin slug. We disallow the use of certain terms in ways that are abused, or potentially infringe on and/or are misleading with regards to trademarks. You may use the term "%2$s" elsewhere in your plugin slug, such as "... for %2$s".', 'wp-verifier' ),
+				__( 'The plugin slug includes a restricted term. Your plugin slug - "%1$s" - contains the restricted term "%2$s" and cannot be used to begin your plugin slug. We disallow the use of certain terms in ways that are abused, or potentially infringe on and/or are misleading with regards to trademarks. You may use the term "%2$s" elsewhere in your plugin slug, such as "... for %2$s".', 'wpverifier' ),
 				esc_html( $plugin_slug ),
 				esc_html( trim( $check, '-' ) )
 			);
@@ -531,7 +531,7 @@ class Trademarks_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks the usage of trademarks or other projects in the plugin slug.', 'wp-verifier' );
+		return __( 'Checks the usage of trademarks or other projects in the plugin slug.', 'wpverifier' );
 	}
 
 	/**
@@ -544,6 +544,6 @@ class Trademarks_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wpverifier' );
 	}
 }

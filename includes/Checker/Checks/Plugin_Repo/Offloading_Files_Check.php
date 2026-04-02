@@ -70,7 +70,7 @@ class Offloading_Files_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Prevents using remote services that are not necessary.', 'wp-verifier' );
+		return __( 'Prevents using remote services that are not necessary.', 'wpverifier' );
 	}
 
 	/**
@@ -83,6 +83,6 @@ class Offloading_Files_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/common-issues/#calling-files-remotely', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/common-issues/#calling-files-remotely', 'wpverifier' );
 	}
 }

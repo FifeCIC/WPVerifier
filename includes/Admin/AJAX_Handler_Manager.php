@@ -10,6 +10,8 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use WordPress\Plugin_Check\Utilities\Path_Builder;
 
 /**
@@ -118,7 +120,7 @@ class AJAX_Handler_Manager {
 		try {
 			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 			if ( empty( $name ) ) {
-				throw new \InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Name is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Domain_Checker' ) ) {
@@ -164,7 +166,7 @@ class AJAX_Handler_Manager {
 			$note = isset( $_POST['note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['note'] ) ) : '';
 
 			if ( empty( $name ) ) {
-				throw new \InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Name is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Saved_Names' ) ) {
@@ -174,7 +176,7 @@ class AJAX_Handler_Manager {
 			\WordPress\Plugin_Check\Utilities\Saved_Names::save_name( $name, $evaluation, $note );
 
 			wp_send_json_success( array(
-				'message' => __( 'Name saved successfully.', 'wp-verifier' ),
+				'message' => __( 'Name saved successfully.', 'wpverifier' ),
 			) );
 
 		} catch ( \InvalidArgumentException $exception ) {
@@ -219,7 +221,7 @@ class AJAX_Handler_Manager {
 		try {
 			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 			if ( empty( $name ) ) {
-				throw new \InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Name is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Name_Conflict_Checker' ) ) {
@@ -247,7 +249,7 @@ class AJAX_Handler_Manager {
 		try {
 			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 			if ( empty( $name ) ) {
-				throw new \InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Name is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\SEO_Analyzer' ) ) {
@@ -277,7 +279,7 @@ class AJAX_Handler_Manager {
 		try {
 			$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 			if ( empty( $name ) ) {
-				throw new \InvalidArgumentException( __( 'Name is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Name is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Trademark_Checker' ) ) {
@@ -307,7 +309,7 @@ class AJAX_Handler_Manager {
 		try {
 			$plugin = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin ) ) {
-				throw new \InvalidArgumentException( __( 'Plugin is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Plugin is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\File_Monitor' ) ) {
@@ -317,7 +319,7 @@ class AJAX_Handler_Manager {
 			\WordPress\Plugin_Check\Utilities\File_Monitor::set_monitored_plugin( $plugin );
 
 			wp_send_json_success( array(
-				'message' => __( 'Monitoring started successfully.', 'wp-verifier' ),
+				'message' => __( 'Monitoring started successfully.', 'wpverifier' ),
 			) );
 
 		} catch ( \InvalidArgumentException $exception ) {
@@ -342,7 +344,7 @@ class AJAX_Handler_Manager {
 			\WordPress\Plugin_Check\Utilities\File_Monitor::stop_monitoring();
 
 			wp_send_json_success( array(
-				'message' => __( 'Monitoring stopped.', 'wp-verifier' ),
+				'message' => __( 'Monitoring stopped.', 'wpverifier' ),
 			) );
 
 		} catch ( \Exception $exception ) {
@@ -416,7 +418,7 @@ class AJAX_Handler_Manager {
 			$code = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
 
 			if ( empty( $plugin ) || empty( $file ) || empty( $code ) ) {
-				throw new \InvalidArgumentException( __( 'Missing required parameters.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Missing required parameters.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Issue_Tracker' ) ) {
@@ -426,7 +428,7 @@ class AJAX_Handler_Manager {
 			\WordPress\Plugin_Check\Utilities\Issue_Tracker::mark_complete( $plugin, $file, $line, $code );
 
 			wp_send_json_success( array(
-				'message' => __( 'Issue marked as complete.', 'wp-verifier' ),
+				'message' => __( 'Issue marked as complete.', 'wpverifier' ),
 			) );
 
 		} catch ( \Exception $exception ) {
@@ -451,19 +453,19 @@ class AJAX_Handler_Manager {
 			$ignored_by = isset( $_POST['ignored_by'] ) ? sanitize_text_field( wp_unslash( $_POST['ignored_by'] ) ) : wp_get_current_user()->user_login;
 			
 			if ( empty( $plugin_slug ) || empty( $file ) || empty( $code ) ) {
-				throw new \InvalidArgumentException( __( 'Plugin, file, line, and code are required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Plugin, file, line, and code are required.', 'wpverifier' ) );
 			}
 			
 			// Load JSON file
 			$json_file = $this->get_results_file_path( $plugin_slug );
 			
 			if ( ! file_exists( $json_file ) ) {
-				throw new \InvalidArgumentException( __( 'Results file not found.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Results file not found.', 'wpverifier' ) );
 			}
 			
 			$data = json_decode( file_get_contents( $json_file ), true );
 			if ( ! $data || ! isset( $data['results'] ) ) {
-				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wpverifier' ) );
 			}
 			
 			// Find and update the issue
@@ -479,14 +481,14 @@ class AJAX_Handler_Manager {
 			}
 			
 			if ( ! $updated ) {
-				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wpverifier' ) );
 			}
 			
 			// Save updated JSON
 			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT ) );
 			
 			wp_send_json_success( array(
-				'message' => __( 'Issue marked as ignored.', 'wp-verifier' ),
+				'message' => __( 'Issue marked as ignored.', 'wpverifier' ),
 			) );
 			
 		} catch ( \InvalidArgumentException $exception ) {
@@ -508,7 +510,7 @@ class AJAX_Handler_Manager {
 			$directory = isset( $_POST['directory'] ) ? sanitize_text_field( wp_unslash( $_POST['directory'] ) ) : '';
 			
 			if ( empty( $plugin_slug ) || empty( $directory ) ) {
-				throw new \InvalidArgumentException( __( 'Plugin and directory are required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Plugin and directory are required.', 'wpverifier' ) );
 			}
 			
 			$ignore_rules = get_option( 'wpv_ignore_rules', array() );
@@ -526,7 +528,7 @@ class AJAX_Handler_Manager {
 			update_option( 'wpv_ignore_rules', $ignore_rules );
 			
 			wp_send_json_success( array(
-				'message' => __( 'Directory ignore rule added successfully.', 'wp-verifier' ),
+				'message' => __( 'Directory ignore rule added successfully.', 'wpverifier' ),
 			) );
 			
 		} catch ( \InvalidArgumentException $exception ) {
@@ -546,7 +548,7 @@ class AJAX_Handler_Manager {
 		try {
 			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin_slug ) ) {
-				throw new \InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Plugin slug is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
@@ -578,7 +580,7 @@ class AJAX_Handler_Manager {
 		try {
 			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin_slug ) ) {
-				throw new \InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Plugin slug is required.', 'wpverifier' ) );
 			}
 
 			if ( ! class_exists( 'WordPress\\Plugin_Check\\Utilities\\Scan_History' ) ) {
@@ -588,7 +590,7 @@ class AJAX_Handler_Manager {
 			\WordPress\Plugin_Check\Utilities\Scan_History::clear_history( $plugin_slug );
 
 			wp_send_json_success( array(
-				'message' => __( 'Scan history cleared successfully.', 'wp-verifier' ),
+				'message' => __( 'Scan history cleared successfully.', 'wpverifier' ),
 			) );
 
 		} catch ( \InvalidArgumentException $exception ) {
@@ -693,7 +695,6 @@ class AJAX_Handler_Manager {
 	 * Test AJAX endpoint
 	 */
 	public function test_ajax() {
-		error_log( 'WPV DEBUG: test_ajax() called successfully' );
 		wp_send_json_success( array(
 			'message' => 'AJAX system is working',
 			'timestamp' => current_time( 'mysql' )
@@ -704,11 +705,8 @@ class AJAX_Handler_Manager {
 	 * Test Fixed Button endpoint
 	 */
 	public function test_fixed_button() {
-		error_log( 'WPV DEBUG: test_fixed_button() called successfully' );
-		error_log( 'WPV DEBUG: POST data: ' . print_r( $_POST, true ) );
 		wp_send_json_success( array(
 			'message' => 'Fixed button test working',
-			'post_data' => $_POST
 		) );
 	}
 
@@ -725,7 +723,7 @@ class AJAX_Handler_Manager {
 			$issue_id = isset( $_POST['issue_id'] ) ? sanitize_text_field( wp_unslash( $_POST['issue_id'] ) ) : '';
 
 			if ( empty( $plugin ) || empty( $issue_id ) ) {
-				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Plugin and issue ID are required.', 'wpverifier' ) );
 			}
 
 			$json_file = $this->get_results_file_path( $plugin );
@@ -733,7 +731,7 @@ class AJAX_Handler_Manager {
 			if ( ! file_exists( $json_file ) ) {
 				// Return success with informative message instead of error
 				wp_send_json_success( array(
-					'message' => __( 'No verification results found for this plugin. Please run a verification scan first.', 'wp-verifier' ),
+					'message' => __( 'No verification results found for this plugin. Please run a verification scan first.', 'wpverifier' ),
 					'action' => 'no_results'
 				) );
 				return;
@@ -741,7 +739,7 @@ class AJAX_Handler_Manager {
 
 			$data = json_decode( file_get_contents( $json_file ), true );
 			if ( ! $data || ! isset( $data['results'] ) ) {
-				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Invalid results file.', 'wpverifier' ) );
 			}
 
 			// Find and mark the issue as ignored
@@ -759,7 +757,7 @@ class AJAX_Handler_Manager {
 			}
 
 			if ( ! $updated ) {
-				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wp-verifier' ) );
+				throw new \InvalidArgumentException( __( 'Issue not found in results.', 'wpverifier' ) );
 			}
 
 			// Save updated JSON
@@ -767,7 +765,7 @@ class AJAX_Handler_Manager {
 			file_put_contents( $json_file, wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 
 			wp_send_json_success( array(
-				'message' => __( 'Issue marked as ignored.', 'wp-verifier' ),
+				'message' => __( 'Issue marked as ignored.', 'wpverifier' ),
 			) );
 
 		} catch ( \InvalidArgumentException $exception ) {
@@ -784,12 +782,12 @@ class AJAX_Handler_Manager {
 	private function extract_results_payload() {
 		$raw_results = isset( $_POST['results'] ) ? wp_unslash( $_POST['results'] ) : '';
 		if ( '' === $raw_results ) {
-			throw new \InvalidArgumentException( __( 'Invalid or empty results payload.', 'wp-verifier' ) );
+			throw new \InvalidArgumentException( __( 'Invalid or empty results payload.', 'wpverifier' ) );
 		}
 
 		$decoded_results = json_decode( $raw_results, true );
 		if ( null === $decoded_results || JSON_ERROR_NONE !== json_last_error() ) {
-			throw new \InvalidArgumentException( __( 'Malformed results payload.', 'wp-verifier' ) );
+			throw new \InvalidArgumentException( __( 'Malformed results payload.', 'wpverifier' ) );
 		}
 
 		return array(
@@ -839,11 +837,11 @@ class AJAX_Handler_Manager {
 	 */
 	private function verify_request( $nonce ) {
 		if ( ! wp_verify_nonce( $nonce, 'plugin-check-run-checks' ) ) {
-			return new \WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wp-verifier' ) );
+			return new \WP_Error( 'invalid-nonce', esc_html__( 'Invalid nonce', 'wpverifier' ) );
 		}
 
 		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return new \WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wp-verifier' ) );
+			return new \WP_Error( 'invalid-permissions', esc_html__( 'Invalid user permissions, you are not allowed to perform this request.', 'wpverifier' ) );
 		}
 
 		return true;

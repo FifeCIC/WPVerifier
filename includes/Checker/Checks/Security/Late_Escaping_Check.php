@@ -63,7 +63,7 @@ class Late_Escaping_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks that all output is escaped before being sent to the browser.', 'wp-verifier' );
+		return __( 'Checks that all output is escaped before being sent to the browser.', 'wpverifier' );
 	}
 
 	/**
@@ -76,7 +76,7 @@ class Late_Escaping_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/apis/security/escaping/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/apis/security/escaping/', 'wpverifier' );
 	}
 
 	/**
@@ -97,19 +97,19 @@ class Late_Escaping_Check extends Abstract_PHP_CodeSniffer_Check {
 	protected function add_result_message_for_file( Check_Result $result, $error, $message, $code, $file, $line = 0, $column = 0, string $docs = '', $severity = 5 ) {
 		switch ( $code ) {
 			case 'WordPress.Security.EscapeOutput.OutputNotEscaped':
-				$docs = __( 'https://developer.wordpress.org/apis/security/escaping/#escaping-functions', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/apis/security/escaping/#escaping-functions', 'wpverifier' );
 				break;
 
 			case 'WordPress.Security.EscapeOutput.UnsafePrintingFunction':
-				$docs = __( 'https://developer.wordpress.org/apis/security/escaping/#escaping-with-localization', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/apis/security/escaping/#escaping-with-localization', 'wpverifier' );
 				break;
 
 			case 'WordPress.Security.EscapeOutput.UnsafeSearchQuery':
-				$docs = __( 'https://developer.wordpress.org/reference/functions/get_search_query/', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/reference/functions/get_search_query/', 'wpverifier' );
 				break;
 
 			default:
-				$docs = __( 'https://developer.wordpress.org/apis/security/escaping/', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/apis/security/escaping/', 'wpverifier' );
 				break;
 		}
 

@@ -64,7 +64,7 @@ class Localhost_Check extends Abstract_PHP_CodeSniffer_Check {
 	public function get_description(): string {
 		return sprintf(
 			/* translators: %s: Localhost/127.0.0.1 */
-			__( 'Detects the usage of %s in the plugin.', 'wp-verifier' ),
+			__( 'Detects the usage of %s in the plugin.', 'wpverifier' ),
 			'Localhost/127.0.0.1'
 		);
 	}
@@ -79,7 +79,7 @@ class Localhost_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://make.wordpress.org/plugins/handbook/performing-reviews/review-checklist/', 'wp-verifier' );
+		return __( 'https://make.wordpress.org/plugins/handbook/performing-reviews/review-checklist/', 'wpverifier' );
 	}
 
 	/**

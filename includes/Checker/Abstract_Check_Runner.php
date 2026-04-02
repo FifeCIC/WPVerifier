@@ -216,7 +216,7 @@ abstract class Abstract_Check_Runner implements Check_Runner {
 			// Compare the check slugs to see if there was an error.
 			if ( $check_slugs !== $this->get_check_slugs_param() ) {
 				throw new Exception(
-					__( 'Invalid checks: The checks to run do not match the original request.', 'wp-verifier' )
+					esc_html__( 'Invalid checks: The checks to run do not match the original request.', 'wpverifier' )
 				);
 			}
 		}
@@ -238,7 +238,7 @@ abstract class Abstract_Check_Runner implements Check_Runner {
 			// Compare the check slugs to see if there was an error.
 			if ( $check_slugs !== $this->get_check_exclude_slugs_param() ) {
 				throw new Exception(
-					__( 'Invalid checks: The checks to exclude do not match the original request.', 'wp-verifier' )
+					esc_html__( 'Invalid checks: The checks to exclude do not match the original request.', 'wpverifier' )
 				);
 			}
 		}
@@ -260,7 +260,7 @@ abstract class Abstract_Check_Runner implements Check_Runner {
 			// Compare the plugin parameter to see if there was an error.
 			if ( $plugin !== $this->get_plugin_param() ) {
 				throw new Exception(
-					__( 'Invalid plugin: The plugin set does not match the original request parameter.', 'wp-verifier' )
+					esc_html__( 'Invalid plugin: The plugin set does not match the original request parameter.', 'wpverifier' )
 				);
 			}
 		}
@@ -283,7 +283,7 @@ abstract class Abstract_Check_Runner implements Check_Runner {
 				throw new Exception(
 					sprintf(
 						/* translators: %s: include-experimental */
-						__( 'Invalid flag: The %s value does not match the original request parameter.', 'wp-verifier' ),
+						esc_html__( 'Invalid flag: The %s value does not match the original request parameter.', 'wpverifier' ),
 						'include-experimental'
 					)
 				);
@@ -308,7 +308,7 @@ abstract class Abstract_Check_Runner implements Check_Runner {
 				throw new Exception(
 					sprintf(
 						/* translators: %s: categories */
-						__( 'Invalid categories: The %s value does not match the original request parameter.', 'wp-verifier' ),
+						esc_html__( 'Invalid categories: The %s value does not match the original request parameter.', 'wpverifier' ),
 						'categories'
 					)
 				);
@@ -358,7 +358,12 @@ abstract class Abstract_Check_Runner implements Check_Runner {
 			$cleanup_functions = function () {
 				// It must be a directory at this point, but double check just in case.
 				if ( is_dir( $this->plugin_basename ) ) {
-					rmdir( $this->plugin_basename );
+					global $wp_filesystem;
+					if ( ! $wp_filesystem ) {
+						require_once ABSPATH . 'wp-admin/includes/file.php';
+						WP_Filesystem();
+					}
+					$wp_filesystem->rmdir( $this->plugin_basename );
 				}
 			};
 		}

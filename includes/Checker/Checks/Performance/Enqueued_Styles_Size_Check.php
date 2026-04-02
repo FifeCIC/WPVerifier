@@ -161,7 +161,7 @@ class Enqueued_Styles_Size_Check extends Abstract_Runtime_Check implements With_
 				throw new Exception(
 					sprintf(
 						/* translators: %s: The Post Type name. */
-						__( 'Unable to retrieve post URL for post type: %s', 'wp-verifier' ),
+						__( 'Unable to retrieve post URL for post type: %s', 'wpverifier' ),
 						$post_type
 					)
 				);
@@ -238,7 +238,7 @@ class Enqueued_Styles_Size_Check extends Abstract_Runtime_Check implements With_
 					$result,
 					sprintf(
 						/* translators: 1: style file size. 2: tested URL. 3: threshold file size. */
-						__( 'This style has a size of %1$s which in combination with the other styles enqueued on %2$s exceeds the style size threshold of %3$s.', 'wp-verifier' ),
+						__( 'This style has a size of %1$s which in combination with the other styles enqueued on %2$s exceeds the style size threshold of %3$s.', 'wpverifier' ),
 						size_format( $plugin_style['size'] ),
 						$url,
 						size_format( $this->threshold_size )
@@ -277,7 +277,7 @@ class Enqueued_Styles_Size_Check extends Abstract_Runtime_Check implements With_
 	public function get_description(): string {
 		return sprintf(
 			/* translators: %s: Script size threshold. */
-			__( 'Checks whether the cumulative size of all stylesheets enqueued on a page exceeds %s.', 'wp-verifier' ),
+			__( 'Checks whether the cumulative size of all stylesheets enqueued on a page exceeds %s.', 'wpverifier' ),
 			size_format( $this->threshold_size )
 		);
 	}
@@ -292,6 +292,6 @@ class Enqueued_Styles_Size_Check extends Abstract_Runtime_Check implements With_
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/', 'wpverifier' );
 	}
 }

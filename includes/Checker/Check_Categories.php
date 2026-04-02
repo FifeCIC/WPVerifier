@@ -52,11 +52,11 @@ class Check_Categories {
 	 */
 	public static function get_categories() {
 		$default_categories = array(
-			self::CATEGORY_GENERAL       => __( 'General', 'wp-verifier' ),
-			self::CATEGORY_PLUGIN_REPO   => __( 'Plugin Repo', 'wp-verifier' ),
-			self::CATEGORY_SECURITY      => __( 'Security', 'wp-verifier' ),
-			self::CATEGORY_PERFORMANCE   => __( 'Performance', 'wp-verifier' ),
-			self::CATEGORY_ACCESSIBILITY => __( 'Accessibility', 'wp-verifier' ),
+			self::CATEGORY_GENERAL       => __( 'General', 'wpverifier' ),
+			self::CATEGORY_PLUGIN_REPO   => __( 'Plugin Repo', 'wpverifier' ),
+			self::CATEGORY_SECURITY      => __( 'Security', 'wpverifier' ),
+			self::CATEGORY_PERFORMANCE   => __( 'Performance', 'wpverifier' ),
+			self::CATEGORY_ACCESSIBILITY => __( 'Accessibility', 'wpverifier' ),
 		);
 
 		/**

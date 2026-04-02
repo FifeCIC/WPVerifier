@@ -78,13 +78,13 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 
 		if ( ! class_exists( Runner::class ) ) {
 			throw new Exception(
-				__( 'Unable to find PHPCS Runner class.', 'wp-verifier' )
+				__( 'Unable to find PHPCS Runner class.', 'wpverifier' )
 			);
 		}
 
 		if ( ! class_exists( Config::class ) ) {
 			throw new Exception(
-				__( 'Unable to find PHPCS Config class.', 'wp-verifier' )
+				__( 'Unable to find PHPCS Config class.', 'wpverifier' )
 			);
 		}
 

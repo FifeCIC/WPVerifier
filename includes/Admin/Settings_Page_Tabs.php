@@ -17,10 +17,10 @@ class Settings_Page_Tabs {
 	 */
 	public static function get_tabs() {
 		return array(
-			'ai'         => __( 'AI Integration', 'wp-verifier' ),
-			'general'    => __( 'General', 'wp-verifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
-			'checks'     => __( 'Check Configuration', 'wp-verifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
-			'advanced'   => __( 'Advanced', 'wp-verifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
+			'ai'         => __( 'AI Integration', 'wpverifier' ),
+			'general'    => __( 'General', 'wpverifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
+			'checks'     => __( 'Check Configuration', 'wpverifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
+			'advanced'   => __( 'Advanced', 'wpverifier' ) . ' <span class="coming-soon-badge">Coming Soon</span>',
 		);
 	}
 
@@ -54,8 +54,8 @@ class Settings_Page_Tabs {
 	public static function render_coming_soon() {
 		?>
 		<div class="notice notice-info inline">
-			<p><strong><?php esc_html_e( 'Coming Soon', 'wp-verifier' ); ?></strong></p>
-			<p><?php esc_html_e( 'This settings section is currently under development and will be available in a future release.', 'wp-verifier' ); ?></p>
+			<p><strong><?php esc_html_e( 'Coming Soon', 'wpverifier' ); ?></strong></p>
+			<p><?php esc_html_e( 'This settings section is currently under development and will be available in a future release.', 'wpverifier' ); ?></p>
 		</div>
 		<?php
 	}

@@ -74,7 +74,7 @@ class Prefixing_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks plugin for unique prefixing for everything the plugin defines in the public namespace.', 'wp-verifier' );
+		return __( 'Checks plugin for unique prefixing for everything the plugin defines in the public namespace.', 'wpverifier' );
 	}
 
 	/**
@@ -87,7 +87,7 @@ class Prefixing_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://make.wordpress.org/plugins/handbook/performing-reviews/review-checklist/#code', 'wp-verifier' );
+		return __( 'https://make.wordpress.org/plugins/handbook/performing-reviews/review-checklist/#code', 'wpverifier' );
 	}
 
 	/**

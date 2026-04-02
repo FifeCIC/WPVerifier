@@ -124,17 +124,17 @@ if ( $selected_issue ) {
 
 <?php if ( ! $plugin_info ) : ?>
 	<div class="notice notice-info">
-		<p><?php esc_html_e( 'No plugin selected. Please run a verification first.', 'wp-verifier' ); ?></p>
+		<p><?php esc_html_e( 'No plugin selected. Please run a verification first.', 'wpverifier' ); ?></p>
 	</div>
 <?php elseif ( ! $results_data || empty( $results_data['results'] ) ) : ?>
 	<div class="notice notice-warning">
-		<p><?php echo esc_html( sprintf( __( 'No results found for %s. Please run a verification first.', 'wp-verifier' ), $plugin_info['name'] ) ); ?></p>
+		<p><?php echo esc_html( sprintf( __( 'No results found for %s. Please run a verification first.', 'wpverifier' ), $plugin_info['name'] ) ); ?></p>
 	</div>
 <?php else : ?>
 
 	<?php if ( isset( $results_data['readiness'] ) ) : ?>
 		<div class="wpv-readiness-score">
-			<strong><?php esc_html_e( 'Readiness Score:', 'wp-verifier' ); ?></strong>
+			<strong><?php esc_html_e( 'Readiness Score:', 'wpverifier' ); ?></strong>
 			<?php echo esc_html( $results_data['readiness']['overall'] ); ?>%
 			(<?php echo esc_html( $results_data['readiness']['errors'] ); ?> errors,
 			<?php echo esc_html( $results_data['readiness']['warnings'] ); ?> warnings)
@@ -145,11 +145,11 @@ if ( $selected_issue ) {
 		<div class="wpv-ast-layout">
 			<!-- FILE ACCORDION (left) -->
 			<div class="wpv-ast-table-container">
-				<h3><?php echo esc_html( sprintf( __( 'Files with Issues - %s', 'wp-verifier' ), $plugin_info['name'] ) ); ?></h3>
+				<h3><?php echo esc_html( sprintf( __( 'Files with Issues - %s', 'wpverifier' ), $plugin_info['name'] ) ); ?></h3>
 
 				<div class="wpv-table-header">
-					<div class="wpv-table-header-file"><?php esc_html_e( 'File', 'wp-verifier' ); ?></div>
-					<div class="wpv-table-header-issues"><?php esc_html_e( 'Issues', 'wp-verifier' ); ?></div>
+					<div class="wpv-table-header-file"><?php esc_html_e( 'File', 'wpverifier' ); ?></div>
+					<div class="wpv-table-header-issues"><?php esc_html_e( 'Issues', 'wpverifier' ); ?></div>
 				</div>
 				<div class="wpv-ast-table">
 					<?php
@@ -208,7 +208,7 @@ if ( $selected_issue ) {
 										<li class="<?php echo esc_attr( implode( ' ', $item_classes ) ); ?>">
 											<a href="<?php echo esc_url( $issue_url ); ?>" style="text-decoration:none; color:inherit; display:block;">
 												<span class="wpv-ast-badge <?php echo esc_attr( strtolower( $issue['type'] ) ); ?>"><?php echo esc_html( $issue['type'] ); ?></span>
-												<?php if ( $is_ignored ) : ?><span class="wpv-ast-badge ignored"><?php esc_html_e( 'IGNORED', 'wp-verifier' ); ?></span><?php endif; ?>
+												<?php if ( $is_ignored ) : ?><span class="wpv-ast-badge ignored"><?php esc_html_e( 'IGNORED', 'wpverifier' ); ?></span><?php endif; ?>
 												<code style="font-size:11px; color:#666;">[<?php echo esc_html( $iid ); ?>]</code>
 												Line <?php echo esc_html( $issue['line'] ); ?>: <?php echo esc_html( $issue['message'] ); ?>
 											</a>
@@ -226,7 +226,7 @@ if ( $selected_issue ) {
 
 				<!-- PAN01: Issue Details -->
 				<h3 class="wpv-accordion-header active" data-target="pan01-content">
-					<?php wpverifier_header( __( 'Issue Details', 'wp-verifier' ), 'PAN01' ); ?>
+					<?php wpverifier_header( __( 'Issue Details', 'wpverifier' ), 'PAN01' ); ?>
 					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</h3>
 				<div id="pan01-content" class="wpv-accordion-content" style="display:block;">
@@ -234,34 +234,34 @@ if ( $selected_issue ) {
 						<div class="wpv-ast-details">
 							<div class="wpv-issue-details-content">
 								<div class="wpv-issue-header">
-									<h4><?php esc_html_e( 'Issue Details', 'wp-verifier' ); ?></h4>
+									<h4><?php esc_html_e( 'Issue Details', 'wpverifier' ); ?></h4>
 									<span class="wpv-issue-id-display">ID: <code><?php echo esc_html( $selected_issue_id ); ?></code></span>
 								</div>
 								<div class="wpv-issue-info">
 									<?php if ( isset( $selected_issue['ignored'] ) && $selected_issue['ignored'] ) : ?>
 										<div class="wpv-issue-field wpv-ignored-status">
-											<strong><?php esc_html_e( 'Status:', 'wp-verifier' ); ?></strong>
-											<span class="wpv-ast-badge ignored"><?php esc_html_e( 'IGNORED', 'wp-verifier' ); ?></span>
+											<strong><?php esc_html_e( 'Status:', 'wpverifier' ); ?></strong>
+											<span class="wpv-ast-badge ignored"><?php esc_html_e( 'IGNORED', 'wpverifier' ); ?></span>
 										</div>
 									<?php endif; ?>
 									<div class="wpv-issue-field">
-										<strong><?php esc_html_e( 'Type:', 'wp-verifier' ); ?></strong>
+										<strong><?php esc_html_e( 'Type:', 'wpverifier' ); ?></strong>
 										<span class="wpv-ast-badge <?php echo esc_attr( strtolower( $selected_issue['type'] ) ); ?>"><?php echo esc_html( $selected_issue['type'] ); ?></span>
 									</div>
 									<div class="wpv-issue-field">
-										<strong><?php esc_html_e( 'File:', 'wp-verifier' ); ?></strong>
+										<strong><?php esc_html_e( 'File:', 'wpverifier' ); ?></strong>
 										<code><?php echo esc_html( $selected_file ); ?></code>
 									</div>
 									<div class="wpv-issue-field">
-										<strong><?php esc_html_e( 'Line:', 'wp-verifier' ); ?></strong>
+										<strong><?php esc_html_e( 'Line:', 'wpverifier' ); ?></strong>
 										<?php echo esc_html( $selected_issue['line'] ?? '' ); ?>
 									</div>
 									<div class="wpv-issue-field">
-										<strong><?php esc_html_e( 'Code:', 'wp-verifier' ); ?></strong>
+										<strong><?php esc_html_e( 'Code:', 'wpverifier' ); ?></strong>
 										<code><?php echo esc_html( $selected_issue['code'] ?? '' ); ?></code>
 									</div>
 									<div class="wpv-issue-field">
-										<strong><?php esc_html_e( 'Message:', 'wp-verifier' ); ?></strong>
+										<strong><?php esc_html_e( 'Message:', 'wpverifier' ); ?></strong>
 										<div><?php echo esc_html( $selected_issue['message'] ?? '' ); ?></div>
 									</div>
 								</div>
@@ -269,20 +269,20 @@ if ( $selected_issue ) {
 									<?php $is_ignored = isset( $selected_issue['ignored'] ) && $selected_issue['ignored']; ?>
 									<a href="#" class="button button-primary wpv-fixed-btn"
 										data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
-										title="<?php esc_attr_e( 'Permanently removes this issue from results', 'wp-verifier' ); ?>">
-										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Fixed', 'wp-verifier' ); ?>
+										title="<?php esc_attr_e( 'Permanently removes this issue from results', 'wpverifier' ); ?>">
+										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Fixed', 'wpverifier' ); ?>
 									</a>
 									<?php if ( $is_ignored ) : ?>
 										<a href="#" class="button wpv-unignore-btn"
 											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
-											title="<?php esc_attr_e( 'Remove ignored status from this issue', 'wp-verifier' ); ?>">
-											<span class="dashicons dashicons-visibility"></span> <?php esc_html_e( 'Unignore', 'wp-verifier' ); ?>
+											title="<?php esc_attr_e( 'Remove ignored status from this issue', 'wpverifier' ); ?>">
+											<span class="dashicons dashicons-visibility"></span> <?php esc_html_e( 'Unignore', 'wpverifier' ); ?>
 										</a>
 									<?php else : ?>
 										<a href="#" class="button wpv-ignore-btn"
 											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
-											title="<?php esc_attr_e( 'Marks as ignored but keeps in results (for false positives)', 'wp-verifier' ); ?>">
-											<span class="dashicons dashicons-hidden"></span> <?php esc_html_e( 'Ignore', 'wp-verifier' ); ?>
+											title="<?php esc_attr_e( 'Marks as ignored but keeps in results (for false positives)', 'wpverifier' ); ?>">
+											<span class="dashicons dashicons-hidden"></span> <?php esc_html_e( 'Ignore', 'wpverifier' ); ?>
 										</a>
 									<?php endif; ?>
 									<?php
@@ -294,8 +294,8 @@ if ( $selected_issue ) {
 									);
 									if ( $vscode_url ) :
 										?>
-										<a href="<?php echo esc_attr( $vscode_url ); ?>" class="button" title="<?php esc_attr_e( 'Open in VSCode', 'wp-verifier' ); ?>">
-											<span class="dashicons dashicons-editor-code"></span> <?php esc_html_e( 'VSCode', 'wp-verifier' ); ?>
+										<a href="<?php echo esc_attr( $vscode_url ); ?>" class="button" title="<?php esc_attr_e( 'Open in VSCode', 'wpverifier' ); ?>">
+											<span class="dashicons dashicons-editor-code"></span> <?php esc_html_e( 'VSCode', 'wpverifier' ); ?>
 										</a>
 									<?php endif; ?>
 								</div>
@@ -303,32 +303,32 @@ if ( $selected_issue ) {
 						</div>
 					<?php else : ?>
 						<div class="wpv-ast-placeholder">
-							<p><?php esc_html_e( 'Select an issue to see details', 'wp-verifier' ); ?></p>
+							<p><?php esc_html_e( 'Select an issue to see details', 'wpverifier' ); ?></p>
 						</div>
 					<?php endif; ?>
 				</div>
 
 				<!-- PAN02: AI Prompt -->
 				<h3 class="wpv-accordion-header panel-spacing <?php echo $selected_issue ? 'active' : ''; ?>" data-target="pan02-content">
-					<?php wpverifier_header( __( 'AI Prompt', 'wp-verifier' ), 'PAN02' ); ?>
+					<?php wpverifier_header( __( 'AI Prompt', 'wpverifier' ), 'PAN02' ); ?>
 					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</h3>
 				<div id="pan02-content" class="wpv-accordion-content" <?php echo $selected_issue ? 'style="display:block;"' : 'style="display:none;"'; ?>>
 					<?php if ( $selected_issue ) : ?>
 						<div class="wpv-ast-details">
 							<div class="wpv-ai-prompt-content">
-								<label for="wpv-ai-prompt-text"><?php esc_html_e( 'Copy this prompt to AI:', 'wp-verifier' ); ?></label>
+								<label for="wpv-ai-prompt-text"><?php esc_html_e( 'Copy this prompt to AI:', 'wpverifier' ); ?></label>
 								<textarea id="wpv-ai-prompt-text" readonly class="wpv-ai-prompt-textarea"><?php echo esc_textarea( $ai_guidance_text ); ?></textarea>
 								<div class="wpv-ai-prompt-actions">
 									<button type="button" class="button button-primary wpv-copy-prompt" data-target="wpv-ai-prompt-text">
-										<span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Copy AI Prompt', 'wp-verifier' ); ?>
+										<span class="dashicons dashicons-clipboard"></span> <?php esc_html_e( 'Copy AI Prompt', 'wpverifier' ); ?>
 									</button>
 								</div>
 							</div>
 						</div>
 					<?php else : ?>
 						<div class="wpv-ast-placeholder">
-							<p><?php esc_html_e( 'Select an issue to generate AI prompt', 'wp-verifier' ); ?></p>
+							<p><?php esc_html_e( 'Select an issue to generate AI prompt', 'wpverifier' ); ?></p>
 						</div>
 					<?php endif; ?>
 				</div>

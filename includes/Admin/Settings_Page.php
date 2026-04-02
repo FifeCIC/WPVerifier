@@ -4,8 +4,9 @@
  *
  * @package plugin-check
  */
-
 namespace WordPress\Plugin_Check\Admin;
+
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 use WordPress\Plugin_Check\Traits\AI_Connect;
 
@@ -95,10 +96,10 @@ final class Settings_Page {
 			array(
 				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
 				'nonce'           => wp_create_nonce( 'plugin_check_get_models' ),
-				'loadingText'     => __( 'Loading models...', 'wp-verifier' ),
-				'selectModelText' => __( '-- Select Model --', 'wp-verifier' ),
-				'noModelsText'    => __( 'No models available. Please check your API key.', 'wp-verifier' ),
-				'errorText'       => __( 'Error loading models', 'wp-verifier' ),
+				'loadingText'     => __( 'Loading models...', 'wpverifier' ),
+				'selectModelText' => __( '-- Select Model --', 'wpverifier' ),
+				'noModelsText'    => __( 'No models available. Please check your API key.', 'wpverifier' ),
+				'errorText'       => __( 'Error loading models', 'wpverifier' ),
 			)
 		);
 	}
@@ -112,14 +113,14 @@ final class Settings_Page {
 		check_ajax_referer( 'plugin_check_get_models', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'wp-verifier' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions', 'wpverifier' ) ) );
 		}
 
 		$provider = isset( $_POST['provider'] ) ? sanitize_text_field( wp_unslash( $_POST['provider'] ) ) : '';
 		$api_key  = isset( $_POST['api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['api_key'] ) ) : '';
 
 		if ( empty( $provider ) ) {
-			wp_send_json_error( array( 'message' => __( 'Provider is required', 'wp-verifier' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Provider is required', 'wpverifier' ) ) );
 		}
 
 		$models = $this->get_models_for_provider( $provider, $api_key );
@@ -157,8 +158,8 @@ final class Settings_Page {
 	public function add_page() {
 		$this->hook_suffix = add_submenu_page(
 			'options-general.php',
-			__( 'Verifier', 'wp-verifier' ),
-			__( 'Verifier', 'wp-verifier' ),
+			__( 'Verifier', 'wpverifier' ),
+			__( 'Verifier', 'wpverifier' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( $this, 'render_page' )
@@ -203,14 +204,14 @@ final class Settings_Page {
 
 		add_settings_section(
 			'ai_settings_section',
-			__( 'AI Integration', 'wp-verifier' ),
+			__( 'AI Integration', 'wpverifier' ),
 			array( $this, 'render_ai_section_description' ),
 			self::PAGE_SLUG
 		);
 
 		add_settings_field(
 			'ai_provider',
-			__( 'Provider', 'wp-verifier' ),
+			__( 'Provider', 'wpverifier' ),
 			array( $this, 'render_provider_field' ),
 			self::PAGE_SLUG,
 			'ai_settings_section',
@@ -221,7 +222,7 @@ final class Settings_Page {
 
 		add_settings_field(
 			'ai_api_key',
-			__( 'API Key / Credentials', 'wp-verifier' ),
+			__( 'API Key / Credentials', 'wpverifier' ),
 			array( $this, 'render_api_key_field' ),
 			self::PAGE_SLUG,
 			'ai_settings_section',
@@ -232,7 +233,7 @@ final class Settings_Page {
 
 		add_settings_field(
 			'ai_model',
-			__( 'Model', 'wp-verifier' ),
+			__( 'Model', 'wpverifier' ),
 			array( $this, 'render_model_field' ),
 			self::PAGE_SLUG,
 			'ai_settings_section',
@@ -243,14 +244,14 @@ final class Settings_Page {
 
 		add_settings_section(
 			'namer_checks_section',
-			__( 'Plugin Namer Checks', 'wp-verifier' ),
+			__( 'Plugin Namer Checks', 'wpverifier' ),
 			array( $this, 'render_namer_section_description' ),
 			self::PAGE_SLUG
 		);
 
 		add_settings_field(
 			'namer_checks',
-			__( 'Enabled Checks', 'wp-verifier' ),
+			__( 'Enabled Checks', 'wpverifier' ),
 			array( $this, 'render_namer_checks_field' ),
 			self::PAGE_SLUG,
 			'namer_checks_section'
@@ -258,14 +259,14 @@ final class Settings_Page {
 
 		add_settings_section(
 			'general_settings_section',
-			__( 'General Settings', 'wp-verifier' ),
+			__( 'General Settings', 'wpverifier' ),
 			array( $this, 'render_general_section_description' ),
 			self::PAGE_SLUG
 		);
 
 		add_settings_field(
 			'auto_save_results',
-			__( 'Auto-Save Results', 'wp-verifier' ),
+			__( 'Auto-Save Results', 'wpverifier' ),
 			array( $this, 'render_auto_save_field' ),
 			self::PAGE_SLUG,
 			'general_settings_section'
@@ -273,7 +274,7 @@ final class Settings_Page {
 
 		add_settings_field(
 			'enable_logging',
-			__( 'Enable Logging', 'wp-verifier' ),
+			__( 'Enable Logging', 'wpverifier' ),
 			array( $this, 'render_logging_field' ),
 			self::PAGE_SLUG,
 			'general_settings_section'
@@ -281,7 +282,7 @@ final class Settings_Page {
 
 		add_settings_field(
 			'show_header_codes',
-			__( 'Show Header Codes', 'wp-verifier' ),
+			__( 'Show Header Codes', 'wpverifier' ),
 			array( $this, 'render_header_codes_field' ),
 			self::PAGE_SLUG,
 			'general_settings_section'
@@ -296,7 +297,7 @@ final class Settings_Page {
 	public function render_ai_section_description() {
 		?>
 		<p>
-			<?php esc_html_e( 'Configure AI integration settings for false positive detection. Select your AI provider, enter your credentials, and choose the model to use for analysis.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Configure AI integration settings for false positive detection. Select your AI provider, enter your credentials, and choose the model to use for analysis.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -318,7 +319,7 @@ final class Settings_Page {
 			name="<?php echo esc_attr( self::OPTION_NAME . '[ai_provider]' ); ?>"
 			class="regular-text"
 		>
-			<option value=""><?php esc_html_e( '-- Select Provider --', 'wp-verifier' ); ?></option>
+			<option value=""><?php esc_html_e( '-- Select Provider --', 'wpverifier' ); ?></option>
 			<?php foreach ( $providers as $provider_key => $provider_label ) : ?>
 				<option value="<?php echo esc_attr( $provider_key ); ?>" <?php selected( $value, $provider_key ); ?>>
 					<?php echo esc_html( $provider_label ); ?>
@@ -326,7 +327,7 @@ final class Settings_Page {
 			<?php endforeach; ?>
 		</select>
 		<p class="description">
-			<?php esc_html_e( 'Select the AI service provider you want to use for analysis.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Select the AI service provider you want to use for analysis.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -349,23 +350,23 @@ final class Settings_Page {
 			name="<?php echo esc_attr( self::OPTION_NAME . '[ai_api_key]' ); ?>"
 			value=""
 			class="regular-text"
-			placeholder="<?php echo $has_key ? esc_attr__( 'Leave blank to keep current key, or enter new key', 'wp-verifier' ) : esc_attr__( 'Enter your API key', 'wp-verifier' ); ?>"
+			placeholder="<?php echo $has_key ? esc_attr__( 'Leave blank to keep current key, or enter new key', 'wpverifier' ) : esc_attr__( 'Enter your API key', 'wpverifier' ); ?>"
 			autocomplete="new-password"
 		/>
 		<?php if ( $has_key ) : ?>
 			<p class="description" style="color: #46b450;">
 				<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>
-				<?php esc_html_e( 'API key is currently set. Leave blank to keep it unchanged.', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'API key is currently set. Leave blank to keep it unchanged.', 'wpverifier' ); ?>
 			</p>
 		<?php endif; ?>
 		<p class="description">
 			<?php
 			if ( empty( $provider ) ) {
-				esc_html_e( 'Please select a provider first.', 'wp-verifier' );
+				esc_html_e( 'Please select a provider first.', 'wpverifier' );
 			} else {
 				printf(
 					/* translators: %s: Provider name */
-					esc_html__( 'Enter your %s API key or credentials. This is required for AI-based false positive detection.', 'wp-verifier' ),
+					esc_html__( 'Enter your %s API key or credentials. This is required for AI-based false positive detection.', 'wpverifier' ),
 					esc_html( $this->get_provider_label( $provider ) )
 				);
 			}
@@ -393,7 +394,7 @@ final class Settings_Page {
 			class="regular-text"
 			data-initial-value="<?php echo esc_attr( $value ); ?>"
 		>
-			<option value=""><?php esc_html_e( '-- Select Model --', 'wp-verifier' ); ?></option>
+			<option value=""><?php esc_html_e( '-- Select Model --', 'wpverifier' ); ?></option>
 			<?php foreach ( $models as $model_key => $model_label ) : ?>
 				<option value="<?php echo esc_attr( $model_key ); ?>" <?php selected( $value, $model_key ); ?>>
 					<?php echo esc_html( $model_label ); ?>
@@ -403,9 +404,9 @@ final class Settings_Page {
 		<p class="description">
 			<?php
 			if ( empty( $provider ) ) {
-				esc_html_e( 'Please select a provider first.', 'wp-verifier' );
+				esc_html_e( 'Please select a provider first.', 'wpverifier' );
 			} else {
-				esc_html_e( 'Select the AI model to use for analysis. Different models have different capabilities and costs.', 'wp-verifier' );
+				esc_html_e( 'Select the AI model to use for analysis. Different models have different capabilities and costs.', 'wpverifier' );
 			}
 			?>
 		</p>
@@ -420,7 +421,7 @@ final class Settings_Page {
 	public function render_general_section_description() {
 		?>
 		<p>
-			<?php esc_html_e( 'Configure general plugin verification settings.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Configure general plugin verification settings.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -436,10 +437,10 @@ final class Settings_Page {
 		?>
 		<label>
 			<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[auto_save_results]' ); ?>" value="1" <?php checked( $checked ); ?> />
-			<?php esc_html_e( 'Automatically save verification results to JSON file', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Automatically save verification results to JSON file', 'wpverifier' ); ?>
 		</label>
 		<p class="description">
-			<?php esc_html_e( 'When enabled, verification results will be automatically saved to wp-content/verifier-results/ after each check. This allows you to load previous results and track changes over time.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'When enabled, verification results will be automatically saved to wp-content/verifier-results/ after each check. This allows you to load previous results and track changes over time.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -455,10 +456,10 @@ final class Settings_Page {
 		?>
 		<label>
 			<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[enable_logging]' ); ?>" value="1" <?php checked( $checked ); ?> />
-			<?php esc_html_e( 'Enable debug logging for verification operations', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Enable debug logging for verification operations', 'wpverifier' ); ?>
 		</label>
 		<p class="description">
-			<?php esc_html_e( 'When enabled, detailed logs will be written to help troubleshoot issues. Logs are written using error_log() and can be viewed in your debug.log file.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'When enabled, detailed logs will be written to help troubleshoot issues. Logs are written using error_log() and can be viewed in your debug.log file.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -473,10 +474,10 @@ final class Settings_Page {
 		?>
 		<label>
 			<input type="checkbox" name="wpverifier_show_header_codes" value="1" <?php checked( $checked ); ?> />
-			<?php esc_html_e( 'Display identifier codes next to section headers', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Display identifier codes next to section headers', 'wpverifier' ); ?>
 		</label>
 		<p class="description">
-			<?php esc_html_e( 'When enabled, section headers will display identifier codes (e.g., PAN01) to help communicate with AI about specific UI elements.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'When enabled, section headers will display identifier codes (e.g., PAN01) to help communicate with AI about specific UI elements.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -489,7 +490,7 @@ final class Settings_Page {
 	public function render_namer_section_description() {
 		?>
 		<p>
-			<?php esc_html_e( 'Choose which checks to run when analyzing plugin names. Disabling checks will speed up analysis but provide less comprehensive results.', 'wp-verifier' ); ?>
+			<?php esc_html_e( 'Choose which checks to run when analyzing plugin names. Disabling checks will speed up analysis but provide less comprehensive results.', 'wpverifier' ); ?>
 		</p>
 		<?php
 	}
@@ -511,27 +512,27 @@ final class Settings_Page {
 		<fieldset>
 			<label>
 				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][domains]' ); ?>" value="1" <?php checked( ! empty( $checks['domains'] ) ); ?> />
-				<?php esc_html_e( 'Domain Availability', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Domain Availability', 'wpverifier' ); ?>
 			</label>
-			<p class="description"><?php esc_html_e( 'Check if domain names are available across multiple TLDs (.com, .net, .org, etc.)', 'wp-verifier' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Check if domain names are available across multiple TLDs (.com, .net, .org, etc.)', 'wpverifier' ); ?></p>
 			<br>
 			<label>
 				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][conflicts]' ); ?>" value="1" <?php checked( ! empty( $checks['conflicts'] ) ); ?> />
-				<?php esc_html_e( 'WordPress.org Conflicts', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'WordPress.org Conflicts', 'wpverifier' ); ?>
 			</label>
-			<p class="description"><?php esc_html_e( 'Search for existing plugins with the same or similar names on WordPress.org', 'wp-verifier' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Search for existing plugins with the same or similar names on WordPress.org', 'wpverifier' ); ?></p>
 			<br>
 			<label>
 				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][seo]' ); ?>" value="1" <?php checked( ! empty( $checks['seo'] ) ); ?> />
-				<?php esc_html_e( 'SEO Analysis', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'SEO Analysis', 'wpverifier' ); ?>
 			</label>
-			<p class="description"><?php esc_html_e( 'Analyze name length, keyword usage, and readability for search optimization', 'wp-verifier' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Analyze name length, keyword usage, and readability for search optimization', 'wpverifier' ); ?></p>
 			<br>
 			<label>
 				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME . '[namer_checks][trademarks]' ); ?>" value="1" <?php checked( ! empty( $checks['trademarks'] ) ); ?> />
-				<?php esc_html_e( 'Trademark Check', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Trademark Check', 'wpverifier' ); ?>
 			</label>
-			<p class="description"><?php esc_html_e( 'Check for potential trademark conflicts with known brands and terms', 'wp-verifier' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Check for potential trademark conflicts with known brands and terms', 'wpverifier' ); ?></p>
 		</fieldset>
 		<?php
 	}
@@ -680,7 +681,7 @@ final class Settings_Page {
 			'ai_connection_failed',
 			sprintf(
 				/* translators: %s: Error message */
-				__( 'AI connection test failed: %s. Settings were not saved.', 'wp-verifier' ),
+				__( 'AI connection test failed: %s. Settings were not saved.', 'wpverifier' ),
 				$error->get_error_message()
 			),
 			'error'
@@ -753,7 +754,7 @@ final class Settings_Page {
 	 */
 	public function render_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wpverifier' ) );
 		}
 
 		// Get current tab
@@ -785,14 +786,14 @@ final class Settings_Page {
 					add_settings_error(
 						self::OPTION_NAME,
 						'settings_updated',
-						__( 'Settings saved successfully. AI connection verified.', 'wp-verifier' ),
+						__( 'Settings saved successfully. AI connection verified.', 'wpverifier' ),
 						'success'
 					);
 				} else {
 					add_settings_error(
 						self::OPTION_NAME,
 						'settings_updated',
-						__( 'Settings saved.', 'wp-verifier' ),
+						__( 'Settings saved.', 'wpverifier' ),
 						'success'
 					);
 				}

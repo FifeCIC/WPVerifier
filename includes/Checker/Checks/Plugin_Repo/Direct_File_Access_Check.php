@@ -72,7 +72,7 @@ class Direct_File_Access_Check extends Abstract_File_Check {
 				if ( ! $this->is_valid_for_direct_access( $file ) ) {
 					$this->add_result_error_for_file(
 						$result,
-						__( 'PHP file should prevent direct access. Add a check like: if ( ! defined( \'ABSPATH\' ) ) exit;', 'wp-verifier' ),
+						__( 'PHP file should prevent direct access. Add a check like: if ( ! defined( \'ABSPATH\' ) ) exit;', 'wpverifier' ),
 						'missing_direct_file_access_protection',
 						$file,
 						0,
@@ -284,7 +284,7 @@ class Direct_File_Access_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks that PHP files have proper guards to prevent direct file access.', 'wp-verifier' );
+		return __( 'Checks that PHP files have proper guards to prevent direct file access.', 'wpverifier' );
 	}
 
 	/**
@@ -297,6 +297,6 @@ class Direct_File_Access_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/common-issues/#direct-file-access', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/common-issues/#direct-file-access', 'wpverifier' );
 	}
 }

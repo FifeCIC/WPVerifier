@@ -75,7 +75,7 @@ class Plugin_Uninstall_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: Constant name. */
-					__( 'Check for %s constant missing.', 'wp-verifier' ),
+					__( 'Check for %s constant missing.', 'wpverifier' ),
 					'WP_UNINSTALL_PLUGIN'
 				),
 				'uninstall_missing_constant_check',
@@ -98,7 +98,7 @@ class Plugin_Uninstall_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks related to plugin uninstallation.', 'wp-verifier' );
+		return __( 'Checks related to plugin uninstallation.', 'wpverifier' );
 	}
 
 	/**
@@ -111,6 +111,6 @@ class Plugin_Uninstall_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/plugin-basics/uninstall-methods/#method-2-uninstall-php', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/plugin-basics/uninstall-methods/#method-2-uninstall-php', 'wpverifier' );
 	}
 }

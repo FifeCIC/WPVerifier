@@ -62,7 +62,7 @@ class Setting_Sanitization_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Ensures sanitization in register_setting().', 'wp-verifier' );
+		return __( 'Ensures sanitization in register_setting().', 'wpverifier' );
 	}
 
 	/**
@@ -75,7 +75,7 @@ class Setting_Sanitization_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/reference/functions/register_setting/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/reference/functions/register_setting/', 'wpverifier' );
 	}
 
 	/**
@@ -106,7 +106,7 @@ class Setting_Sanitization_Check extends Abstract_PHP_CodeSniffer_Check {
 		}
 
 		// Add docs link.
-		$docs = __( 'https://developer.wordpress.org/reference/functions/register_setting/', 'wp-verifier' );
+		$docs = __( 'https://developer.wordpress.org/reference/functions/register_setting/', 'wpverifier' );
 
 		parent::add_result_message_for_file( $result, $error, $message, $code, $file, $line, $column, $docs, $severity );
 	}

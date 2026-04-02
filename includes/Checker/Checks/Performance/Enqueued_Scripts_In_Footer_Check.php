@@ -60,7 +60,7 @@ class Enqueued_Scripts_In_Footer_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks whether a loading strategy is explicitly set for JavaScript files, as loading scripts in the footer is usually desired.', 'wp-verifier' );
+		return __( 'Checks whether a loading strategy is explicitly set for JavaScript files, as loading scripts in the footer is usually desired.', 'wpverifier' );
 	}
 
 	/**
@@ -73,6 +73,6 @@ class Enqueued_Scripts_In_Footer_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/', 'wpverifier' );
 	}
 }

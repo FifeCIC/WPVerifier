@@ -114,7 +114,7 @@ class Plugin_Updater_Check extends Abstract_File_Check {
 		if ( ! empty( $plugin_header['UpdateURI'] ) ) {
 			$this->add_result_error_for_file(
 				$result,
-				__( '<strong>Including An Update Checker / Changing Updates functionality.</strong><br>Plugin Updater detected. Use of the Update URI header is not allowed in plugins hosted on WordPress.org.', 'wp-verifier' ),
+				__( '<strong>Including An Update Checker / Changing Updates functionality.</strong><br>Plugin Updater detected. Use of the Update URI header is not allowed in plugins hosted on WordPress.org.', 'wpverifier' ),
 				'plugin_updater_detected',
 				$plugin_main_file,
 				0,
@@ -143,7 +143,7 @@ class Plugin_Updater_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: %s: The match updater file name. */
-						__( '<strong>Plugin Updater detected.</strong><br>These are not permitted in WordPress.org hosted plugins. Detected: %s', 'wp-verifier' ),
+						__( '<strong>Plugin Updater detected.</strong><br>These are not permitted in WordPress.org hosted plugins. Detected: %s', 'wpverifier' ),
 						basename( $file )
 					),
 					'plugin_updater_detected',
@@ -184,7 +184,7 @@ class Plugin_Updater_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: %s: The match updater file name. */
-						__( '<strong>Plugin Updater detected.</strong><br>These are not permitted in WordPress.org hosted plugins. Detected: %s', 'wp-verifier' ),
+						__( '<strong>Plugin Updater detected.</strong><br>These are not permitted in WordPress.org hosted plugins. Detected: %s', 'wpverifier' ),
 						esc_attr( $matches[0] )
 					),
 					'plugin_updater_detected',
@@ -222,7 +222,7 @@ class Plugin_Updater_Check extends Abstract_File_Check {
 					$result,
 					sprintf(
 						/* translators: %s: The match file name. */
-						__( '<strong>Plugin Updater detected.</strong><br>Detected code which may be altering WordPress update routines. Detected: %s', 'wp-verifier' ),
+						__( '<strong>Plugin Updater detected.</strong><br>Detected code which may be altering WordPress update routines. Detected: %s', 'wpverifier' ),
 						esc_html( $matches[0] )
 					),
 					'update_modification_detected',
@@ -246,7 +246,7 @@ class Plugin_Updater_Check extends Abstract_File_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Prevents altering WordPress update routines or using custom updaters, which are not allowed on WordPress.org.', 'wp-verifier' );
+		return __( 'Prevents altering WordPress update routines or using custom updaters, which are not allowed on WordPress.org.', 'wpverifier' );
 	}
 
 	/**
@@ -259,6 +259,6 @@ class Plugin_Updater_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/', 'wpverifier' );
 	}
 }

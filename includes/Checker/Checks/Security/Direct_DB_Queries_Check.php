@@ -63,7 +63,7 @@ class Direct_DB_Queries_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks the usage of direct database queries, which should be avoided.', 'wp-verifier' );
+		return __( 'Checks the usage of direct database queries, which should be avoided.', 'wpverifier' );
 	}
 
 	/**
@@ -76,6 +76,6 @@ class Direct_DB_Queries_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/apis/database/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/apis/database/', 'wpverifier' );
 	}
 }

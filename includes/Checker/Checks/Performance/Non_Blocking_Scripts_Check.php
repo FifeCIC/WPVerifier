@@ -142,7 +142,7 @@ class Non_Blocking_Scripts_Check extends Abstract_Runtime_Check implements With_
 				throw new Exception(
 					sprintf(
 						/* translators: %s: The Post Type name. */
-						__( 'Unable to retrieve post URL for post type: %s', 'wp-verifier' ),
+						__( 'Unable to retrieve post URL for post type: %s', 'wpverifier' ),
 						$post_type
 					)
 				);
@@ -199,7 +199,7 @@ class Non_Blocking_Scripts_Check extends Abstract_Runtime_Check implements With_
 					$result,
 					sprintf(
 						/* translators: 1: tested URL. 2: the script handle. 3: 'defer'. 4: 'async' */
-						__( 'This script on %1$s (with handle %2$s) is potentially blocking. Consider a %3$s or %4$s script strategy or moving it to the footer.', 'wp-verifier' ),
+						__( 'This script on %1$s (with handle %2$s) is potentially blocking. Consider a %3$s or %4$s script strategy or moving it to the footer.', 'wpverifier' ),
 						$url,
 						$handle,
 						'defer',
@@ -213,7 +213,7 @@ class Non_Blocking_Scripts_Check extends Abstract_Runtime_Check implements With_
 					$result,
 					sprintf(
 						/* translators: 1: tested URL. 2: the script handle. 3: 'defer'. 4: 'async' */
-						__( 'This script on %1$s (with handle %2$s) is loaded in the footer. Consider a %3$s or %4$s script loading strategy instead.', 'wp-verifier' ),
+						__( 'This script on %1$s (with handle %2$s) is loaded in the footer. Consider a %3$s or %4$s script loading strategy instead.', 'wpverifier' ),
 						$url,
 						$handle,
 						'defer',
@@ -251,7 +251,7 @@ class Non_Blocking_Scripts_Check extends Abstract_Runtime_Check implements With_
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks whether scripts and styles are enqueued using a recommended loading strategy.', 'wp-verifier' );
+		return __( 'Checks whether scripts and styles are enqueued using a recommended loading strategy.', 'wpverifier' );
 	}
 
 	/**
@@ -264,6 +264,6 @@ class Non_Blocking_Scripts_Check extends Abstract_Runtime_Check implements With_
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/', 'wpverifier' );
 	}
 }

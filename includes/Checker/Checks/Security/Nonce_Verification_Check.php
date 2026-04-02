@@ -66,7 +66,7 @@ class Nonce_Verification_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks for proper usage of wp_verify_nonce() to prevent CSRF vulnerabilities.', 'wp-verifier' );
+		return __( 'Checks for proper usage of wp_verify_nonce() to prevent CSRF vulnerabilities.', 'wpverifier' );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class Nonce_Verification_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/apis/security/nonces/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/apis/security/nonces/', 'wpverifier' );
 	}
 
 	/**
@@ -100,19 +100,19 @@ class Nonce_Verification_Check extends Abstract_PHP_CodeSniffer_Check {
 	protected function add_result_message_for_file( Check_Result $result, $error, $message, $code, $file, $line = 0, $column = 0, string $docs = '', $severity = 5 ) {
 		switch ( $code ) {
 			case 'PluginCheck.Security.VerifyNonce.UnsafeVerifyNonceStatement':
-				$docs = __( 'https://developer.wordpress.org/reference/functions/check_admin_referer/', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/reference/functions/check_admin_referer/', 'wpverifier' );
 				break;
 
 			case 'PluginCheck.Security.VerifyNonce.UnsafeVerifyNonceNegatedAnd':
-				$docs = __( 'https://developer.wordpress.org/apis/security/nonces/#verifying-nonces', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/apis/security/nonces/#verifying-nonces', 'wpverifier' );
 				break;
 
 			case 'PluginCheck.Security.VerifyNonce.UnsafeVerifyNonceElse':
-				$docs = __( 'https://developer.wordpress.org/apis/security/nonces/#verifying-nonces', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/apis/security/nonces/#verifying-nonces', 'wpverifier' );
 				break;
 
 			default:
-				$docs = __( 'https://developer.wordpress.org/apis/security/nonces/', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/apis/security/nonces/', 'wpverifier' );
 				break;
 		}
 

@@ -119,21 +119,21 @@ $test_results[] = array(
 ?>
 
 <div class="wrap">
-	<h2><?php esc_html_e( 'Test Area - Path Builder Testing', 'wp-verifier' ); ?></h2>
+	<h2><?php esc_html_e( 'Test Area - Path Builder Testing', 'wpverifier' ); ?></h2>
 	
 	<div style="margin: 20px 0; padding: 15px; background: #e7f3ff; border-left: 4px solid #2271b1;">
-		<h3><?php esc_html_e( 'Phase 2.2: Path Builder Validation', 'wp-verifier' ); ?></h3>
-		<p><?php esc_html_e( 'Testing the new Path_Builder utility class before replacing existing path building code.', 'wp-verifier' ); ?></p>
-		<p><strong><?php esc_html_e( 'Current Plugin:', 'wp-verifier' ); ?></strong> <?php echo esc_html( $current_plugin ?: 'None selected' ); ?></p>
+		<h3><?php esc_html_e( 'Phase 2.2: Path Builder Validation', 'wpverifier' ); ?></h3>
+		<p><?php esc_html_e( 'Testing the new Path_Builder utility class before replacing existing path building code.', 'wpverifier' ); ?></p>
+		<p><strong><?php esc_html_e( 'Current Plugin:', 'wpverifier' ); ?></strong> <?php echo esc_html( $current_plugin ?: 'None selected' ); ?></p>
 	</div>
 
 	<table class="wp-list-table widefat fixed striped">
 		<thead>
 			<tr>
-				<th style="width: 25%;"><?php esc_html_e( 'Test Name', 'wp-verifier' ); ?></th>
-				<th style="width: 10%;"><?php esc_html_e( 'Status', 'wp-verifier' ); ?></th>
-				<th style="width: 35%;"><?php esc_html_e( 'Result', 'wp-verifier' ); ?></th>
-				<th style="width: 30%;"><?php esc_html_e( 'Details', 'wp-verifier' ); ?></th>
+				<th style="width: 25%;"><?php esc_html_e( 'Test Name', 'wpverifier' ); ?></th>
+				<th style="width: 10%;"><?php esc_html_e( 'Status', 'wpverifier' ); ?></th>
+				<th style="width: 35%;"><?php esc_html_e( 'Result', 'wpverifier' ); ?></th>
+				<th style="width: 30%;"><?php esc_html_e( 'Details', 'wpverifier' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -157,7 +157,7 @@ $test_results[] = array(
 	</table>
 
 	<div style="margin-top: 30px; padding: 15px; background: #f0f0f1; border-left: 4px solid #2271b1;">
-		<h3><?php esc_html_e( 'Test Summary', 'wp-verifier' ); ?></h3>
+		<h3><?php esc_html_e( 'Test Summary', 'wpverifier' ); ?></h3>
 		<?php
 		$passed = count( array_filter( $test_results, function( $t ) { return 'pass' === $t['status']; } ) );
 		$failed = count( array_filter( $test_results, function( $t ) { return 'fail' === $t['status']; } ) );
@@ -176,18 +176,18 @@ $test_results[] = array(
 	<hr style="margin: 30px 0;">
 	
 	<div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4;">
-		<h3><?php esc_html_e( 'VSCode Button Test', 'wp-verifier' ); ?></h3>
-		<p><?php esc_html_e( 'Test the VSCode button functionality with the new Path_Builder system.', 'wp-verifier' ); ?></p>
+		<h3><?php esc_html_e( 'VSCode Button Test', 'wpverifier' ); ?></h3>
+		<p><?php esc_html_e( 'Test the VSCode button functionality with the new Path_Builder system.', 'wpverifier' ); ?></p>
 		
 		<?php if ( $current_plugin ) : ?>
 			<div style="margin: 15px 0;">
-				<h4><?php esc_html_e( 'Test VSCode URLs:', 'wp-verifier' ); ?></h4>
+				<h4><?php esc_html_e( 'Test VSCode URLs:', 'wpverifier' ); ?></h4>
 				<table class="wp-list-table widefat">
 					<thead>
 						<tr>
-							<th><?php esc_html_e( 'File Path', 'wp-verifier' ); ?></th>
-							<th><?php esc_html_e( 'VSCode Button (New)', 'wp-verifier' ); ?></th>
-							<th><?php esc_html_e( 'Generated URL', 'wp-verifier' ); ?></th>
+							<th><?php esc_html_e( 'File Path', 'wpverifier' ); ?></th>
+							<th><?php esc_html_e( 'VSCode Button (New)', 'wpverifier' ); ?></th>
+							<th><?php esc_html_e( 'Generated URL', 'wpverifier' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -223,17 +223,17 @@ $test_results[] = array(
 			</div>
 		<?php else : ?>
 			<div class="notice notice-warning inline">
-				<p><?php esc_html_e( 'No plugin selected. Please go to TAB01 to select a plugin first.', 'wp-verifier' ); ?></p>
+				<p><?php esc_html_e( 'No plugin selected. Please go to TAB01 to select a plugin first.', 'wpverifier' ); ?></p>
 			</div>
 		<?php endif; ?>
 		
-		<h4><?php esc_html_e( 'Key Improvements:', 'wp-verifier' ); ?></h4>
+		<h4><?php esc_html_e( 'Key Improvements:', 'wpverifier' ); ?></h4>
 		<ul>
-			<li><?php esc_html_e( '✓ No more illogical WPVerifier defaults', 'wp-verifier' ); ?></li>
-			<li><?php esc_html_e( '✓ Proper subdirectory path handling (build/slide/render.php)', 'wp-verifier' ); ?></li>
-			<li><?php esc_html_e( '✓ Consistent path normalization for VSCode URIs', 'wp-verifier' ); ?></li>
-			<li><?php esc_html_e( '✓ Centralized error handling', 'wp-verifier' ); ?></li>
-			<li><?php esc_html_e( '✓ Single source of truth for all path building', 'wp-verifier' ); ?></li>
+			<li><?php esc_html_e( '✓ No more illogical WPVerifier defaults', 'wpverifier' ); ?></li>
+			<li><?php esc_html_e( '✓ Proper subdirectory path handling (build/slide/render.php)', 'wpverifier' ); ?></li>
+			<li><?php esc_html_e( '✓ Consistent path normalization for VSCode URIs', 'wpverifier' ); ?></li>
+			<li><?php esc_html_e( '✓ Centralized error handling', 'wpverifier' ); ?></li>
+			<li><?php esc_html_e( '✓ Single source of truth for all path building', 'wpverifier' ); ?></li>
 		</ul>
 	</div>
 </div>

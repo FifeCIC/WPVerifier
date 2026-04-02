@@ -52,7 +52,7 @@ class No_Unfiltered_Uploads_Check extends Abstract_File_Check {
 				$result,
 				sprintf(
 					/* translators: %s: ALLOW_UNFILTERED_UPLOADS */
-					__( '<strong>%s is not permitted.</strong><br>Setting this constant to true will allow the user to upload any type of file (including PHP and other executables), creating serious potential security risks.', 'wp-verifier' ),
+					__( '<strong>%s is not permitted.</strong><br>Setting this constant to true will allow the user to upload any type of file (including PHP and other executables), creating serious potential security risks.', 'wpverifier' ),
 					'<code>ALLOW_UNFILTERED_UPLOADS</code>'
 				),
 				'allow_unfiltered_uploads_detected',
@@ -77,7 +77,7 @@ class No_Unfiltered_Uploads_Check extends Abstract_File_Check {
 	public function get_description(): string {
 		return sprintf(
 			/* translators: %s: ALLOW_UNFILTERED_UPLOADS */
-			__( 'Detects disallowed usage of %s.', 'wp-verifier' ),
+			__( 'Detects disallowed usage of %s.', 'wpverifier' ),
 			'<code>ALLOW_UNFILTERED_UPLOADS</code>'
 		);
 	}
@@ -92,6 +92,6 @@ class No_Unfiltered_Uploads_Check extends Abstract_File_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://make.wordpress.org/plugins/handbook/performing-reviews/review-checklist/', 'wp-verifier' );
+		return __( 'https://make.wordpress.org/plugins/handbook/performing-reviews/review-checklist/', 'wpverifier' );
 	}
 }

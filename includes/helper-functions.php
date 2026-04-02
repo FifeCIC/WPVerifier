@@ -59,7 +59,7 @@ function wpv_get_vscode_url( $file_path, $line = 0, $column = 0, $plugin_folder 
  */
 function wpv_get_vscode_button( $file_path, $line = 0, $column = 0, $plugin_folder = null, $button_text = null, $css_class = '' ) {
 	if ( ! $button_text ) {
-		$button_text = __( 'VSCode', 'wp-verifier' );
+		$button_text = __( 'VSCode', 'wpverifier' );
 	}
 	
 	$vscode_url = wpv_get_vscode_url( $file_path, $line, $column, $plugin_folder );

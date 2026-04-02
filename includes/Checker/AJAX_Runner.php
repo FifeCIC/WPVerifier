@@ -59,7 +59,7 @@ class AJAX_Runner extends Abstract_Check_Runner {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! isset( $_REQUEST['plugin'] ) ) {
 			throw new Exception(
-				__( 'Invalid plugin: Plugin parameter must not be empty.', 'wp-verifier' )
+				__( 'Invalid plugin: Plugin parameter must not be empty.', 'wpverifier' )
 			);
 		}
 

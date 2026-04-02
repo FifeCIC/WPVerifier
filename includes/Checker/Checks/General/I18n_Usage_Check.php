@@ -66,7 +66,7 @@ class I18n_Usage_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks for various internationalization best practices.', 'wp-verifier' );
+		return __( 'Checks for various internationalization best practices.', 'wpverifier' );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class I18n_Usage_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/', 'wpverifier' );
 	}
 
 	/**
@@ -111,23 +111,23 @@ class I18n_Usage_Check extends Abstract_PHP_CodeSniffer_Check {
 			case 'WordPress.WP.I18n.NonSingularStringLiteralDomain':
 			case 'WordPress.WP.I18n.NonSingularStringLiteralText':
 			case 'WordPress.WP.I18n.TooManyFunctionArgs':
-				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#basic-strings', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#basic-strings', 'wpverifier' );
 				break;
 
 			case 'WordPress.WP.I18n.NonSingularStringLiteralContext':
-				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#disambiguation-by-context', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#disambiguation-by-context', 'wpverifier' );
 				break;
 
 			case 'WordPress.WP.I18n.MissingTranslatorsComment':
-				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#descriptions', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#descriptions', 'wpverifier' );
 				break;
 
 			case 'WordPress.WP.I18n.UnorderedPlaceholdersText':
-				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#variables', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#variables', 'wpverifier' );
 				break;
 
 			default:
-				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/', 'wp-verifier' );
+				$docs = __( 'https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/', 'wpverifier' );
 				break;
 		}
 

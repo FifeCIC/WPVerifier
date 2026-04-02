@@ -30,27 +30,27 @@ class Setup_Wizard {
 
 	public function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-verifier' ) );
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wpverifier' ) );
 		}
 
 		$this->steps = array(
 			'introduction' => array(
-				'name'    => __( 'Introduction', 'wp-verifier' ),
+				'name'    => __( 'Introduction', 'wpverifier' ),
 				'view'    => array( $this, 'step_introduction' ),
 				'handler' => '',
 			),
 			'ai_config'    => array(
-				'name'    => __( 'AI Setup', 'wp-verifier' ),
+				'name'    => __( 'AI Setup', 'wpverifier' ),
 				'view'    => array( $this, 'step_ai_config' ),
 				'handler' => array( $this, 'step_ai_config_save' ),
 			),
 			'features'     => array(
-				'name'    => __( 'Features', 'wp-verifier' ),
+				'name'    => __( 'Features', 'wpverifier' ),
 				'view'    => array( $this, 'step_features' ),
 				'handler' => array( $this, 'step_features_save' ),
 			),
 			'ready'        => array(
-				'name'    => __( 'Ready!', 'wp-verifier' ),
+				'name'    => __( 'Ready!', 'wpverifier' ),
 				'view'    => array( $this, 'step_ready' ),
 				'handler' => '',
 			),
@@ -84,18 +84,18 @@ class Setup_Wizard {
 		<head>
 			<meta name="viewport" content="width=device-width" />
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-			<title><?php esc_html_e( 'WP Verifier &rsaquo; Setup Wizard', 'wp-verifier' ); ?></title>
+			<title><?php esc_html_e( 'WP Verifier &rsaquo; Setup Wizard', 'wpverifier' ); ?></title>
 			<?php do_action( 'admin_print_styles' ); ?>
 		</head>
 		<body class="wp-verifier-setup wp-core-ui">
-			<h1 id="wp-verifier-logo"><?php esc_html_e( 'WP Verifier', 'wp-verifier' ); ?></h1>
+			<h1 id="wp-verifier-logo"><?php esc_html_e( 'WP Verifier', 'wpverifier' ); ?></h1>
 		<?php
 	}
 
 	public function setup_wizard_footer() {
 		?>
 			<?php if ( 'ready' === $this->step ) : ?>
-				<a class="wp-verifier-return-to-dashboard" href="<?php echo esc_url( admin_url() ); ?>"><?php esc_html_e( 'Return to Dashboard', 'wp-verifier' ); ?></a>
+				<a class="wp-verifier-return-to-dashboard" href="<?php echo esc_url( admin_url() ); ?>"><?php esc_html_e( 'Return to Dashboard', 'wpverifier' ); ?></a>
 			<?php endif; ?>
 			</body>
 		</html>
@@ -128,12 +128,12 @@ class Setup_Wizard {
 
 	public function step_introduction() {
 		?>
-		<h1><?php esc_html_e( 'Welcome to WP Verifier', 'wp-verifier' ); ?></h1>
-		<p><?php esc_html_e( 'Thank you for installing WP Verifier! This wizard will help you configure the essential settings.', 'wp-verifier' ); ?></p>
-		<p><?php esc_html_e( 'The setup is optional and takes less than 2 minutes. You can skip it and configure settings later.', 'wp-verifier' ); ?></p>
+		<h1><?php esc_html_e( 'Welcome to WP Verifier', 'wpverifier' ); ?></h1>
+		<p><?php esc_html_e( 'Thank you for installing WP Verifier! This wizard will help you configure the essential settings.', 'wpverifier' ); ?></p>
+		<p><?php esc_html_e( 'The setup is optional and takes less than 2 minutes. You can skip it and configure settings later.', 'wpverifier' ); ?></p>
 		<p class="wp-verifier-setup-actions step">
-			<a href="<?php echo esc_url( $this->get_next_step_link() ); ?>" class="button-primary button button-large button-next"><?php esc_html_e( 'Let\'s Go!', 'wp-verifier' ); ?></a>
-			<a href="<?php echo esc_url( admin_url() ); ?>" class="button button-large"><?php esc_html_e( 'Skip Setup', 'wp-verifier' ); ?></a>
+			<a href="<?php echo esc_url( $this->get_next_step_link() ); ?>" class="button-primary button button-large button-next"><?php esc_html_e( 'Let\'s Go!', 'wpverifier' ); ?></a>
+			<a href="<?php echo esc_url( admin_url() ); ?>" class="button button-large"><?php esc_html_e( 'Skip Setup', 'wpverifier' ); ?></a>
 		</p>
 		<?php
 	}
@@ -142,15 +142,15 @@ class Setup_Wizard {
 		$settings = get_option( 'plugin_check_settings', array() );
 		$providers = require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/AI_Providers.php';
 		?>
-		<h1><?php esc_html_e( 'AI Configuration', 'wp-verifier' ); ?></h1>
-		<p><?php esc_html_e( 'Configure AI settings for the Plugin Namer tool (optional).', 'wp-verifier' ); ?></p>
+		<h1><?php esc_html_e( 'AI Configuration', 'wpverifier' ); ?></h1>
+		<p><?php esc_html_e( 'Configure AI settings for the Plugin Namer tool (optional).', 'wpverifier' ); ?></p>
 		<form method="post">
 			<table class="form-table">
 				<tr>
-					<th scope="row"><label for="ai_provider"><?php esc_html_e( 'AI Provider', 'wp-verifier' ); ?></label></th>
+					<th scope="row"><label for="ai_provider"><?php esc_html_e( 'AI Provider', 'wpverifier' ); ?></label></th>
 					<td>
 						<select id="ai_provider" name="ai_provider">
-							<option value=""><?php esc_html_e( 'None', 'wp-verifier' ); ?></option>
+							<option value=""><?php esc_html_e( 'None', 'wpverifier' ); ?></option>
 							<?php foreach ( $providers as $key => $provider ) : ?>
 								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $settings['ai_provider'] ?? '', $key ); ?>>
 									<?php echo esc_html( $provider['label'] ); ?>
@@ -160,21 +160,21 @@ class Setup_Wizard {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="ai_api_key"><?php esc_html_e( 'API Key', 'wp-verifier' ); ?></label></th>
+					<th scope="row"><label for="ai_api_key"><?php esc_html_e( 'API Key', 'wpverifier' ); ?></label></th>
 					<td>
 						<input type="password" id="ai_api_key" name="ai_api_key" class="regular-text" value="<?php echo esc_attr( $settings['ai_api_key'] ?? '' ); ?>" />
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="ai_model"><?php esc_html_e( 'Model', 'wp-verifier' ); ?></label></th>
+					<th scope="row"><label for="ai_model"><?php esc_html_e( 'Model', 'wpverifier' ); ?></label></th>
 					<td>
 						<input type="text" id="ai_model" name="ai_model" class="regular-text" value="<?php echo esc_attr( $settings['ai_model'] ?? '' ); ?>" placeholder="gpt-4" />
 					</td>
 				</tr>
 			</table>
 			<p class="wp-verifier-setup-actions step">
-				<input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( 'Continue', 'wp-verifier' ); ?>" name="save_step" />
-				<a href="<?php echo esc_url( $this->get_next_step_link() ); ?>" class="button button-large button-next"><?php esc_html_e( 'Skip', 'wp-verifier' ); ?></a>
+				<input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( 'Continue', 'wpverifier' ); ?>" name="save_step" />
+				<a href="<?php echo esc_url( $this->get_next_step_link() ); ?>" class="button button-large button-next"><?php esc_html_e( 'Skip', 'wpverifier' ); ?></a>
 				<?php wp_nonce_field( 'wp-verifier-setup' ); ?>
 			</p>
 		</form>
@@ -188,34 +188,34 @@ class Setup_Wizard {
 		$settings['ai_api_key']  = isset( $_POST['ai_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['ai_api_key'] ) ) : '';
 		$settings['ai_model']    = isset( $_POST['ai_model'] ) ? sanitize_text_field( wp_unslash( $_POST['ai_model'] ) ) : '';
 		update_option( 'plugin_check_settings', $settings );
-		wp_redirect( esc_url_raw( $this->get_next_step_link() ) );
+		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 		exit;
 	}
 
 	public function step_features() {
 		?>
-		<h1><?php esc_html_e( 'Configure Features', 'wp-verifier' ); ?></h1>
-		<p><?php esc_html_e( 'Enable or disable key features.', 'wp-verifier' ); ?></p>
+		<h1><?php esc_html_e( 'Configure Features', 'wpverifier' ); ?></h1>
+		<p><?php esc_html_e( 'Enable or disable key features.', 'wpverifier' ); ?></p>
 		<form method="post">
 			<table class="form-table">
 				<tr>
-					<th scope="row"><label for="enable_namer"><?php esc_html_e( 'Plugin Namer', 'wp-verifier' ); ?></label></th>
+					<th scope="row"><label for="enable_namer"><?php esc_html_e( 'Plugin Namer', 'wpverifier' ); ?></label></th>
 					<td>
 						<input type="checkbox" id="enable_namer" name="enable_namer" value="1" checked />
-						<label for="enable_namer"><?php esc_html_e( 'Enable Plugin Namer tool', 'wp-verifier' ); ?></label>
+						<label for="enable_namer"><?php esc_html_e( 'Enable Plugin Namer tool', 'wpverifier' ); ?></label>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="enable_assets"><?php esc_html_e( 'Asset Tracking', 'wp-verifier' ); ?></label></th>
+					<th scope="row"><label for="enable_assets"><?php esc_html_e( 'Asset Tracking', 'wpverifier' ); ?></label></th>
 					<td>
 						<input type="checkbox" id="enable_assets" name="enable_assets" value="1" checked />
-						<label for="enable_assets"><?php esc_html_e( 'Enable asset management system', 'wp-verifier' ); ?></label>
+						<label for="enable_assets"><?php esc_html_e( 'Enable asset management system', 'wpverifier' ); ?></label>
 					</td>
 				</tr>
 			</table>
 			<p class="wp-verifier-setup-actions step">
-				<input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( 'Continue', 'wp-verifier' ); ?>" name="save_step" />
-				<a href="<?php echo esc_url( $this->get_next_step_link() ); ?>" class="button button-large button-next"><?php esc_html_e( 'Skip', 'wp-verifier' ); ?></a>
+				<input type="submit" class="button-primary button button-large button-next" value="<?php esc_attr_e( 'Continue', 'wpverifier' ); ?>" name="save_step" />
+				<a href="<?php echo esc_url( $this->get_next_step_link() ); ?>" class="button button-large button-next"><?php esc_html_e( 'Skip', 'wpverifier' ); ?></a>
 				<?php wp_nonce_field( 'wp-verifier-setup' ); ?>
 			</p>
 		</form>
@@ -226,21 +226,21 @@ class Setup_Wizard {
 		check_admin_referer( 'wp-verifier-setup' );
 		update_option( 'wp_verifier_enable_namer', ! empty( $_POST['enable_namer'] ) ? 'yes' : 'no' );
 		update_option( 'wp_verifier_enable_assets', ! empty( $_POST['enable_assets'] ) ? 'yes' : 'no' );
-		wp_redirect( esc_url_raw( $this->get_next_step_link() ) );
+		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 		exit;
 	}
 
 	public function step_ready() {
 		update_option( 'wp_verifier_setup_complete', 'yes' );
 		?>
-		<h1><?php esc_html_e( 'WP Verifier is Ready!', 'wp-verifier' ); ?></h1>
+		<h1><?php esc_html_e( 'WP Verifier is Ready!', 'wpverifier' ); ?></h1>
 		<div class="wp-verifier-setup-next-steps">
 			<div class="wp-verifier-setup-next-steps-first">
-				<h2><?php esc_html_e( 'Next Steps', 'wp-verifier' ); ?></h2>
+				<h2><?php esc_html_e( 'Next Steps', 'wpverifier' ); ?></h2>
 				<ul>
-					<li class="setup-thing"><a class="button button-primary button-large" href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check' ) ); ?>"><?php esc_html_e( 'Verify a Plugin', 'wp-verifier' ); ?></a></li>
-					<li><a href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check&tab=namer' ) ); ?>"><?php esc_html_e( 'Try Plugin Namer', 'wp-verifier' ); ?></a></li>
-					<li><a href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check&tab=settings' ) ); ?>"><?php esc_html_e( 'Configure Settings', 'wp-verifier' ); ?></a></li>
+					<li class="setup-thing"><a class="button button-primary button-large" href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check' ) ); ?>"><?php esc_html_e( 'Verify a Plugin', 'wpverifier' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check&tab=namer' ) ); ?>"><?php esc_html_e( 'Try Plugin Namer', 'wpverifier' ); ?></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check&tab=settings' ) ); ?>"><?php esc_html_e( 'Configure Settings', 'wpverifier' ); ?></a></li>
 				</ul>
 			</div>
 		</div>
@@ -260,12 +260,12 @@ class Setup_Wizard {
 		?>
 		<div class="notice notice-info is-dismissible">
 			<p>
-				<strong><?php esc_html_e( 'Welcome to WP Verifier!', 'wp-verifier' ); ?></strong>
-				<?php esc_html_e( 'Run the setup wizard to configure essential settings.', 'wp-verifier' ); ?>
+				<strong><?php esc_html_e( 'Welcome to WP Verifier!', 'wpverifier' ); ?></strong>
+				<?php esc_html_e( 'Run the setup wizard to configure essential settings.', 'wpverifier' ); ?>
 			</p>
 			<p>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?action=wp_verifier_setup' ) ); ?>" class="button button-primary"><?php esc_html_e( 'Run Setup Wizard', 'wp-verifier' ); ?></a>
-				<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'wp-verifier-hide-notice', 'setup' ), 'wp_verifier_hide_notices_nonce', '_wp_verifier_notice_nonce' ) ); ?>" class="button button-secondary"><?php esc_html_e( 'Skip Setup', 'wp-verifier' ); ?></a>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?action=wp_verifier_setup' ) ); ?>" class="button button-primary"><?php esc_html_e( 'Run Setup Wizard', 'wpverifier' ); ?></a>
+				<a href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'wp-verifier-hide-notice', 'setup' ), 'wp_verifier_hide_notices_nonce', '_wp_verifier_notice_nonce' ) ); ?>" class="button button-secondary"><?php esc_html_e( 'Skip Setup', 'wpverifier' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -274,7 +274,7 @@ class Setup_Wizard {
 	public function hide_setup_notice() {
 		if ( isset( $_GET['wp-verifier-hide-notice'] ) && 'setup' === $_GET['wp-verifier-hide-notice'] ) {
 			if ( ! isset( $_GET['_wp_verifier_notice_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wp_verifier_notice_nonce'] ) ), 'wp_verifier_hide_notices_nonce' ) ) {
-				wp_die( esc_html__( 'Action failed. Please refresh the page and retry.', 'wp-verifier' ) );
+				wp_die( esc_html__( 'Action failed. Please refresh the page and retry.', 'wpverifier' ) );
 			}
 			update_option( 'wp_verifier_setup_complete', 'skipped' );
 			wp_safe_redirect( remove_query_arg( array( 'wp-verifier-hide-notice', '_wp_verifier_notice_nonce' ) ) );

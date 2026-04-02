@@ -231,7 +231,7 @@ class Plugin_Request_Utility {
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			throw new Exception(
-				__( 'Downloading the zip file failed.', 'wp-verifier' )
+				__( 'Downloading the zip file failed.', 'wpverifier' )
 			);
 		}
 
@@ -259,7 +259,7 @@ class Plugin_Request_Utility {
 
 		if ( ! $wp_filesystem->put_contents( $plugin_check_dir . $basename, $response_zip_body ) ) {
 			throw new Exception(
-				__( 'Saving zip file failed.', 'wp-verifier' )
+				__( 'Saving zip file failed.', 'wpverifier' )
 			);
 		}
 
@@ -280,7 +280,7 @@ class Plugin_Request_Utility {
 
 			if ( is_wp_error( $response_json ) || 200 !== wp_remote_retrieve_response_code( $response_json ) ) {
 				throw new Exception(
-					__( 'Fetching data failed.', 'wp-verifier' )
+					__( 'Fetching data failed.', 'wpverifier' )
 				);
 			}
 
@@ -290,13 +290,13 @@ class Plugin_Request_Utility {
 
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				throw new Exception(
-					__( 'Invalid JSON content.', 'wp-verifier' )
+					__( 'Invalid JSON content.', 'wpverifier' )
 				);
 			}
 
 			if ( ! $wp_filesystem->put_contents( $plugin_check_dir . 'plugin-info.json', $response_body ) ) {
 				throw new Exception(
-					__( 'Saving JSON file failed.', 'wp-verifier' )
+					__( 'Saving JSON file failed.', 'wpverifier' )
 				);
 			}
 		}

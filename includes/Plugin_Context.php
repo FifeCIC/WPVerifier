@@ -74,7 +74,7 @@ class Plugin_Context {
 			$this->main_file = normalize_path( $main_file );
 		} else {
 			throw new Exception(
-				__( 'Unknown environment, normalize_path function not found', 'wp-verifier' )
+				__( 'Unknown environment, normalize_path function not found', 'wpverifier' )
 			);
 		}
 

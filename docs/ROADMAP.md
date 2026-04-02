@@ -827,6 +827,291 @@ After a developer submits, WP Verifier stores a local record of the submission i
 
 ---
 
+## PHASE 15: Automated Plugin Audit Pipeline 📋 PLANNED
+
+### Overview
+An automated system that downloads WordPress.org plugins, runs EvolveWP.Verifier against each one, generates a professional audit report, and queues an outreach email to the plugin author. The pipeline runs entirely on localhost, is controlled via a dedicated WP admin dashboard, and is designed to process plugins at a measured pace — one every few minutes — with parallel workers consuming a shared queue.
+
+This phase covers only the pipeline mechanics and EvolveWP.Verifier's role within it. Outbound email campaign management, author contact tracking, and response handling are the responsibility of a separate orchestration plugin (see Phase 15.7).
+
+---
+
+### Phase 15.1: Database Schema
+
+Three tables support the pipeline. All created on plugin activation.
+
+**`wpv_audit_queue`** — jobs waiting to be processed:
+```sql
+CREATE TABLE wpv_audit_queue (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plugin_slug     VARCHAR(200) NOT NULL UNIQUE,
+    plugin_version  VARCHAR(50),
+    status          ENUM('pending','running','complete','failed') DEFAULT 'pending',
+    worker_id       VARCHAR(50) NULL,
+    priority        TINYINT DEFAULT 5,
+    claimed_at      DATETIME NULL,
+    completed_at    DATETIME NULL,
+    attempts        TINYINT DEFAULT 0,
+    last_error      TEXT NULL,
+    queued_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**`wpv_audit_results`** — one row per completed scan:
+```sql
+CREATE TABLE wpv_audit_results (
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plugin_slug         VARCHAR(200) NOT NULL,
+    plugin_version      VARCHAR(50),
+    plugin_name         VARCHAR(300),
+    author_slug         VARCHAR(200),
+    active_installs     INT,
+    scanned_at          DATETIME,
+    total_errors        INT,
+    total_warnings      INT,
+    readiness_score     INT,
+    activation_status   ENUM('ok','error','skipped') DEFAULT 'skipped',
+    activation_output   TEXT NULL,
+    deactivation_status ENUM('ok','error','skipped') DEFAULT 'skipped',
+    deactivation_output TEXT NULL,
+    report_path         VARCHAR(500) NULL,
+    scan_duration_secs  DECIMAL(8,2)
+);
+```
+
+**`wpv_audit_scan_log`** — prevents re-scanning too soon:
+```sql
+CREATE TABLE wpv_audit_scan_log (
+    plugin_slug     VARCHAR(200) PRIMARY KEY,
+    last_scanned_at DATETIME,
+    last_version    VARCHAR(50),
+    scan_count      INT DEFAULT 1
+);
+```
+
+**Rescan policy:** A plugin is eligible for re-queuing only if its version has changed since the last scan, or if the last scan was more than 90 days ago. This is enforced by the dispatcher before adding to the queue.
+
+---
+
+### Phase 15.2: WordPress.org Plugin Discovery
+
+**Source:** The public WordPress.org plugins API — `api.wordpress.org/plugins/info/1.2/?action=query_plugins`
+
+**Pagination:** The API returns up to 250 plugins per page. The dispatcher iterates pages until the queue reaches a configured maximum depth (default: 500 pending jobs).
+
+**Filtering options** (configurable in the dashboard):
+- Minimum active installs (default: 1,000 — filters out abandoned plugins)
+- Last updated within N days (default: 365 — filters out unmaintained plugins)
+- Specific tags or categories
+- Exclude plugins already scanned within the rescan window
+
+**Download:** Each plugin is downloaded from `downloads.wordpress.org/plugin/{slug}.latest-stable.zip` into a temporary working directory (`wp-content/wpv-audit-workspace/{slug}/`). The zip is extracted, scanned, then the entire directory is deleted after the scan completes regardless of outcome.
+
+**Rate limiting:** One API request per 2 seconds. One plugin download per configured interval (default: 5 minutes between job starts across all workers combined). This is enforced at the dispatcher level, not per-worker.
+
+---
+
+### Phase 15.3: CLI Worker Architecture
+
+Workers run as PHP CLI processes, completely outside of the web request cycle. This sidesteps `max_execution_time` entirely — CLI PHP has no execution time limit by default.
+
+**Worker lifecycle:**
+1. Worker starts, registers itself in a `wpv_workers` option with a unique ID and timestamp
+2. Queries `wpv_audit_queue` for the oldest `pending` job, claims it atomically using a database transaction (prevents two workers taking the same job)
+3. Downloads and extracts the plugin to the workspace directory
+4. Runs WP Verifier scan via the existing `AJAX_Runner` pipeline (called directly, not via HTTP)
+5. Optionally runs activation/deactivation test (Phase 15.4)
+6. Generates the audit report (Phase 15.5)
+7. Writes results to `wpv_audit_results` and `wpv_audit_scan_log`
+8. Marks job `complete`, deletes workspace directory, picks up next job
+9. If any step throws, marks job `failed` with error message, increments `attempts`
+
+**Stale job recovery:** The dispatcher checks for jobs in `running` status with `claimed_at` older than 20 minutes and resets them to `pending` (up to 3 attempts before marking permanently `failed`).
+
+**Parallelism:** On a machine with 8 GB free RAM and a modern multi-core CPU, 3–4 simultaneous workers is a reasonable starting point. Each PHPCS scan is CPU-bound; beyond the core count workers compete rather than cooperate. The dashboard shows a recommended worker count based on available CPU cores (read from `sys_getloadavg()` on Linux or a Windows equivalent).
+
+**Worker script location:** `wp-content/plugins/WPVerifier/cli/audit-worker.php`
+
+**Starting workers (example — 3 parallel):**
+```
+php cli/audit-worker.php --worker-id=1 &
+php cli/audit-worker.php --worker-id=2 &
+php cli/audit-worker.php --worker-id=3 &
+```
+
+The dashboard provides a copy-paste command block for the configured worker count.
+
+---
+
+### Phase 15.4: Activation & Deactivation Testing
+
+One of the most valuable signals in the audit is whether the plugin activates and deactivates cleanly. Many plugins produce PHP notices, warnings, or fatal errors on activation that the author has never seen because they develop with error reporting off.
+
+**How it works:**
+1. Worker installs the downloaded plugin into the WordPress plugins directory
+2. Calls `activate_plugin()` with output buffering active — captures any output produced during activation
+3. Records: success/failure, any output captured, any PHP errors caught via a custom error handler
+4. Calls `deactivate_plugins()` with the same capture approach
+5. Removes the plugin from the plugins directory
+6. Stores activation/deactivation status and captured output in `wpv_audit_results`
+
+**Output capture categories:**
+- Clean — no output, no errors
+- Notice/Warning — PHP notices or warnings produced (non-fatal, but worth reporting)
+- Fatal — activation caused a fatal error (very high value finding for the author)
+- Output — unexpected HTML or text output produced (common cause of "headers already sent" issues)
+
+**Safety:** The worker runs in an isolated WordPress context. If a plugin causes a fatal error, the worker catches it via `register_shutdown_function()`, records it, and continues to the next job. The plugin is always removed from the plugins directory after testing regardless of outcome.
+
+---
+
+### Phase 15.5: Report Generation
+
+The audit report is a self-contained HTML file (and optionally PDF) generated per plugin. It is designed to be genuinely useful to the plugin author — a freebie that demonstrates value before any ask.
+
+**Report sections:**
+1. **Header** — plugin name, version, scan date, WP Verifier branding
+2. **Readiness Score** — large visual score with status label (same as TAB04)
+3. **Executive Summary** — total errors/warnings, files affected, top 5 most common error codes
+4. **Activation Health** — clean / notice / warning / fatal, with captured output if any
+5. **Issue Breakdown by Category** — security, code quality, documentation, performance
+6. **Comparison Context** — "This plugin has X errors. The average plugin with similar install count has Y." (populated once enough scans exist in `wpv_audit_results`)
+7. **Top Issues Detail** — the 10 most severe issues with file, line, plain-English explanation, and fix guidance (drawn from the existing AI guidance config)
+8. **Full Issue List** — all issues in a compact table (errors first, then warnings)
+9. **How to Fix** — brief section pointing to WordPress Coding Standards documentation and WP Verifier's free download link
+10. **Footer** — generated by WP Verifier / EvolveWP.dev, unsubscribe notice
+
+**Report storage:** `wp-content/wpv-audit-reports/{slug}-{version}-{date}.html`
+
+**PDF generation:** Optional — uses Dompdf (already planned in Phase 13.4). PDF is attached to the outreach email.
+
+---
+
+### Phase 15.6: Audit Pipeline Dashboard
+
+A new admin page within WP Verifier (`Tools → Plugin Audit Pipeline`) providing full visibility and control.
+
+**Queue panel:**
+- Total pending / running / complete / failed job counts
+- Table of recent jobs with status, plugin slug, duration, worker ID
+- Manual controls: Add plugin slug, Pause all workers, Clear failed jobs, Reset stale jobs
+- Configurable scan interval (minutes between job starts)
+
+**Worker panel:**
+- Active worker count with last heartbeat timestamp
+- Recommended worker count for current hardware
+- Copy-paste CLI command to start N workers
+- Stop all workers button (writes a stop flag file that workers poll)
+
+**Results panel:**
+- Total plugins scanned, average readiness score, score distribution chart
+- Filter by score band, activation status, date range
+- Per-plugin row: slug, version, score, errors, warnings, activation status, report link
+- Bulk actions: Queue for re-scan, Mark for outreach, Export CSV
+
+**Scan log panel:**
+- Shows which plugins have been scanned and when
+- Highlights plugins eligible for re-scan (version changed or >90 days old)
+
+---
+
+### Phase 15.7: Separation of Concerns — EvolveWP.Outreach Plugin
+
+EvolveWP.Verifier's responsibility ends at generating the report and storing results. Everything related to contacting plugin authors — email composition, sending, queuing, response tracking, campaign management — belongs in a separate plugin within the EvolveWP ecosystem.
+
+**Rationale:** Email outreach is a distinct domain from code verification. Mixing them would bloat EvolveWP.Verifier and create a plugin that does too many unrelated things. A dedicated outreach plugin can also serve other EvolveWP tools beyond EvolveWP.Verifier.
+
+**EvolveWP.Verifier exposes a clean API for the outreach plugin to consume:**
+
+```php
+// REST endpoint — returns completed audits not yet handed to outreach
+GET /wp-json/wpverifier/v1/audit-results?status=pending_outreach&limit=50
+
+// REST endpoint — marks an audit as handed off
+POST /wp-json/wpverifier/v1/audit-results/{id}/mark-outreach-sent
+
+// WordPress action hook — fired when a new audit completes
+do_action( 'wpv_audit_complete', $plugin_slug, $result_id, $report_path, $readiness_score );
+```
+
+The outreach plugin hooks into `wpv_audit_complete` and/or polls the REST endpoint to pick up new results.
+
+**Proposed outreach plugin name:** `EvolveWP.Outreach` — see ecosystem architecture note below.
+
+---
+
+### Phase 15.8: Ecosystem Architecture Note — EvolveWP.Outreach Plugin
+
+The question of where email campaign management, automation, and outreach logic lives across the EvolveWP ecosystem is worth resolving now before building.
+
+**Recommendation: a dedicated `EvolveWP.Outreach` plugin**, separate from both EvolveWP.Verifier and EvolveWP.PredictiveERP.
+
+**Reasoning:**
+- EvolveWP.PredictiveERP is business/financial intelligence — mixing outreach campaign logic into it would blur its purpose and make it harder to sell as a focused product
+- EvolveWP.Verifier is a developer tool — email campaigns are not part of its core value proposition
+- A standalone outreach plugin can hook into *any* EvolveWP tool that fires action hooks, making it the universal communication layer for the entire ecosystem
+- It can be offered as a free or paid add-on independently of EvolveWP.Verifier licensing
+
+**What `EvolveWP.Outreach` handles:**
+- Consuming audit results from WP Verifier via the REST API / action hooks
+- Maintaining a contact database of plugin authors (slug → email/contact method)
+- Email queue with configurable send rate (e.g. 10 emails per day, spread across business hours)
+- Email template library with variation support — multiple subject lines and body variants rotated to reduce spam appearance
+- Per-contact send history — never email the same author twice within a configurable window (default: 6 months)
+- Response tracking — if an author replies, flag their record for manual follow-up
+- Unsubscribe handling — one-click unsubscribe stored permanently, never contacts that address again
+- SMTP relay integration (Mailgun, SendGrid, or Postmark) — not localhost mail
+- Campaign analytics — open rates, reply rates, conversion tracking
+
+**What it does NOT handle:**
+- Running scans (WP Verifier's job)
+- Generating reports (WP Verifier's job)
+- Any ERP or financial data (WPPredictiveERP's job)
+
+**Integration pattern:**
+```
+EvolveWP.Verifier  →  fires wpv_audit_complete hook
+                       ↓
+EvolveWP.Outreach  →  queues email job
+                       ↓
+                   sends via SMTP relay at configured rate
+                       ↓
+                   records outcome, handles replies/unsubscribes
+```
+
+---
+
+### Phase 15 Milestones Summary
+
+| Milestone | Deliverable |
+|---|---|
+| 15.1 | Database schema — queue, results, scan log tables |
+| 15.2 | WordPress.org API discovery, download, rate limiting |
+| 15.3 | CLI worker — claim, scan, write results, stale job recovery |
+| 15.4 | Activation/deactivation testing with output capture |
+| 15.5 | Report generation — HTML + optional PDF, all 10 sections |
+| 15.6 | Audit pipeline dashboard — queue, workers, results, scan log |
+| 15.7 | WP Verifier REST API + action hook for outreach plugin integration |
+| 15.8 | EvolveWP Outreach plugin architecture decision documented |
+
+---
+
+## Ecosystem Plugin Naming Convention
+
+All plugins in the EvolveWP ecosystem follow the `EvolveWP.{ProductName}` naming convention. This satisfies WordPress.org guidelines ("WP" is not the first word), creates a consistent brand namespace, and reads cleanly in the repository where the Author field shows "EvolveWP".
+
+| Plugin Name | WordPress.org Slug | Status |
+|---|---|---|
+| EvolveWP.Verifier | `evolvewp-verifier` | In development |
+| EvolveWP.ClientJourney | `evolvewp-clientjourney` | Planned |
+| EvolveWP.OpsStudio | `evolvewp-opsstudio` | Planned |
+| EvolveWP.PredictiveERP | `evolvewp-predictiveerp` | Planned |
+| EvolveWP.Outreach | `evolvewp-outreach` | Planned (Phase 15) |
+
+The dot in the display name is a visual brand convention only — WordPress.org slugs use hyphens. Physical folder names on disk will be updated when each plugin reaches its first release.
+
+---
+
 ## Additional Notes
 
 ### Hash-Aware Ignore / Verify Workflow

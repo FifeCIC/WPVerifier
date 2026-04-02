@@ -133,7 +133,7 @@ class Use_Minimal_Theme_Preparation implements Preparation {
 		$theme = wp_get_theme( $this->theme_slug, $this->themes_dir );
 		if ( ! $theme->exists() ) {
 			throw new Exception(
-				__( 'Invalid theme: Theme does not exist for some reason.', 'wp-verifier' )
+				__( 'Invalid theme: Theme does not exist for some reason.', 'wpverifier' )
 			);
 		}
 		return $theme->display( 'Name' );

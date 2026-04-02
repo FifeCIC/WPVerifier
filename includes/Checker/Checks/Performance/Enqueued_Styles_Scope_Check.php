@@ -139,7 +139,7 @@ class Enqueued_Styles_Scope_Check extends Abstract_Runtime_Check implements With
 				if ( isset( $plugin_style['count'] ) && ( $url_count === $plugin_style['count'] ) ) {
 					$this->add_result_warning_for_file(
 						$result,
-						__( 'This style is being loaded in all contexts.', 'wp-verifier' ),
+						__( 'This style is being loaded in all contexts.', 'wpverifier' ),
 						'EnqueuedStylesScope',
 						$plugin_style['path']
 					);
@@ -201,7 +201,7 @@ class Enqueued_Styles_Scope_Check extends Abstract_Runtime_Check implements With
 				throw new Exception(
 					sprintf(
 						/* translators: %s: The Post Type name. */
-						__( 'Unable to retrieve post URL for post type: %s', 'wp-verifier' ),
+						__( 'Unable to retrieve post URL for post type: %s', 'wpverifier' ),
 						$post_type
 					)
 				);
@@ -284,7 +284,7 @@ class Enqueued_Styles_Scope_Check extends Abstract_Runtime_Check implements With
 	 * @return string Description.
 	 */
 	public function get_description(): string {
-		return __( 'Checks whether any stylesheets are loaded on all pages, which is usually not desirable and can lead to performance issues.', 'wp-verifier' );
+		return __( 'Checks whether any stylesheets are loaded on all pages, which is usually not desirable and can lead to performance issues.', 'wpverifier' );
 	}
 
 	/**
@@ -297,6 +297,6 @@ class Enqueued_Styles_Scope_Check extends Abstract_Runtime_Check implements With
 	 * @return string The documentation URL.
 	 */
 	public function get_documentation_url(): string {
-		return __( 'https://developer.wordpress.org/plugins/', 'wp-verifier' );
+		return __( 'https://developer.wordpress.org/plugins/', 'wpverifier' );
 	}
 }

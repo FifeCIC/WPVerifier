@@ -27,9 +27,9 @@ if ( $last_plugin ) {
 	<h2><?php wpverifier_header( 'Development Roadmap & Task Planning', 'ROADMAP-01' ); ?></h2>
 	
 	<div class="wpv-roadmap-intro">
-		<p><?php esc_html_e( 'This roadmap integrates development tasks with the existing plugin architecture, allowing for strategic planning and implementation tracking.', 'wp-verifier' ); ?></p>
+		<p><?php esc_html_e( 'This roadmap integrates development tasks with the existing plugin architecture, allowing for strategic planning and implementation tracking.', 'wpverifier' ); ?></p>
 		<?php if ( $current_plugin ) : ?>
-			<p><strong><?php esc_html_e( 'Context Plugin:', 'wp-verifier' ); ?></strong> <?php echo esc_html( $current_plugin['name'] ); ?> (<?php echo esc_html( $current_plugin['folder'] ); ?>)</p>
+			<p><strong><?php esc_html_e( 'Context Plugin:', 'wpverifier' ); ?></strong> <?php echo esc_html( $current_plugin['name'] ); ?> (<?php echo esc_html( $current_plugin['folder'] ); ?>)</p>
 		<?php endif; ?>
 	</div>
 

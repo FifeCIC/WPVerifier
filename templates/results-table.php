@@ -1,25 +1,25 @@
-<h4><?php wpverifier_header( __( 'FILE:', 'wp-verifier' ), 'FT01' ); ?> {{ data.file }}</h4>
+<h4><?php wpverifier_header( __( 'FILE:', 'wpverifier' ), 'FT01' ); ?> {{ data.file }}</h4>
 <table id="plugin-check__results-table-{{data.index}}" class="widefat striped plugin-check__results-table">
 	<thead>
 		<tr>
 			<td>
-				<?php esc_html_e( 'Line', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Line', 'wpverifier' ); ?>
 			</td>
 			<td>
-				<?php esc_html_e( 'Column', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Column', 'wpverifier' ); ?>
 			</td>
 			<td>
-				<?php esc_html_e( 'Type', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Type', 'wpverifier' ); ?>
 			</td>
 			<td>
-				<?php esc_html_e( 'Code', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Code', 'wpverifier' ); ?>
 			</td>
 			<td>
-				<?php esc_html_e( 'Message', 'wp-verifier' ); ?>
+				<?php esc_html_e( 'Message', 'wpverifier' ); ?>
 			</td>
 			<# if ( data.hasLinks ) { #>
 				<td>
-					<?php esc_html_e( 'Edit Link', 'wp-verifier' ); ?>
+					<?php esc_html_e( 'Edit Link', 'wpverifier' ); ?>
 				</td>
 			<# } #>
 		</tr>

@@ -10,6 +10,9 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+
 use InvalidArgumentException;
 use WordPress\Plugin_Check\Verification\Results_Storage;
 use WordPress\Plugin_Check\Utilities\Results_Exporter;
@@ -69,13 +72,13 @@ class Results_AJAX_Handler {
 			$result = $results_storage->save_results_data( $processed_data );
 			
 			if ( ! $result ) {
-				throw new InvalidArgumentException( __( 'Failed to save results.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Failed to save results.', 'wpverifier' ) );
 			}
 
 			$json_file = $this->get_results_file_path( $plugin_slug );
 			
 			wp_send_json_success( array(
-				'message' => __( 'Results saved successfully.', 'wp-verifier' ),
+				'message' => __( 'Results saved successfully.', 'wpverifier' ),
 				'path' => $json_file
 			) );
 			
@@ -96,14 +99,14 @@ class Results_AJAX_Handler {
 		try {
 			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin_slug ) ) {
-				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wpverifier' ) );
 			}
 			
 			$results_storage = new Results_Storage( $plugin_slug );
 			$data = $results_storage->load_results_data();
 			
 			if ( empty( $data ) || ! isset( $data['results'] ) ) {
-				throw new InvalidArgumentException( __( 'No saved results found.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'No saved results found.', 'wpverifier' ) );
 			}
 			
 			// Load and merge AI guidance
@@ -197,18 +200,18 @@ class Results_AJAX_Handler {
 		try {
 			$plugin_slug = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			if ( empty( $plugin_slug ) ) {
-				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin slug is required.', 'wpverifier' ) );
 			}
 
 			$plugin_base_path = Path_Builder::get_plugin_file_path( $plugin_slug );
 			if ( ! $plugin_base_path || ! file_exists( $plugin_base_path ) ) {
-				throw new InvalidArgumentException( __( 'Plugin directory not found.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin directory not found.', 'wpverifier' ) );
 			}
 
 			$this->delete_directory( $plugin_base_path );
 
 			wp_send_json_success( array(
-				'message' => __( 'Results deleted successfully.', 'wp-verifier' ),
+				'message' => __( 'Results deleted successfully.', 'wpverifier' ),
 			) );
 
 		} catch ( InvalidArgumentException $exception ) {
@@ -230,11 +233,11 @@ class Results_AJAX_Handler {
 			$file = isset( $_POST['file'] ) ? sanitize_text_field( wp_unslash( $_POST['file'] ) ) : '';
 
 			if ( empty( $plugin ) || empty( $file ) ) {
-				throw new InvalidArgumentException( __( 'Plugin and file are required.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'Plugin and file are required.', 'wpverifier' ) );
 			}
 
 			if ( ! file_exists( $file ) ) {
-				throw new InvalidArgumentException( __( 'File does not exist.', 'wp-verifier' ) );
+				throw new InvalidArgumentException( __( 'File does not exist.', 'wpverifier' ) );
 			}
 
 			// Run PHPCS directly on single file
@@ -244,7 +247,7 @@ class Results_AJAX_Handler {
 			$this->update_file_results( $plugin, $file, $results['errors'], $results['warnings'] );
 
 			wp_send_json_success( array(
-				'message' => __( 'File rechecked successfully.', 'wp-verifier' ),
+				'message' => __( 'File rechecked successfully.', 'wpverifier' ),
 				'errors' => $results['errors'],
 				'warnings' => $results['warnings'],
 			) );
@@ -263,12 +266,12 @@ class Results_AJAX_Handler {
 	private function extract_results_payload() {
 		$raw_results = isset( $_POST['results'] ) ? wp_unslash( $_POST['results'] ) : '';
 		if ( '' === $raw_results ) {
-			throw new InvalidArgumentException( __( 'Invalid or empty results payload.', 'wp-verifier' ) );
+			throw new InvalidArgumentException( esc_html__( 'Invalid or empty results payload.', 'wpverifier' ) );
 		}
 
 		$decoded_results = json_decode( $raw_results, true );
 		if ( null === $decoded_results || JSON_ERROR_NONE !== json_last_error() ) {
-			throw new InvalidArgumentException( __( 'Malformed results payload.', 'wp-verifier' ) );
+			throw new InvalidArgumentException( esc_html__( 'Malformed results payload.', 'wpverifier' ) );
 		}
 
 		return array(
@@ -513,7 +516,10 @@ class Results_AJAX_Handler {
 		// Atomic write via temp file to avoid partial writes corrupting the JSON.
 		$temp_path = $json_file . '.tmp';
 		if ( false !== file_put_contents( $temp_path, wp_json_encode( $data, JSON_PRETTY_PRINT ), LOCK_EX ) ) {
-			rename( $temp_path, $json_file );
+			$wp_filesystem = $this->get_wp_filesystem();
+			if ( $wp_filesystem ) {
+				$wp_filesystem->move( $temp_path, $json_file, true );
+			}
 		}
 	}
 
@@ -531,10 +537,13 @@ class Results_AJAX_Handler {
 			if ( is_dir( $path ) ) {
 				$this->delete_directory( $path );
 			} else {
-				unlink( $path );
+				wp_delete_file( $path );
 			}
 		}
-		rmdir( $dir );
+		$wp_filesystem = $this->get_wp_filesystem();
+		if ( $wp_filesystem ) {
+			$wp_filesystem->rmdir( $dir );
+		}
 	}
 
 	/**
@@ -553,13 +562,25 @@ class Results_AJAX_Handler {
 	 */
 	private function verify_request( $nonce ) {
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_KEY ) ) {
-			return new \WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wp-verifier' ) );
+			return new \WP_Error( 'invalid-nonce', __( 'Invalid nonce', 'wpverifier' ) );
 		}
 
 		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return new \WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wp-verifier' ) );
+			return new \WP_Error( 'invalid-permissions', __( 'Invalid user permissions, you are not allowed to perform this request.', 'wpverifier' ) );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get WP_Filesystem instance
+	 */
+	private function get_wp_filesystem() {
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+		return $wp_filesystem;
 	}
 }
