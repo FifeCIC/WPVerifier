@@ -142,7 +142,7 @@ class Non_Blocking_Scripts_Check extends Abstract_Runtime_Check implements With_
 				throw new Exception(
 					sprintf(
 						/* translators: %s: The Post Type name. */
-						__( 'Unable to retrieve post URL for post type: %s', 'wpverifier' ),
+						esc_html__( 'Unable to retrieve post URL for post type: %s', 'wpverifier' ),
 						$post_type
 					)
 				);

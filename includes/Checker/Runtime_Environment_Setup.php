@@ -1,4 +1,6 @@
 <?php
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Class WordPress\Plugin_Check\Checker\Runtime_Environment_Setup
  *

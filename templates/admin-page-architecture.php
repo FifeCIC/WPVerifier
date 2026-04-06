@@ -1,4 +1,6 @@
 <?php
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Template for Architecture tab - Plugin Check Process Flow
  *

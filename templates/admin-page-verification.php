@@ -1,4 +1,6 @@
 <?php
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Verification Tab - Consolidated Basic & Advanced Verification
  * Merged from admin-page-basic-verification.php and admin-page-advanced-verification.php

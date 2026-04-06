@@ -112,7 +112,7 @@ final class Results_Exporter {
 		$format = strtolower( (string) $format );
 
 		if ( ! in_array( $format, array( self::FORMAT_CSV, self::FORMAT_JSON, self::FORMAT_MARKDOWN ), true ) ) {
-			throw new InvalidArgumentException( __( 'Unsupported export format.', 'wpverifier' ) );
+			throw new InvalidArgumentException( esc_html__( 'Unsupported export format.', 'wpverifier' ) );
 		}
 
 		$grouped = self::get_grouped_results( $errors, $warnings );

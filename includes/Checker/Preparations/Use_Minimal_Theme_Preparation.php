@@ -1,4 +1,6 @@
 <?php
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Class WordPress\Plugin_Check\Checker\Preparations\Use_Minimal_Theme_Preparation
  *

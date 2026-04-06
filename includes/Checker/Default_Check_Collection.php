@@ -158,7 +158,7 @@ class Default_Check_Collection implements Check_Collection {
 				throw new Invalid_Check_Slug_Exception(
 					sprintf(
 						/* translators: %s: The Check slug. */
-						__( 'Check with the slug "%s" does not exist.', 'wpverifier' ),
+						esc_html__( 'Check with the slug "%s" does not exist.', 'wpverifier' ),
 						$slug
 					)
 				);

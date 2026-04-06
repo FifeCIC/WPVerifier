@@ -1,4 +1,6 @@
 <?php
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Configuration Tab - Plugin Setup, Vendor Detection & Hash Generation
  * Consolidated from admin-page-preparation.php and admin-page-hash-generation.php
