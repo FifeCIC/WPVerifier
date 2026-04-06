@@ -140,6 +140,14 @@ In any case, passing the checks in this tool likely helps to achieve a smooth pl
 * Fixed: Renamed wp_plugin_check_checks filter hook to wpverifier_checks for prefix compliance
 * Fixed: Renamed $context and $plugin_command globals to $wpverifier_context and $wpverifier_plugin_command for prefix compliance
 * Fixed: Wrapped 60 wpv_get_vscode_button() echo calls in wp_kses_post() in admin-page-architecture.php for output escaping compliance
+* Fixed: Escaped exception messages across 13 checker and utility files for WordPress output escaping standards
+* Fixed: Replaced rename() with WP_Filesystem::move() in Config_Storage and Results_Storage
+* Fixed: Added ABSPATH direct access protection to 9 template and core files
+* Removed: False positive checker-self-detection issues (obfuscated_code_detected, plugin_updater_detected)
+* Removed: Template file NonPrefixedVariableFound false positives (local scope variables, not globals)
+* Removed: Test file issues (development test scripts, not production code)
+* Removed: Runtime-content theme issues (test environment, not plugin code)
+* Fixed: Wrapped 24 wpv_get_vscode_button() echo calls in wp_kses_post() in admin-page-roadmap.php
 
 **CONSOLIDATION UPDATE:**
 * Consolidated: Template files reduced through merging similar functionality

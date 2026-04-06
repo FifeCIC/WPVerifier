@@ -283,15 +283,6 @@
                                                                        "line":  135,
                                                                        "column":  101,
                                                                        "ignored":  false
-                                                                   },
-                                                                   {
-                                                                       "issue_id":  "E-bec7a322",
-                                                                       "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                       "code":  "missing_direct_file_access_protection",
-                                                                       "type":  "ERROR",
-                                                                       "line":  0,
-                                                                       "column":  0,
-                                                                       "ignored":  false
                                                                    }
                                                                ],
                     "templates/admin-page-results.php":  [
@@ -349,15 +340,6 @@
                                                                       "type":  "ERROR",
                                                                       "line":  91,
                                                                       "column":  193,
-                                                                      "ignored":  false
-                                                                  },
-                                                                  {
-                                                                      "issue_id":  "E-4c4d89d5",
-                                                                      "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                      "code":  "missing_direct_file_access_protection",
-                                                                      "type":  "ERROR",
-                                                                      "line":  0,
-                                                                      "column":  0,
                                                                       "ignored":  false
                                                                   }
                                                               ],
@@ -743,17 +725,6 @@
                                                                  "ignored":  false
                                                              }
                                                          ],
-                    "includes/Checker/Preparations/Use_Minimal_Theme_Preparation.php":  [
-                                                                                            {
-                                                                                                "issue_id":  "E-21a5ffd4",
-                                                                                                "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                                                "code":  "missing_direct_file_access_protection",
-                                                                                                "type":  "ERROR",
-                                                                                                "line":  0,
-                                                                                                "column":  0,
-                                                                                                "ignored":  false
-                                                                                            }
-                                                                                        ],
                     "includes/Utilities/Results_Exporter.php":  [
                                                                     {
                                                                         "issue_id":  "E-0c26d86f",
@@ -776,15 +747,6 @@
                                                                 ],
                     "templates/admin-page-architecture.php":  [
                                                                   {
-                                                                      "issue_id":  "E-d5a09c2d",
-                                                                      "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                      "code":  "missing_direct_file_access_protection",
-                                                                      "type":  "ERROR",
-                                                                      "line":  0,
-                                                                      "column":  0,
-                                                                      "ignored":  false
-                                                                  },
-                                                                  {
                                                                       "issue_id":  "W-71d6bfdc",
                                                                       "message":  "Functions declared in the global namespace by a theme/plugin should start with the theme/plugin prefix. Found: \u0026quot;validate_plugin_files\u0026quot;.",
                                                                       "code":  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound",
@@ -794,234 +756,7 @@
                                                                       "ignored":  false
                                                                   }
                                                               ],
-                    "templates/admin-page-roadmap.php":  [
-                                                             {
-                                                                 "issue_id":  "E-073192f6",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  125,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-6a795552",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  133,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-916f7e2a",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  174,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-a194f5ea",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  178,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-2ed0c7de",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  209,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-3c44cd0b",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  321,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-b08acf03",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  322,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-91ed972d",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  380,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-6210fbbc",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  381,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-9c7b8243",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  386,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-c1afd23a",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  392,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-a3eb3d72",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  438,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-730ad8b5",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  444,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-1eaf1c2d",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  450,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-dbe384f6",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  510,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-d6665950",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  516,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-074b1d9a",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  522,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-c92779dc",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  568,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-d427630a",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  574,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-3f2d1f93",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  580,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-369dd648",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  629,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-a0e73104",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  630,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-e8a31194",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  635,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             },
-                                                             {
-                                                                 "issue_id":  "E-7a77016f",
-                                                                 "message":  "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found \u0026#039;wpv_get_vscode_button\u0026#039;.",
-                                                                 "code":  "WordPress.Security.EscapeOutput.OutputNotEscaped",
-                                                                 "type":  "ERROR",
-                                                                 "line":  679,
-                                                                 "column":  44,
-                                                                 "ignored":  false
-                                                             }
-                                                         ],
                     "drop-ins/object-cache.copy.php":  [
-                                                           {
-                                                               "issue_id":  "E-04574425",
-                                                               "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                               "code":  "missing_direct_file_access_protection",
-                                                               "type":  "ERROR",
-                                                               "line":  0,
-                                                               "column":  0,
-                                                               "ignored":  false
-                                                           },
                                                            {
                                                                "issue_id":  "W-4127a8cb",
                                                                "message":  "Global constants defined by a theme/plugin should start with the theme/plugin prefix. Found: \u0026quot;WP_PLUGIN_CHECK_OBJECT_CACHE_DROPIN_VERSION\u0026quot;.",
@@ -1042,15 +777,6 @@
                                                            }
                                                        ],
                     "includes/Checker/Runtime_Environment_Setup.php":  [
-                                                                           {
-                                                                               "issue_id":  "E-aba0ce50",
-                                                                               "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                               "code":  "missing_direct_file_access_protection",
-                                                                               "type":  "ERROR",
-                                                                               "line":  0,
-                                                                               "column":  0,
-                                                                               "ignored":  false
-                                                                           },
                                                                            {
                                                                                "issue_id":  "W-f4d0c88f",
                                                                                "message":  "Use of a direct database call is discouraged.",
@@ -1126,15 +852,6 @@
                                                                        ],
                     "plugin.php":  [
                                        {
-                                           "issue_id":  "E-8edddd53",
-                                           "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                           "code":  "missing_direct_file_access_protection",
-                                           "type":  "ERROR",
-                                           "line":  0,
-                                           "column":  0,
-                                           "ignored":  false
-                                       },
-                                       {
                                            "issue_id":  "W-f8aabdc2",
                                            "message":  "The plugin name includes a restricted term. Your chosen plugin name - \"WP Verifier\" - contains the restricted term \"wp\" which cannot be used at all in your plugin name.",
                                            "code":  "trademarked_term",
@@ -1180,27 +897,7 @@
                                            "ignored":  false
                                        }
                                    ],
-                    "templates/admin-page-monitoring.php":  [
-                                                                {
-                                                                    "issue_id":  "E-0eed1e33",
-                                                                    "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                    "code":  "missing_direct_file_access_protection",
-                                                                    "type":  "ERROR",
-                                                                    "line":  0,
-                                                                    "column":  0,
-                                                                    "ignored":  false
-                                                                }
-                                                            ],
                     "templates/admin-page-select-plugin.php":  [
-                                                                   {
-                                                                       "issue_id":  "E-6b59a638",
-                                                                       "message":  "PHP file should prevent direct access. Add a check like: if ( ! defined( \u0027ABSPATH\u0027 ) ) exit;",
-                                                                       "code":  "missing_direct_file_access_protection",
-                                                                       "type":  "ERROR",
-                                                                       "line":  0,
-                                                                       "column":  0,
-                                                                       "ignored":  false
-                                                                   },
                                                                    {
                                                                        "issue_id":  "W-8ee5f104",
                                                                        "message":  "Processing form data without nonce verification.",

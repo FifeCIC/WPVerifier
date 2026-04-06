@@ -122,7 +122,7 @@ if ( $last_plugin ) {
 						<div class="wpv-roadmap-architecture-column">
 							<h4>Files to Modify</h4>
 							<div class="wpv-roadmap-arch-item">
-								<?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1011, 0, null, 'mark_issue_as_ignored()', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1011, 0, null, 'mark_issue_as_ignored()', 'button-link' ) ); ?><br>
 								Add all-ignored check + call mark_file_as_ignored()
 							</div>
 							<div class="wpv-roadmap-arch-item">
@@ -130,7 +130,7 @@ if ( $last_plugin ) {
 								In Verification_AJAX_Handler.php
 							</div>
 							<div class="wpv-roadmap-arch-item">
-								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?><br>
 								Add: write_ignored_file(), get_ignored_files()
 							</div>
 						</div>
@@ -171,11 +171,11 @@ if ( $last_plugin ) {
 						<div class="wpv-roadmap-architecture-column">
 							<h4>Files to Modify</h4>
 							<div class="wpv-roadmap-arch-item">
-								<?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ) ); ?><br>
 								Add ignored_files loading and hash comparison logic
 							</div>
 							<div class="wpv-roadmap-arch-item">
-								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?><br>
 								Add: get_ignored_files(), remove_ignored_file()
 							</div>
 						</div>
@@ -206,7 +206,7 @@ if ( $last_plugin ) {
 						<div class="wpv-roadmap-architecture-column">
 							<h4>Files to Modify</h4>
 							<div class="wpv-roadmap-arch-item">
-								<?php echo wpv_get_vscode_button( 'templates/admin-page-results.php', 0, 0, null, 'admin-page-results.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-results.php', 0, 0, null, 'admin-page-results.php', 'button-link' ) ); ?><br>
 								Add ignored files panel reading from .wpv-verification.json
 							</div>
 							<div class="wpv-roadmap-arch-item">
@@ -318,8 +318,8 @@ if ( $last_plugin ) {
 							<h4>🏗️ Architecture Integration</h4>
 							<div class="wpv-roadmap-arch-item">
 								<strong>Primary Files:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
-								<?php echo wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ); ?>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ) ); ?>
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
@@ -377,19 +377,19 @@ if ( $last_plugin ) {
 							<h4>🏗️ Architecture Integration</h4>
 							<div class="wpv-roadmap-arch-item">
 								<strong>Template Files:</strong><br>
-								<?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 0, 0, null, 'admin-page-issues.php', 'button-link' ); ?> → Rename to functions<br>
-								<?php echo wpv_get_vscode_button( 'templates/admin-page-architecture.php', 0, 0, null, 'admin-page-architecture.php', 'button-link' ); ?> - Copy accordion pattern
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-issues.php', 0, 0, null, 'admin-page-issues.php', 'button-link' ) ); ?> → Rename to functions<br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-architecture.php', 0, 0, null, 'admin-page-architecture.php', 'button-link' ) ); ?> - Copy accordion pattern
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>JavaScript Files:</strong><br>
-								<?php echo wpv_get_vscode_button( 'assets/js/admin-issues.js', 0, 0, null, 'admin-issues.js', 'button-link' ); ?> → Update for functions<br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/admin-issues.js', 0, 0, null, 'admin-issues.js', 'button-link' ) ); ?> → Update for functions<br>
 								<code>admin-functions.js</code> - New function-based logic
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>CSS Updates:</strong><br>
-								<?php echo wpv_get_vscode_button( 'assets/css/wp-verifier-tabs.css', 0, 0, null, 'wp-verifier-tabs.css', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'assets/css/wp-verifier-tabs.css', 0, 0, null, 'wp-verifier-tabs.css', 'button-link' ) ); ?><br>
 								Function accordion styling, badges, action buttons
 							</div>
 						</div>
@@ -435,19 +435,19 @@ if ( $last_plugin ) {
 							<h4>🏗️ Architecture Integration</h4>
 							<div class="wpv-roadmap-arch-item">
 								<strong>Storage System:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?><br>
 								<code>.wpv-verification.json</code> - Function status tracking
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>AJAX Handlers:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ) ); ?><br>
 								New function-level action endpoints
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>Hash System:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ) ); ?><br>
 								Function-specific hash generation and validation
 							</div>
 						</div>
@@ -507,19 +507,19 @@ if ( $last_plugin ) {
 							<h4>🏗️ Architecture Integration</h4>
 							<div class="wpv-roadmap-arch-item">
 								<strong>Core Integration:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ) ); ?><br>
 								Progress updates during check execution
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>AJAX System:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ) ); ?><br>
 								New progress polling endpoint
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>File Processing:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ) ); ?><br>
 								File counting and progress tracking
 							</div>
 						</div>
@@ -565,19 +565,19 @@ if ( $last_plugin ) {
 							<h4>🏗️ Architecture Integration</h4>
 							<div class="wpv-roadmap-arch-item">
 								<strong>JavaScript Files:</strong><br>
-								<?php echo wpv_get_vscode_button( 'assets/js/plugin-check.js', 0, 0, null, 'plugin-check.js', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/plugin-check.js', 0, 0, null, 'plugin-check.js', 'button-link' ) ); ?><br>
 								Progress simulation replacement
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>UI Templates:</strong><br>
-								<?php echo wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ) ); ?><br>
 								Enhanced progress display elements
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>CSS Styling:</strong><br>
-								<?php echo wpv_get_vscode_button( 'assets/css/wp-verifier-tabs.css', 0, 0, null, 'wp-verifier-tabs.css', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'assets/css/wp-verifier-tabs.css', 0, 0, null, 'wp-verifier-tabs.css', 'button-link' ) ); ?><br>
 								Progress bar enhancements, phase indicators
 							</div>
 						</div>
@@ -626,13 +626,13 @@ if ( $last_plugin ) {
 							<h4>🏗️ Architecture Integration</h4>
 							<div class="wpv-roadmap-arch-item">
 								<strong>JavaScript Files:</strong><br>
-								<?php echo wpv_get_vscode_button( 'assets/js/plugin-check-preparation.js', 0, 0, null, 'plugin-check-preparation.js', 'button-link' ); ?><br>
-								<?php echo wpv_get_vscode_button( 'assets/js/plugin-check.js', 0, 0, null, 'plugin-check.js', 'button-link' ); ?>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/plugin-check-preparation.js', 0, 0, null, 'plugin-check-preparation.js', 'button-link' ) ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/plugin-check.js', 0, 0, null, 'plugin-check.js', 'button-link' ) ); ?>
 							</div>
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>Asset Management:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Admin/Asset_Manager.php', 0, 0, null, 'Asset_Manager.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Asset_Manager.php', 0, 0, null, 'Asset_Manager.php', 'button-link' ) ); ?><br>
 								Localization object creation
 							</div>
 						</div>
@@ -676,7 +676,7 @@ if ( $last_plugin ) {
 							
 							<div class="wpv-roadmap-arch-item">
 								<strong>Verification System:</strong><br>
-								<?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
+								<?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?><br>
 								Enhanced verification tracking
 							</div>
 						</div>

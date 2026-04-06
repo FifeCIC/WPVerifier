@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Plugin Name: Plugin Check Object Cache Drop-In
  * Plugin URI: https://github.com/WordPress/plugin-check

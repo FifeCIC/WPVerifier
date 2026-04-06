@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Plugin Name: WP Verifier
  * Plugin URI: https://github.com/FifeCIC/WPVerifier
