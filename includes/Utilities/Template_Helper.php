@@ -80,13 +80,13 @@ class Template_Helper {
         }
         
         if (empty($available_plugins)) {
-            return '<p style="color: #d63638;">' . esc_html__('No plugins found.', 'wp-verifier') . '</p>';
+            return '<p style="color: #d63638;">' . esc_html__('No plugins found.', 'wpverifier') . '</p>';
         }
         
         ob_start();
         ?>
         <select name="plugin" style="min-width: 300px;">
-            <option value=""><?php esc_html_e('-- Select Plugin --', 'wp-verifier'); ?></option>
+            <option value=""><?php esc_html_e('-- Select Plugin --', 'wpverifier'); ?></option>
             <?php foreach ($available_plugins as $basename => $data) : ?>
                 <option value="<?php echo esc_attr($basename); ?>" <?php selected($current_plugin, $basename); ?>>
                     <?php echo esc_html($data['Name']); ?>
@@ -104,13 +104,13 @@ class Template_Helper {
         $messages = array();
         
         if (isset($_GET['added']) && '1' === $_GET['added']) {
-            $messages[] = array('type' => 'success', 'message' => __('Operation completed successfully.', 'wp-verifier'));
+            $messages[] = array('type' => 'success', 'message' => __('Operation completed successfully.', 'wpverifier'));
         }
         if (isset($_GET['removed']) && '1' === $_GET['removed']) {
-            $messages[] = array('type' => 'success', 'message' => __('Item removed successfully.', 'wp-verifier'));
+            $messages[] = array('type' => 'success', 'message' => __('Item removed successfully.', 'wpverifier'));
         }
         if (isset($_GET['imported']) && '1' === $_GET['imported']) {
-            $messages[] = array('type' => 'success', 'message' => __('Data imported successfully.', 'wp-verifier'));
+            $messages[] = array('type' => 'success', 'message' => __('Data imported successfully.', 'wpverifier'));
         }
         if (isset($_GET['error'])) {
             $messages[] = array('type' => 'error', 'message' => sanitize_text_field($_GET['error']));

@@ -1,3 +1,14 @@
+<?php
+/**
+ * Results table template for displaying check results grouped by file.
+ *
+ * @package WPVerifier
+ * @version 1.9.0 Added ABSPATH direct access protection.
+ */
+
+// Prevent direct file access for security.
+if ( ! defined( 'ABSPATH' ) ) exit;
+?>
 <h4><?php wpverifier_header( __( 'FILE:', 'wpverifier' ), 'FT01' ); ?> {{ data.file }}</h4>
 <table id="plugin-check__results-table-{{data.index}}" class="widefat striped plugin-check__results-table">
 	<thead>

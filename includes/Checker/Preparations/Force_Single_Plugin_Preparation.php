@@ -5,6 +5,9 @@
  * @package plugin-check
  */
 
+// Prevent direct file access for security.
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 namespace WordPress\Plugin_Check\Checker\Preparations;
 
 use Exception;
@@ -17,6 +20,7 @@ use WP_Plugin_Dependencies;
  * This ensures the plugin is checked as much in isolation as possible.
  *
  * @since 1.0.0
+ * @version 1.9.0 Added ABSPATH direct access protection.
  */
 class Force_Single_Plugin_Preparation implements Preparation {
 

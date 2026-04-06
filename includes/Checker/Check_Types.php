@@ -22,6 +22,7 @@ class Check_Types {
 	 * Returns an array of check types.
 	 *
 	 * @since 1.8.0
+	 * @version 1.9.0 Renamed filter hook to use the wpverifier prefix.
 	 *
 	 * @return array An array of check types.
 	 */
@@ -35,10 +36,12 @@ class Check_Types {
 		 * Filters the check types.
 		 *
 		 * @since 1.8.0
+		 * @since 1.9.0 Renamed from 'wp_plugin_check_types' to use plugin prefix.
 		 *
 		 * @param array<string, string> $default_types Associative array of type slugs to labels.
 		 */
-		$check_types = (array) apply_filters( 'wp_plugin_check_types', $default_types );
+		// Prefixed with wpverifier_ to comply with WordPress global naming conventions.
+		$check_types = (array) apply_filters( 'wpverifier_check_types', $default_types );
 
 		return $check_types;
 	}

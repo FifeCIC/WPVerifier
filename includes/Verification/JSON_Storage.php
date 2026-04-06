@@ -52,10 +52,16 @@ class JSON_Storage {
 	}
 
 	/**
-	 * Save verification data to JSON file
+	 * Save verification data to JSON file.
 	 *
-	 * @param array $data Verification data to save
-	 * @return bool True on success, false on failure
+	 * Uses an atomic write pattern: data is written to a temporary file first,
+	 * then moved over the original to prevent corruption on partial writes.
+	 *
+	 * @since 1.0.0
+	 * @version 1.9.0 Replaced rename() with WP_Filesystem::move() per WordPress coding standards.
+	 *
+	 * @param array $data Verification data to save.
+	 * @return bool True on success, false on failure.
 	 */
 	public function save_verification_data( $data ) {
 		$file_path = $this->get_verification_file_path();
@@ -79,7 +85,14 @@ class JSON_Storage {
 			return false;
 		}
 
-		return rename( $temp_path, $file_path );
+		// Use WP_Filesystem to move the temp file over the original, replacing rename().
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		return $wp_filesystem->move( $temp_path, $file_path, true );
 	}
 
 	/**

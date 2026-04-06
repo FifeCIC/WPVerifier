@@ -60,6 +60,7 @@ class Plugin_Context {
 	 * @since 1.0.0
 	 * @since 1.2.0 Second argument $slug was introduced.
 	 * @since 1.7.0 Third argument $mode was introduced.
+	 * @version 1.9.0 Escaped exception message for WordPress output escaping standards.
 	 *
 	 * @param string $main_file The absolute path to the plugin main file.
 	 * @param string $slug      The plugin slug.
@@ -73,8 +74,9 @@ class Plugin_Context {
 		} elseif ( function_exists( '\WP_CLI\Utils\normalize_path' ) ) {
 			$this->main_file = normalize_path( $main_file );
 		} else {
+			// Escaped to satisfy WordPress output escaping standards for exception messages.
 			throw new Exception(
-				__( 'Unknown environment, normalize_path function not found', 'wpverifier' )
+				esc_html__( 'Unknown environment, normalize_path function not found', 'wpverifier' )
 			);
 		}
 

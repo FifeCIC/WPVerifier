@@ -1283,7 +1283,10 @@ abstract class PHP_Parser {
 	}
 
 	/**
-	 * Validates whether a given function call can be initialized as a define call.
+	 * Validates whether a given function call can be initialised as a define call.
+	 *
+	 * @since 1.0.0
+	 * @version 1.9.0 Removed var_dump() debug call for production safety.
 	 *
 	 * @param mixed  $function_call The function call to validate.
 	 * @param string $file The file where the function call resides, used for error reporting.
@@ -1307,7 +1310,7 @@ abstract class PHP_Parser {
 				if ( get_class( $element ) === 'PhpParser\Node\Expr\ConstFetch' ) {
 					$included_const_fetch_name = $element->name->__toString();
 					if ( $define_name === $included_const_fetch_name ) {
-						var_dump( 'IS ERROR: Infinite loop detected. Define ' . $define_name . ' at ' . $file . ':' . ( method_exists( $function_call, 'getStartLine' ) ? $function_call->getStartLine() : 0 ) . ' is defined using the value of the same define. Ignoring this define.' );
+						// Infinite loop detected — define references itself. Return false to skip it.
 						return false;
 					}
 				}

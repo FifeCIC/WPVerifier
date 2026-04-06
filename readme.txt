@@ -120,6 +120,27 @@ In any case, passing the checks in this tool likely helps to achieve a smooth pl
 
 = 1.9.0 =
 
+**CODE QUALITY:**
+* Fixed: Escaped exception message in Demo_Posts_Creation_Preparation to satisfy WordPress output escaping standards
+* Fixed: Escaped exception message in Plugin_Context constructor for WordPress output escaping compliance
+* Fixed: Replaced strip_tags() with wp_strip_all_tags() in Readme Parser for WordPress coding standards compliance
+* Fixed: Replaced rename() with WP_Filesystem::move() in JSON_Storage for WordPress filesystem API compliance
+* Fixed: Added ABSPATH direct access protection to Force_Single_Plugin_Preparation
+* Fixed: Added ABSPATH direct access protection to Plugin_Check_Command
+* Fixed: Added ABSPATH direct access protection to results-ast.php template
+* Fixed: Added ABSPATH direct access protection to results-complete.php template
+* Fixed: Added ABSPATH direct access protection to results-row.php template
+* Fixed: Added ABSPATH direct access protection to results-table.php template
+* Fixed: Added isset() validation for $_FILES tmp_name in Ignore_Rules_Handler before file access
+* Fixed: Removed var_dump() debug call from PHP_Parser infinite loop detection
+* Fixed: Removed error_log() debug call from Readiness_Score calculation
+* Fixed: Renamed wp_plugin_check_restricted_textdomains filter hook to wpverifier_restricted_textdomains for prefix compliance
+* Fixed: Renamed wp_plugin_check_categories filter hook to wpverifier_check_categories for prefix compliance
+* Fixed: Renamed wp_plugin_check_types filter hook to wpverifier_check_types for prefix compliance
+* Fixed: Renamed wp_plugin_check_checks filter hook to wpverifier_checks for prefix compliance
+* Fixed: Renamed $context and $plugin_command globals to $wpverifier_context and $wpverifier_plugin_command for prefix compliance
+* Fixed: Wrapped 60 wpv_get_vscode_button() echo calls in wp_kses_post() in admin-page-architecture.php for output escaping compliance
+
 **CONSOLIDATION UPDATE:**
 * Consolidated: Template files reduced through merging similar functionality
 * Consolidated: JavaScript files reduced from 12 to 6 files (46% reduction)

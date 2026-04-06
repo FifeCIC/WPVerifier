@@ -7,6 +7,9 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+
 use WordPress\Plugin_Check\Verification\Hash_Generator;
 use WordPress\Plugin_Check\Verification\JSON_Storage;
 use WordPress\Plugin_Check\Verification\Verification_Matcher;
@@ -80,8 +83,8 @@ class Verification_Status {
 								printf(
 									/* translators: %1$d: number of verified files, %2$d: number of verified functions */
 									esc_html__( '%1$d files, %2$d functions tracked', 'wpverifier' ),
-									$total_files,
-									$total_functions
+									intval( $total_files ),
+									intval( $total_functions )
 								);
 								?>
 							</span>
@@ -175,7 +178,10 @@ class Verification_Status {
 			add_action( 'admin_notices', function() use ( $e ) {
 				?>
 				<div class="notice notice-error is-dismissible">
-					<p><?php printf( esc_html__( 'Hash tracking system test failed: %s', 'wpverifier' ), esc_html( $e->getMessage() ) ); ?></p>
+					<p><?php
+						/* translators: %s: error message */
+						printf( esc_html__( 'Hash tracking system test failed: %s', 'wpverifier' ), esc_html( $e->getMessage() ) );
+					?></p>
 				</div>
 				<?php
 			});

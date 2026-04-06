@@ -678,14 +678,17 @@ class Parser {
 	}
 
 	/**
-	 * @access protected
+	 * Sanitize text by stripping tags and escaping.
 	 *
-	 * @param string $text
-	 * @return string
+	 * @access protected
+	 * @version 1.9.0 Replaced strip_tags() with wp_strip_all_tags() per WordPress coding standards.
+	 *
+	 * @param string $text The text to sanitise.
+	 * @return string Sanitised text.
 	 */
 	protected function sanitize_text( $text ) {
-		// not fancy
-		$text = strip_tags( $text );
+		// Use wp_strip_all_tags() instead of strip_tags() for more comprehensive tag removal.
+		$text = wp_strip_all_tags( $text );
 		$text = esc_html( $text );
 		$text = trim( $text );
 

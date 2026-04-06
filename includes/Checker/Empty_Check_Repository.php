@@ -47,8 +47,8 @@ class Empty_Check_Repository implements Check_Repository {
 			throw new Exception(
 				sprintf(
 					/* translators: %s: The Check slug. */
-					__( 'Check with slug "%s" must be an instance of Runtime_Check or Static_Check.', 'wpverifier' ),
-					$slug
+					esc_html__( 'Check with slug "%s" must be an instance of Runtime_Check or Static_Check.', 'wpverifier' ),
+					esc_html( $slug )
 				)
 			);
 		}
@@ -57,8 +57,8 @@ class Empty_Check_Repository implements Check_Repository {
 			throw new Exception(
 				sprintf(
 					/* translators: %s: The Check slug. */
-					__( 'Check slug "%s" is already in use.', 'wpverifier' ),
-					$slug
+					esc_html__( 'Check slug "%s" is already in use.', 'wpverifier' ),
+					esc_html( $slug )
 				)
 			);
 		}
@@ -67,8 +67,8 @@ class Empty_Check_Repository implements Check_Repository {
 			throw new Exception(
 				sprintf(
 					/* translators: %s: The Check slug. */
-					__( 'Check with slug "%s" has no categories associated with it.', 'wpverifier' ),
-					$slug
+					esc_html__( 'Check with slug "%s" has no categories associated with it.', 'wpverifier' ),
+					esc_html( $slug )
 				)
 			);
 		}

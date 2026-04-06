@@ -115,7 +115,7 @@ if ( $selected_issue ) {
 	$ai_guidance_text .= "- Add phpcs:ignore or phpcs:disable comments — fix the code properly\n";
 	$ai_guidance_text .= "- Leave // TODO comments — implement the fix fully\n";
 	$ai_guidance_text .= "- Add error_log() calls\n";
-	$ai_guidance_text .= "- Use American English spelling — use British English\n";
+	$ai_guidance_text .= "- use British English\n";
 	$ai_guidance_text .= "- Skip PHPDoc — all new or modified functions must have PHPDoc blocks\n";
 	$ai_guidance_text .= "- Modify any files outside the plugin directory: " . wp_normalize_path( WP_PLUGIN_DIR . '/' . $plugin_slug ) . "\n";
 	$ai_guidance_text .= "- Touch WP Verifier or any other plugin's files\n";

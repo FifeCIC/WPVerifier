@@ -1,3 +1,14 @@
+<?php
+/**
+ * Results row template for individual check result entries.
+ *
+ * @package WPVerifier
+ * @version 1.9.0 Added ABSPATH direct access protection.
+ */
+
+// Prevent direct file access for security.
+if ( ! defined( 'ABSPATH' ) ) exit;
+?>
 <tr class="plugin-check__results-row">
 	<td data-label="<?php esc_attr_e( 'Line', 'wpverifier' ); ?>">
 		{{data.line}}

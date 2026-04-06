@@ -5,6 +5,9 @@
  * @package plugin-check
  */
 
+// Prevent direct file access for security.
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 namespace WordPress\Plugin_Check\CLI;
 
 use Exception;
@@ -20,6 +23,9 @@ use WP_CLI;
 
 /**
  * Plugin check command.
+ *
+ * @since 1.0.0
+ * @version 1.9.0 Added ABSPATH direct access protection.
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */

@@ -166,6 +166,7 @@ class I18n_Usage_Check extends Abstract_PHP_CodeSniffer_Check {
 	 * Returns restricted textdomains.
 	 *
 	 * @since 1.5.0
+	 * @version 1.9.0 Renamed filter hook to use the wpverifier prefix.
 	 *
 	 * @return array Restricted textdomains.
 	 */
@@ -181,10 +182,12 @@ class I18n_Usage_Check extends Abstract_PHP_CodeSniffer_Check {
 		 * Filter the list of restricted textdomains.
 		 *
 		 * @since 1.5.0
+		 * @since 1.9.0 Renamed from 'wp_plugin_check_restricted_textdomains' to use plugin prefix.
 		 *
 		 * @param array $restricted_textdomains Array of restricted textdomains.
 		 */
-		$restricted_textdomains = (array) apply_filters( 'wp_plugin_check_restricted_textdomains', $restricted_textdomains );
+		// Prefixed with wpverifier_ to comply with WordPress global naming conventions.
+		$restricted_textdomains = (array) apply_filters( 'wpverifier_restricted_textdomains', $restricted_textdomains );
 
 		return $restricted_textdomains;
 	}

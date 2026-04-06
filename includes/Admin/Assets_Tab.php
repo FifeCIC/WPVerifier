@@ -28,7 +28,7 @@ class Assets_Tab {
         $overall_status = self::get_overall_status($css_stats, $js_stats);
         ?>
         <div class="wp-verifier-assets-container">
-            <div class="notice notice-<?php echo $overall_status['type']; ?>">
+            <div class="notice notice-<?php echo esc_attr( $overall_status['type'] ); ?>">
                 <p>
                     <span class="dashicons <?php echo esc_attr($overall_status['icon']); ?>"></span>
                     <strong><?php echo esc_html($overall_status['message']); ?></strong>
@@ -38,7 +38,7 @@ class Assets_Tab {
                 </p>
             </div>
             
-            <h3><?php esc_html_e('CSS Assets', 'wp-verifier'); ?></h3>
+            <h3><?php esc_html_e('CSS Assets', 'wpverifier'); ?></h3>
             <p>
                 <strong><?php echo esc_html($css_stats['total']); ?></strong> total | 
                 <span style="color:green;"><?php echo esc_html($css_stats['found']); ?> available</span> | 
@@ -46,7 +46,7 @@ class Assets_Tab {
             </p>
             <?php self::render_asset_table($css_assets, 'css', $asset_manager); ?>
             
-            <h3><?php esc_html_e('JavaScript Assets', 'wp-verifier'); ?></h3>
+            <h3><?php esc_html_e('JavaScript Assets', 'wpverifier'); ?></h3>
             <p>
                 <strong><?php echo esc_html($js_stats['total']); ?></strong> total | 
                 <span style="color:green;"><?php echo esc_html($js_stats['found']); ?> available</span> | 
@@ -59,20 +59,20 @@ class Assets_Tab {
 
     private static function render_asset_table($assets, $type, $asset_manager) {
         if (empty($assets)) {
-            echo '<p>' . esc_html__('No assets found.', 'wp-verifier') . '</p>';
+            echo '<p>' . esc_html__('No assets found.', 'wpverifier') . '</p>';
             return;
         }
         ?>
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th><?php esc_html_e('Name', 'wp-verifier'); ?></th>
-                    <th><?php esc_html_e('Category', 'wp-verifier'); ?></th>
-                    <th><?php esc_html_e('Purpose', 'wp-verifier'); ?></th>
-                    <th><?php esc_html_e('Status', 'wp-verifier'); ?></th>
-                    <th><?php esc_html_e('Path', 'wp-verifier'); ?></th>
-                    <th><?php esc_html_e('Pages', 'wp-verifier'); ?></th>
-                    <th><?php esc_html_e('Dependencies', 'wp-verifier'); ?></th>
+                    <th><?php esc_html_e('Name', 'wpverifier'); ?></th>
+                    <th><?php esc_html_e('Category', 'wpverifier'); ?></th>
+                    <th><?php esc_html_e('Purpose', 'wpverifier'); ?></th>
+                    <th><?php esc_html_e('Status', 'wpverifier'); ?></th>
+                    <th><?php esc_html_e('Path', 'wpverifier'); ?></th>
+                    <th><?php esc_html_e('Pages', 'wpverifier'); ?></th>
+                    <th><?php esc_html_e('Dependencies', 'wpverifier'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -82,7 +82,7 @@ class Assets_Tab {
                         $exists = $asset_manager->asset_exists($type, $name);
                         $status_icon = $exists ? 'dashicons-yes' : 'dashicons-no';
                         $status_color = $exists ? 'green' : 'red';
-                        $status_text = $exists ? __('Available', 'wp-verifier') : __('Missing', 'wp-verifier');
+                        $status_text = $exists ? __('Available', 'wpverifier') : __('Missing', 'wpverifier');
                 ?>
                         <tr>
                             <td><code><?php echo esc_html($name); ?></code></td>
@@ -126,22 +126,25 @@ class Assets_Tab {
             return array(
                 'type' => 'success',
                 'icon' => 'dashicons-yes',
-                'message' => __('All Assets Available', 'wp-verifier'),
-                'details' => sprintf(__('%d assets managed', 'wp-verifier'), $total_assets)
+                'message' => __('All Assets Available', 'wpverifier'),
+                /* translators: %d: total number of assets */
+                'details' => sprintf(__('%d assets managed', 'wpverifier'), $total_assets)
             );
         } elseif ($total_missing <= 2) {
             return array(
                 'type' => 'warning',
                 'icon' => 'dashicons-warning',
-                'message' => __('Some Assets Missing', 'wp-verifier'),
-                'details' => sprintf(__('%1$d of %2$d missing', 'wp-verifier'), $total_missing, $total_assets)
+                'message' => __('Some Assets Missing', 'wpverifier'),
+                /* translators: %1$d: missing count, %2$d: total count */
+                'details' => sprintf(__('%1$d of %2$d missing', 'wpverifier'), $total_missing, $total_assets)
             );
         } else {
             return array(
                 'type' => 'error',
                 'icon' => 'dashicons-no',
-                'message' => __('Many Assets Missing', 'wp-verifier'),
-                'details' => sprintf(__('%1$d of %2$d missing', 'wp-verifier'), $total_missing, $total_assets)
+                'message' => __('Many Assets Missing', 'wpverifier'),
+                /* translators: %1$d: missing count, %2$d: total count */
+                'details' => sprintf(__('%1$d of %2$d missing', 'wpverifier'), $total_missing, $total_assets)
             );
         }
     }

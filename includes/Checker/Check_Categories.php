@@ -47,6 +47,7 @@ class Check_Categories {
 	 * Returns an array of check categories.
 	 *
 	 * @since 1.0.2
+	 * @version 1.9.0 Renamed filter hook to use the wpverifier prefix.
 	 *
 	 * @return array An array of check categories.
 	 */
@@ -63,10 +64,12 @@ class Check_Categories {
 		 * Filters the check categories.
 		 *
 		 * @since 1.0.2
+		 * @since 1.9.0 Renamed from 'wp_plugin_check_categories' to use plugin prefix.
 		 *
 		 * @param array<string, string> $default_categories Associative array of category slugs to labels.
 		 */
-		$check_categories = (array) apply_filters( 'wp_plugin_check_categories', $default_categories );
+		// Prefixed with wpverifier_ to comply with WordPress global naming conventions.
+		$check_categories = (array) apply_filters( 'wpverifier_check_categories', $default_categories );
 
 		return $check_categories;
 	}

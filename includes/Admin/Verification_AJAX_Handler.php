@@ -10,6 +10,8 @@
 
 namespace WordPress\Plugin_Check\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use Exception;
 use InvalidArgumentException;
 use WordPress\Plugin_Check\Checker\AJAX_Runner;
@@ -512,8 +514,9 @@ class Verification_AJAX_Handler {
 		$total_issues = $total_errors + $total_warnings;
 
 		if ( $total_issues === 0 ) {
+			/* translators: %s: elapsed seconds */
 			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wpverifier' ), $elapsed_seconds ) : '';
-			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wpverifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
+			return '<div class="notice notice-success"><p><strong>' . esc_html__( 'Great! No issues found.', 'wpverifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
 		}
 
 		ob_start();
@@ -1007,8 +1010,9 @@ class Verification_AJAX_Handler {
 		$total_issues = $total_errors + $total_warnings;
 
 		if ( $total_issues === 0 ) {
+			/* translators: %s: elapsed seconds */
 			$time_note = $elapsed_seconds > 0 ? ' ' . sprintf( __( 'Completed in %s seconds.', 'wpverifier' ), $elapsed_seconds ) : '';
-			return '<div class="notice notice-success"><p><strong>' . __( 'Great! No issues found.', 'wpverifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
+			return '<div class="notice notice-success"><p><strong>' . esc_html__( 'Great! No issues found.', 'wpverifier' ) . '</strong>' . esc_html( $time_note ) . '</p></div>';
 		}
 
 		ob_start();

@@ -10,7 +10,93 @@
         "check_hooks": true,
         "severity_threshold": "warning"
     },
-    "ignored_paths": [],
+    "ignored_paths": [
+        {
+            "path": "vendor/squizlabs",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/symfony",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/wp-coding-standards",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/wordpress",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/composer",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/sirbrillig",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/psr",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/plugin-check",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/phpcsstandards",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/php-http",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/patrickschur",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/nyholm",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/nikic",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/dealerdirect",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/automattic",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/bin",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        },
+        {
+            "path": "vendor/clue",
+            "reason": "vendor",
+            "added_at": "2026-04-01 11:05:43"
+        }
+    ],
     "verification_settings": {
         "auto_save": true,
         "backup_results": true,

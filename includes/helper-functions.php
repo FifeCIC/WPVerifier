@@ -5,6 +5,8 @@
  * @package wp-verifier
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 /**
  * Generate VSCode URL for opening a file at specific line
  * 
@@ -128,11 +130,15 @@ function wpverifier_header( $text, $code = '', $inline_only = false ) {
 		if ( $inline_only ) {
 			echo esc_html( $text ) . ' <code style="font-size: 0.7em; color: #666;">' . esc_html( $code ) . '</code>';
 		} else {
-			$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
-			$caller_file = $backtrace[0]['file'] ?? '';
-			$caller_line = $backtrace[0]['line'] ?? '';
-			$vscode_url = wpv_get_vscode_url( $caller_file, $caller_line );
-			echo esc_html( $text ) . ' <a href="' . esc_url( $vscode_url ) . '" style="text-decoration: none;"><code style="font-size: 0.7em; color: #666; cursor: pointer; vertical-align: baseline;">' . esc_html( $code ) . '</code></a>';
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 1 );
+				$caller_file = $backtrace[0]['file'] ?? '';
+				$caller_line = $backtrace[0]['line'] ?? '';
+				$vscode_url = wpv_get_vscode_url( $caller_file, $caller_line );
+				echo esc_html( $text ) . ' <a href="' . esc_url( $vscode_url ) . '" style="text-decoration: none;"><code style="font-size: 0.7em; color: #666; cursor: pointer; vertical-align: baseline;">' . esc_html( $code ) . '</code></a>';
+			} else {
+				echo esc_html( $text ) . ' <code style="font-size: 0.7em; color: #666;">' . esc_html( $code ) . '</code>';
+			}
 		}
 	} else {
 		echo esc_html( $text );

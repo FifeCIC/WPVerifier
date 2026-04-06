@@ -18,6 +18,7 @@ class Readiness_Score {
 	 * Calculate readiness score from results.
 	 *
 	 * @since 1.9.0
+	 * @version 1.9.0 Removed error_log() debug call for production safety.
 	 *
 	 * @param array $errors   Array of errors.
 	 * @param array $warnings Array of warnings.
@@ -34,9 +35,8 @@ class Readiness_Score {
 			'warnings' => $warning_count,
 			'status'  => self::get_status( $overall_score ),
 		);
-		
-		error_log( 'Readiness_Score::calculate - Errors: ' . $error_count . ', Warnings: ' . $warning_count . ', Score: ' . $overall_score );
-		
+
+		// Score data is returned to the caller — no need for debug logging.
 		return $result;
 	}
 

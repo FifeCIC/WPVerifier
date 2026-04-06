@@ -122,6 +122,14 @@ final class Ignore_Rules_Handler {
 		exit;
 	}
 
+	/**
+	 * Import ignore rules from an uploaded JSON file.
+	 *
+	 * @since 1.0.0
+	 * @version 1.9.0 Added isset() validation for $_FILES sub-key before access.
+	 *
+	 * @return void Redirects on success, calls wp_die() on failure.
+	 */
 	public static function import_ignore_rules() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'wpverifier' ) );
@@ -131,6 +139,11 @@ final class Ignore_Rules_Handler {
 
 		if ( ! isset( $_FILES['rules_file']['error'] ) || $_FILES['rules_file']['error'] !== UPLOAD_ERR_OK ) {
 			wp_die( esc_html__( 'File upload failed.', 'wpverifier' ) );
+		}
+
+		// Validate tmp_name exists before access — bail early with a clear error if missing.
+		if ( empty( $_FILES['rules_file']['tmp_name'] ) ) {
+			wp_die( esc_html__( 'Uploaded file path is missing.', 'wpverifier' ) );
 		}
 
 		$json = file_get_contents( sanitize_text_field( wp_unslash( $_FILES['rules_file']['tmp_name'] ) ) );

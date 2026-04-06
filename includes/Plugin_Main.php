@@ -51,18 +51,20 @@ class Plugin_Main {
 	 * Registers WordPress hooks for the plugin.
 	 *
 	 * @since 1.0.0
+	 * @version 1.9.0 Renamed $context global to $wpverifier_context for prefix compliance.
 	 *
-	 * @global Plugin_Context $context The plugin context instance.
+	 * @global Plugin_Context $wpverifier_context The plugin context instance.
 	 */
 	public function add_hooks() {
 		// Load helper functions.
 		require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/helper-functions.php';
 		
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			global $context;
+			// Prefixed to comply with WordPress global naming conventions.
+			global $wpverifier_context;
 
 			// Setup the CLI command.
-			$context = $this->context();
+			$wpverifier_context = $this->context();
 			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'cli.php';
 		}
 

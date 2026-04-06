@@ -59,17 +59,20 @@ class Default_Check_Repository extends Empty_Check_Repository {
 	 * Registers Checks.
 	 *
 	 * @since 1.0.0
+	 * @version 1.9.0 Renamed filter hook to use the wpverifier prefix.
 	 */
 	private function register_default_checks() {
 		/**
 		 * Filters the available plugin check classes.
 		 *
 		 * @since 1.0.0
+		 * @since 1.9.0 Renamed from 'wp_plugin_check_checks' to use plugin prefix.
 		 *
 		 * @param array $checks An array map of check slugs to Check instances.
 		 */
 		$checks = apply_filters(
-			'wp_plugin_check_checks',
+			// Prefixed with wpverifier_ to comply with WordPress global naming conventions.
+			'wpverifier_checks',
 			array(
 				'i18n_usage'                 => new Checks\General\I18n_Usage_Check(),
 				'enqueued_scripts_size'      => new Checks\Performance\Enqueued_Scripts_Size_Check(),

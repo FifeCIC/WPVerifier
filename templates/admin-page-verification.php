@@ -14,15 +14,15 @@ $current_plugin = Template_Helper::get_current_plugin();
 
 // Define verification options
 $categories = array(
-    'security' => __('Security', 'wp-verifier'),
-    'performance' => __('Performance', 'wp-verifier'),
-    'accessibility' => __('Accessibility', 'wp-verifier'),
-    'general' => __('General', 'wp-verifier')
+    'security' => __('Security', 'wpverifier'),
+    'performance' => __('Performance', 'wpverifier'),
+    'accessibility' => __('Accessibility', 'wpverifier'),
+    'general' => __('General', 'wpverifier')
 );
 
 $types = array(
-    'error' => __('Errors', 'wp-verifier'),
-    'warning' => __('Warnings', 'wp-verifier')
+    'error' => __('Errors', 'wpverifier'),
+    'warning' => __('Warnings', 'wpverifier')
 );
 
 $user_enabled_categories = array('security', 'performance', 'accessibility', 'general');
@@ -49,8 +49,8 @@ foreach ($plugin_dirs as $plugin_dir) {
     <?php if ($current_plugin && isset($available_plugins[$current_plugin])) : ?>
         <!-- Readiness Checklist -->
         <div style="margin-bottom: 20px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
-            <h3><?php esc_html_e('Verification Readiness Checklist', 'wp-verifier'); ?></h3>
-            <p><strong><?php esc_html_e('Active Plugin:', 'wp-verifier'); ?></strong> <?php echo esc_html($available_plugins[$current_plugin]['Name']); ?></p>
+            <h3><?php esc_html_e('Verification Readiness Checklist', 'wpverifier'); ?></h3>
+            <p><strong><?php esc_html_e('Active Plugin:', 'wpverifier'); ?></strong> <?php echo esc_html($available_plugins[$current_plugin]['Name']); ?></p>
             
             <?php
             $plugin_dir = Path_Builder::get_plugin_directory_path( $current_plugin );
@@ -84,7 +84,7 @@ foreach ($plugin_dirs as $plugin_dir) {
             
             <div id="readiness-score-display" style="margin: 15px 0; display: none;">
                 <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    <strong><?php esc_html_e('Readiness Score:', 'wp-verifier'); ?></strong>
+                    <strong><?php esc_html_e('Readiness Score:', 'wpverifier'); ?></strong>
                     <div style="margin-left: 10px; width: 200px; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden;">
                         <div style="width: <?php echo $readiness_score; ?>%; height: 100%; background: <?php echo $readiness_score >= 80 ? '#46b450' : ($readiness_score >= 60 ? '#ffb900' : '#dc3232'); ?>; transition: width 0.3s;"></div>
                     </div>
@@ -95,43 +95,43 @@ foreach ($plugin_dirs as $plugin_dir) {
             <table class="wp-list-table widefat fixed striped" style="margin-top: 15px;">
                 <thead>
                     <tr>
-                        <th style="width: 50px;"><?php esc_html_e('Status', 'wp-verifier'); ?></th>
-                        <th><?php esc_html_e('Requirement', 'wp-verifier'); ?></th>
-                        <th><?php esc_html_e('Description', 'wp-verifier'); ?></th>
+                        <th style="width: 50px;"><?php esc_html_e('Status', 'wpverifier'); ?></th>
+                        <th><?php esc_html_e('Requirement', 'wpverifier'); ?></th>
+                        <th><?php esc_html_e('Description', 'wpverifier'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td><?php echo $results_exists ? '<span style="color: green;">✓</span>' : '<span style="color: red;">✗</span>'; ?></td>
-                        <td><?php esc_html_e('Results File', 'wp-verifier'); ?></td>
-                        <td><?php esc_html_e('.wpv-results.json file exists for storing scan results', 'wp-verifier'); ?></td>
+                        <td><?php esc_html_e('Results File', 'wpverifier'); ?></td>
+                        <td><?php esc_html_e('.wpv-results.json file exists for storing scan results', 'wpverifier'); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $verification_exists ? '<span style="color: green;">✓</span>' : '<span style="color: red;">✗</span>'; ?></td>
-                        <td><?php esc_html_e('Verification File', 'wp-verifier'); ?></td>
-                        <td><?php esc_html_e('.wpv-verification.json file exists for tracking verification status', 'wp-verifier'); ?></td>
+                        <td><?php esc_html_e('Verification File', 'wpverifier'); ?></td>
+                        <td><?php esc_html_e('.wpv-verification.json file exists for tracking verification status', 'wpverifier'); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $config_exists ? '<span style="color: green;">✓</span>' : '<span style="color: red;">✗</span>'; ?></td>
-                        <td><?php esc_html_e('Configuration File', 'wp-verifier'); ?></td>
-                        <td><?php esc_html_e('.wpv-config.json file exists with plugin settings', 'wp-verifier'); ?></td>
+                        <td><?php esc_html_e('Configuration File', 'wpverifier'); ?></td>
+                        <td><?php esc_html_e('.wpv-config.json file exists with plugin settings', 'wpverifier'); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $has_hashes ? '<span style="color: green;">✓</span>' : '<span style="color: orange;">⚠</span>'; ?></td>
-                        <td><?php esc_html_e('File Hashes', 'wp-verifier'); ?></td>
-                        <td><?php esc_html_e('File hashes generated for incremental scanning (recommended)', 'wp-verifier'); ?></td>
+                        <td><?php esc_html_e('File Hashes', 'wpverifier'); ?></td>
+                        <td><?php esc_html_e('File hashes generated for incremental scanning (recommended)', 'wpverifier'); ?></td>
                     </tr>
                     <tr>
                         <td><?php echo $has_config ? '<span style="color: green;">✓</span>' : '<span style="color: orange;">⚠</span>'; ?></td>
-                        <td><?php esc_html_e('Plugin Configuration', 'wp-verifier'); ?></td>
-                        <td><?php esc_html_e('Plugin configuration completed (WordPress.org prep, ignore rules)', 'wp-verifier'); ?></td>
+                        <td><?php esc_html_e('Plugin Configuration', 'wpverifier'); ?></td>
+                        <td><?php esc_html_e('Plugin configuration completed (WordPress.org prep, ignore rules)', 'wpverifier'); ?></td>
                     </tr>
                 </tbody>
             </table>
             
             <?php if ($readiness_score < 60) : ?>
                 <div class="notice notice-warning" style="margin-top: 15px;">
-                    <p><strong><?php esc_html_e('Setup Required:', 'wp-verifier'); ?></strong> <?php esc_html_e('Please complete the configuration in TAB01 and TAB02 before running verification.', 'wp-verifier'); ?></p>
+                    <p><strong><?php esc_html_e('Setup Required:', 'wpverifier'); ?></strong> <?php esc_html_e('Please complete the configuration in TAB01 and TAB02 before running verification.', 'wpverifier'); ?></p>
                 </div>
             <?php endif; ?>
         </div>
@@ -142,11 +142,11 @@ foreach ($plugin_dirs as $plugin_dir) {
             <div style="flex: 1;">
                 <?php if (!empty($available_plugins)) : ?>
                     <form id="verification-form">
-                        <h2><?php esc_html_e('Verification Options', 'wp-verifier'); ?></h2>
+                        <h2><?php esc_html_e('Verification Options', 'wpverifier'); ?></h2>
                         <div class="plugin-check__options">
                             <div style="display: flex; gap: 30px;">
                                 <div>
-                                    <h4><?php esc_attr_e('Categories', 'wp-verifier'); ?></h4>
+                                    <h4><?php esc_attr_e('Categories', 'wpverifier'); ?></h4>
                                     <?php if (!empty($categories)) : ?>
                                         <table id="plugin-check__categories">
                                             <?php foreach ($categories as $category => $label) : ?>
@@ -167,7 +167,7 @@ foreach ($plugin_dirs as $plugin_dir) {
                                 </div>
                                 
                                 <div id="plugin-check__types-container">
-                                    <h4><?php esc_attr_e('Types', 'wp-verifier'); ?></h4>
+                                    <h4><?php esc_attr_e('Types', 'wpverifier'); ?></h4>
                                     <?php if (!empty($types)) : ?>
                                         <table id="plugin-check__types">
                                             <?php foreach ($types as $type => $label) : ?>
@@ -188,67 +188,67 @@ foreach ($plugin_dirs as $plugin_dir) {
                                 </div>
                                 
                                 <div>
-                                    <h4><?php esc_attr_e('Other Options', 'wp-verifier'); ?></h4>
+                                    <h4><?php esc_attr_e('Other Options', 'wpverifier'); ?></h4>
                                     <?php if ($has_experimental_checks ?? false) : ?>
                                         <p>
-                                            <label><input type="checkbox" value="include-experimental" id="plugin-check__include-experimental" /> <?php esc_html_e('Include Experimental Checks', 'wp-verifier'); ?></label>
+                                            <label><input type="checkbox" value="include-experimental" id="plugin-check__include-experimental" /> <?php esc_html_e('Include Experimental Checks', 'wpverifier'); ?></label>
                                         </p>
                                     <?php endif; ?>
                                 </div>
 
                                 <div>
-                                    <h4><?php esc_attr_e('Limit Results', 'wp-verifier'); ?></h4>
+                                    <h4><?php esc_attr_e('Limit Results', 'wpverifier'); ?></h4>
                                     <table id="plugin-check__limits">
-                                        <tr><td><label><input type="radio" name="issue_limit" value="0" checked="checked" /> <?php esc_html_e('No limit', 'wp-verifier'); ?></label></td></tr>
-                                        <tr><td><label><input type="radio" name="issue_limit" value="20" /> <?php esc_html_e('20 issues (testing)', 'wp-verifier'); ?></label></td></tr>
-                                        <tr><td><label><input type="radio" name="issue_limit" value="250" /> <?php esc_html_e('250 issues', 'wp-verifier'); ?></label></td></tr>
-                                        <tr><td><label><input type="radio" name="issue_limit" value="500" /> <?php esc_html_e('500 issues', 'wp-verifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="0" checked="checked" /> <?php esc_html_e('No limit', 'wpverifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="20" /> <?php esc_html_e('20 issues (testing)', 'wpverifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="250" /> <?php esc_html_e('250 issues', 'wpverifier'); ?></label></td></tr>
+                                        <tr><td><label><input type="radio" name="issue_limit" value="500" /> <?php esc_html_e('500 issues', 'wpverifier'); ?></label></td></tr>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </form>
                 <?php else : ?>
-                    <h2><?php esc_html_e('No plugins available.', 'wp-verifier'); ?></h2>
+                    <h2><?php esc_html_e('No plugins available.', 'wpverifier'); ?></h2>
                 <?php endif; ?>
             </div>
 
             <!-- Plugin Selection Panel -->
             <div style="flex: 0 0 300px;">
                 <?php if ($current_plugin && isset($available_plugins[$current_plugin])) : ?>
-                    <h2><?php esc_html_e('Run Verification', 'wp-verifier'); ?></h2>
-                    <p><?php esc_html_e('Execute code quality checks and security analysis on the active plugin.', 'wp-verifier'); ?></p>
+                    <h2><?php esc_html_e('Run Verification', 'wpverifier'); ?></h2>
+                    <p><?php esc_html_e('Execute code quality checks and security analysis on the active plugin.', 'wpverifier'); ?></p>
                     
                     <p>
-                        <input type="submit" value="<?php esc_attr_e('Run Verification', 'wp-verifier'); ?>" id="plugin-check__submit" class="button button-primary" <?php echo $readiness_score < 60 ? 'disabled' : ''; ?> />
+                        <input type="submit" value="<?php esc_attr_e('Run Verification', 'wpverifier'); ?>" id="plugin-check__submit" class="button button-primary" <?php echo $readiness_score < 60 ? 'disabled' : ''; ?> />
                         <span id="plugin-check__spinner" class="spinner" style="float: none;"></span>
                     </p>
                     
                     <!-- Progress Bar -->
                     <div id="verification-progress" style="margin-top: 15px; display: none;">
                         <div style="margin-bottom: 10px;">
-                            <strong><?php esc_html_e('Verification Progress:', 'wp-verifier'); ?></strong>
+                            <strong><?php esc_html_e('Verification Progress:', 'wpverifier'); ?></strong>
                             <span id="progress-percentage" style="float: right; font-weight: bold;">0%</span>
                         </div>
                         <div style="width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden; margin-bottom: 10px;">
                             <div id="progress-bar" style="width: 0%; height: 100%; background: #0073aa; transition: width 0.3s;"></div>
                         </div>
-                        <div id="progress-message" style="font-size: 12px; color: #666; min-height: 16px;"><?php esc_html_e('Initializing verification...', 'wp-verifier'); ?></div>
+                        <div id="progress-message" style="font-size: 12px; color: #666; min-height: 16px;"><?php esc_html_e('Initializing verification...', 'wpverifier'); ?></div>
                     </div>
                     
                     <?php if ($readiness_score < 60) : ?>
-                        <p style="color: #d63638; font-size: 12px;"><?php esc_html_e('Complete setup requirements to enable verification.', 'wp-verifier'); ?></p>
+                        <p style="color: #d63638; font-size: 12px;"><?php esc_html_e('Complete setup requirements to enable verification.', 'wpverifier'); ?></p>
                     <?php endif; ?>
                 <?php else : ?>
-                    <h2><?php esc_html_e('No Active Plugin', 'wp-verifier'); ?></h2>
-                    <p><?php esc_html_e('Please select a plugin in TAB01 first.', 'wp-verifier'); ?></p>
+                    <h2><?php esc_html_e('No Active Plugin', 'wpverifier'); ?></h2>
+                    <p><?php esc_html_e('Please select a plugin in TAB01 first.', 'wpverifier'); ?></p>
                 <?php endif; ?>
             </div>
         </div>
     <?php else : ?>
         <div style="padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 4px;">
-            <h3><?php esc_html_e('No Active Plugin Selected', 'wp-verifier'); ?></h3>
-            <p><?php esc_html_e('Please go to TAB01 (Select Plugin) to choose an active plugin before running verification.', 'wp-verifier'); ?></p>
+            <h3><?php esc_html_e('No Active Plugin Selected', 'wpverifier'); ?></h3>
+            <p><?php esc_html_e('Please go to TAB01 (Select Plugin) to choose an active plugin before running verification.', 'wpverifier'); ?></p>
         </div>
     <?php endif; ?>
     </div>
@@ -256,16 +256,16 @@ foreach ($plugin_dirs as $plugin_dir) {
     <!-- Progress Container -->
     <div id="verification-progress-container" style="margin: 20px 0; display: none;">
         <div style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 4px;">
-            <h3><?php esc_html_e('Verification in Progress', 'wp-verifier'); ?></h3>
+            <h3><?php esc_html_e('Verification in Progress', 'wpverifier'); ?></h3>
             <div style="margin: 15px 0;">
                 <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                    <strong><?php esc_html_e('Overall Progress:', 'wp-verifier'); ?></strong>
+                    <strong><?php esc_html_e('Overall Progress:', 'wpverifier'); ?></strong>
                     <span id="overall-progress-percentage" style="margin-left: auto; font-weight: bold;">0%</span>
                 </div>
                 <div style="width: 100%; height: 25px; background: #f0f0f0; border-radius: 12px; overflow: hidden; margin-bottom: 15px;">
                     <div id="overall-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0073aa, #005177); transition: width 0.5s;"></div>
                 </div>
-                <div id="current-step" style="font-size: 14px; color: #333; margin-bottom: 10px; min-height: 20px;"><?php esc_html_e('Preparing verification...', 'wp-verifier'); ?></div>
+                <div id="current-step" style="font-size: 14px; color: #333; margin-bottom: 10px; min-height: 20px;"><?php esc_html_e('Preparing verification...', 'wpverifier'); ?></div>
                 <div id="step-details" style="font-size: 12px; color: #666; min-height: 16px;"></div>
             </div>
         </div>
@@ -277,7 +277,7 @@ foreach ($plugin_dirs as $plugin_dir) {
 
     <!-- Files Actually Ignored Panel -->
     <div id="wpv-ignored-files-panel" style="background: #f0f6fc; padding: 20px; border: 1px solid #2271b1; margin: 20px 0; display: none;">
-        <h3><?php esc_html_e('Files Actually Ignored During Processing', 'wp-verifier'); ?></h3>
+        <h3><?php esc_html_e('Files Actually Ignored During Processing', 'wpverifier'); ?></h3>
         <div id="wpv-ignored-files-content"></div>
     </div>
 
@@ -288,13 +288,13 @@ foreach ($plugin_dirs as $plugin_dir) {
                 <div class="wpv-ast-table" id="wpv-ast-results"></div>
                 <div id="wpv-ast-details" style="margin-top: 20px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; display: none;"></div>
                 <div id="wpv-ast-ai-guidance" style="margin-top: 20px; padding: 20px; background: #f0f6fc; border: 1px solid #0073aa; border-radius: 4px; display: none;">
-                    <h3 style="margin: 0 0 15px 0;"><?php esc_html_e('AI Guidance', 'wp-verifier'); ?></h3>
+                    <h3 style="margin: 0 0 15px 0;"><?php esc_html_e('AI Guidance', 'wpverifier'); ?></h3>
                     <div id="wpv-ai-guidance-content"></div>
                 </div>
             </div>
         </div>
         <div id="wpv-ast-ignored-folders" style="margin-top: 15px; display: none;">
-            <h4><?php esc_html_e('Ignored Folders', 'wp-verifier'); ?></h4>
+            <h4><?php esc_html_e('Ignored Folders', 'wpverifier'); ?></h4>
             <ul id="wpv-ignored-folders-list" style="list-style: none; margin: 0; padding: 0;"></ul>
         </div>
     </div>

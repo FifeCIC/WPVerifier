@@ -95,15 +95,15 @@ class Report_Generator {
 				<div class="summary">
 					<div class="summary-card">
 						<h3>Total Issues</h3>
-						<div class="count"><?php echo $total_issues; ?></div>
+						<div class="count"><?php echo esc_html( $total_issues ); ?></div>
 					</div>
 					<div class="summary-card errors">
 						<h3>Errors</h3>
-						<div class="count"><?php echo $total_errors; ?></div>
+						<div class="count"><?php echo esc_html( $total_errors ); ?></div>
 					</div>
 					<div class="summary-card warnings">
 						<h3>Warnings</h3>
-						<div class="count"><?php echo $total_warnings; ?></div>
+						<div class="count"><?php echo esc_html( $total_warnings ); ?></div>
 					</div>
 				</div>
 

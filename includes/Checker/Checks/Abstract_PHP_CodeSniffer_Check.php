@@ -7,6 +7,9 @@
 
 namespace WordPress\Plugin_Check\Checker\Checks;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+
 use Exception;
 use PHP_CodeSniffer\Config;
 use PHP_CodeSniffer\Runner;
@@ -78,13 +81,13 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 
 		if ( ! class_exists( Runner::class ) ) {
 			throw new Exception(
-				__( 'Unable to find PHPCS Runner class.', 'wpverifier' )
+				esc_html__( 'Unable to find PHPCS Runner class.', 'wpverifier' )
 			);
 		}
 
 		if ( ! class_exists( Config::class ) ) {
 			throw new Exception(
-				__( 'Unable to find PHPCS Config class.', 'wpverifier' )
+				esc_html__( 'Unable to find PHPCS Config class.', 'wpverifier' )
 			);
 		}
 
@@ -133,7 +136,7 @@ abstract class Abstract_PHP_CodeSniffer_Check implements Static_Check {
 	 */
 	private function run_phpcs_on_files( Check_Result $result, $files_to_scan ) {
 		// Backup the original command line arguments.
-		$orig_cmd_args = $_SERVER['argv'] ?? '';
+		$orig_cmd_args = isset( $_SERVER['argv'] ) ? sanitize_text_field( wp_unslash( $_SERVER['argv'] ) ) : '';
 
 		$args = $this->get_args( $result );
 

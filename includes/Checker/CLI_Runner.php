@@ -41,6 +41,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 		}
 
 		if (
+			isset( $_SERVER['argv'][1], $_SERVER['argv'][2] ) &&
 			'plugin' === $_SERVER['argv'][1] &&
 			'check' === $_SERVER['argv'][2]
 		) {
@@ -61,7 +62,8 @@ class CLI_Runner extends Abstract_Check_Runner {
 	 */
 	protected function get_plugin_param() {
 		// Exclude first three reserved elements.
-		$params = array_slice( $_SERVER['argv'], 3 );
+		$argv = isset( $_SERVER['argv'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_SERVER['argv'] ) ) : array();
+		$params = array_slice( $argv, 3 );
 
 		// Remove associative arguments.
 		$params = array_filter(
@@ -76,7 +78,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 
 		if ( empty( $plugin ) ) {
 			throw new Exception(
-				__( 'Invalid plugin: Plugin parameter must not be empty.', 'wpverifier' )
+				esc_html__( 'Invalid plugin: Plugin parameter must not be empty.', 'wpverifier' )
 			);
 		}
 
@@ -90,10 +92,17 @@ class CLI_Runner extends Abstract_Check_Runner {
 	 *
 	 * @return array An array of Check slugs to run.
 	 */
+	/**
+	 * Get sanitized argv array.
+	 */
+	private function get_sanitized_argv() {
+		return isset( $_SERVER['argv'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_SERVER['argv'] ) ) : array();
+	}
+
 	protected function get_check_slugs_param() {
 		$checks = array();
 
-		foreach ( $_SERVER['argv'] as $value ) {
+		foreach ( $this->get_sanitized_argv() as $value ) {
 			if ( false !== strpos( $value, '--checks=' ) ) {
 				$checks = wp_parse_list( str_replace( '--checks=', '', $value ) );
 				break;
@@ -113,7 +122,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 	protected function get_check_exclude_slugs_param() {
 		$checks = array();
 
-		foreach ( $_SERVER['argv'] as $value ) {
+		foreach ( $this->get_sanitized_argv() as $value ) {
 			if ( false !== strpos( $value, '--exclude-checks=' ) ) {
 				$checks = wp_parse_list( str_replace( '--exclude-checks=', '', $value ) );
 				break;
@@ -131,7 +140,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 	 * @return bool Returns true to include experimental checks else false.
 	 */
 	protected function get_include_experimental_param() {
-		if ( in_array( '--include-experimental', $_SERVER['argv'], true ) ) {
+		if ( in_array( '--include-experimental', $this->get_sanitized_argv(), true ) ) {
 			return true;
 		}
 
@@ -148,7 +157,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 	protected function get_categories_param() {
 		$categories = array();
 
-		foreach ( $_SERVER['argv'] as $value ) {
+		foreach ( $this->get_sanitized_argv() as $value ) {
 			if ( false !== strpos( $value, '--categories=' ) ) {
 				$categories = wp_parse_list( str_replace( '--categories=', '', $value ) );
 				break;
@@ -168,7 +177,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 	protected function get_slug_param() {
 		$slug = '';
 
-		foreach ( $_SERVER['argv'] as $value ) {
+		foreach ( $this->get_sanitized_argv() as $value ) {
 			if ( false !== strpos( $value, '--slug=' ) ) {
 				$slug = str_replace( '--slug=', '', $value );
 				break;
@@ -188,7 +197,7 @@ class CLI_Runner extends Abstract_Check_Runner {
 	protected function get_mode_param() {
 		$mode = 'new';
 
-		foreach ( $_SERVER['argv'] as $value ) {
+		foreach ( $this->get_sanitized_argv() as $value ) {
 			if ( false !== strpos( $value, '--mode=' ) ) {
 				$mode = str_replace( '--mode=', '', $value );
 				break;

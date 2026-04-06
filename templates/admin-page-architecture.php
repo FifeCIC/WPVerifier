@@ -17,6 +17,7 @@
  * TAB12 = Roadmap
  *
  * @package wp-verifier
+ * @version 1.9.0 Wrapped wpv_get_vscode_button output in wp_kses_post for escaping compliance.
  */
 
 use WordPress\Plugin_Check\Utilities\Path_Builder;
@@ -108,30 +109,30 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 
 				<div class="wpv-arch-step">
 					<strong>1. SCAN INITIATION</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 264, 0, null, 'Admin_AJAX::run_checks()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ); ?>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 264, 0, null, 'Admin_AJAX::run_checks()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ) ); ?>
 				</div>
 
 				<div class="wpv-arch-step">
 					<strong>2. FILE FILTERING</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ) ); ?><br>
 					→ Loads <code>.wpv-verification.json</code> ignored_files<br>
 					→ For each file: compute MD5 hash<br>
 					→ Hash matches stored → SKIP file<br>
 					→ Hash differs → INVALIDATE ignore, scan normally<br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'get_directories_to_ignore()', 'button-link' ); ?>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'get_directories_to_ignore()', 'button-link' ) ); ?>
 				</div>
 
 				<div class="wpv-arch-step">
 					<strong>3. PHPCS EXECUTION</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ) ); ?><br>
 					→ Stops at 20 issues if limit_results enabled<br>
 					→ WordPress coding standards applied
 				</div>
 
 				<div class="wpv-arch-step">
 					<strong>4. RESULTS PROCESSING</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'run_checks()', 'button-link' ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'run_checks()', 'button-link' ) ); ?><br>
 					→ issue_id = md5(file + line + column + code + counter)<br>
 					→ Calculate readiness score<br>
 					→ Save to <code>.wpv-results.json</code>
@@ -172,8 +173,8 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 			<div class="wpv-arch-json-file">
 				<h5><code>.wpv-results.json</code> — Active Task List</h5>
 				<strong>Purpose:</strong> Only contains actionable issues. Acts as a clean task list.<br>
-				<strong>Created by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 575, 0, null, 'save_results_to_json()', 'button-link' ); ?><br>
-				<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'templates/admin-page-results.php', 0, 0, null, 'admin-page-results.php (TAB04)', 'button-link' ); ?><br>
+				<strong>Created by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 575, 0, null, 'save_results_to_json()', 'button-link' ) ); ?><br>
+				<strong>Read by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-results.php', 0, 0, null, 'admin-page-results.php (TAB04)', 'button-link' ) ); ?><br>
 				<strong>Modified by:</strong> Fixed button (removes issue), Ignore button (sets ignored:true), File-ignore (removes all file issues)<br>
 				<pre>{
   "generated_at": "2026-03-20 12:00:00",
@@ -198,8 +199,8 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 			<div class="wpv-arch-json-file">
 				<h5><code>.wpv-verification.json</code> — Ignore & Hash Tracking</h5>
 				<strong>Purpose:</strong> Tracks which files are fully ignored and their hash at time of ignore.<br>
-				<strong>Created by:</strong> <?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?><br>
-				<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?> during scan<br>
+				<strong>Created by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?><br>
+				<strong>Read by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ) ); ?> during scan<br>
 				<strong>Modified by:</strong> Auto file-ignore (when all issues ignored), manual unignore, hash invalidation<br>
 				<pre>{
   "ignored_files": {
@@ -216,7 +217,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				<h5><code>.wpv-config.json</code> — Scan Configuration</h5>
 				<strong>Purpose:</strong> Stores ignored vendor paths and scan configuration.<br>
 				<strong>Created by:</strong> TAB02 Configuration interface<br>
-				<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?>
+				<strong>Read by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'apply_ignored_paths_filter()', 'button-link' ) ); ?>
 			</div>
 		</div>
 	</div>
@@ -230,21 +231,21 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				<tr>
 					<td><strong>Fixed</strong></td>
 					<td><code>wpv_mark_resolved</code></td>
-					<td><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1062, 0, null, 'mark_issue_as_fixed()', 'button-link' ); ?></td>
+					<td><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1062, 0, null, 'mark_issue_as_fixed()', 'button-link' ) ); ?></td>
 					<td>Issue permanently removed. Readiness recalculated.</td>
 					<td>No change</td>
 				</tr>
 				<tr>
 					<td><strong>Ignore</strong></td>
 					<td><code>wpv_mark_ignored</code></td>
-					<td><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1011, 0, null, 'mark_issue_as_ignored()', 'button-link' ); ?></td>
+					<td><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1011, 0, null, 'mark_issue_as_ignored()', 'button-link' ) ); ?></td>
 					<td>Sets <code>ignored:true</code> on issue. If ALL issues in file now ignored → all file issues deleted.</td>
 					<td>If all file issues ignored → adds entry to <code>ignored_files</code> with MD5 hash.</td>
 				</tr>
 				<tr>
 					<td><strong>Unignore</strong></td>
 					<td><code>wpv_mark_unignored</code></td>
-					<td><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1060, 0, null, 'mark_issue_as_unignored()', 'button-link' ); ?></td>
+					<td><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1060, 0, null, 'mark_issue_as_unignored()', 'button-link' ) ); ?></td>
 					<td>Sets <code>ignored:false</code> on issue.</td>
 					<td>No change</td>
 				</tr>
@@ -317,7 +318,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 		</table>
 	</div>
 
-	<p><strong>See:</strong> <?php echo wpv_get_vscode_button( 'docs/ROADMAP.md', 0, 0, null, 'ROADMAP.md', 'button-link' ); ?> for full development roadmap.</p>
+	<p><strong>See:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'docs/ROADMAP.md', 0, 0, null, 'ROADMAP.md', 'button-link' ) ); ?> for full development roadmap.</p>
 </div>
  * 
  * TAB04 (Files) vs TAB05 (Issues) - BOTH USE AST BUT COMPLETELY DIFFERENT!
@@ -528,39 +529,39 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 			<div class="wpv-arch-flow">
 				<div class="wpv-arch-step">
 					<strong>1. SCAN INITIATION</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 264, 0, null, 'Admin_AJAX::run_checks()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 62, 0, null, 'Abstract_PHP_CodeSniffer_Check::run()', 'button-link' ); ?>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Admin_AJAX.php', 264, 0, null, 'Admin_AJAX::run_checks()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 62, 0, null, 'Abstract_PHP_CodeSniffer_Check::run()', 'button-link' ) ); ?>
 				</div>
 				
 				<div class="wpv-arch-step wpv-arch-step-warning">
 					<strong>2. FILE FILTERING ⚠️</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 230, 0, null, 'get_php_files()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'Plugin_Request_Utility::get_directories_to_ignore()', 'button-link' ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 189, 0, null, 'get_files_to_scan()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 230, 0, null, 'get_php_files()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'Plugin_Request_Utility::get_directories_to_ignore()', 'button-link' ) ); ?><br>
 					<span class="wpv-arch-step-issue"><strong>ISSUE LOCATION</strong></span>
 				</div>
 				
 				<div class="wpv-arch-step">
 					<strong>3. PHPCS EXECUTION & EARLY TERMINATION</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?> - Main check orchestrator<br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 60, 0, null, 'run_check_with_result()', 'button-link' ); ?> - Individual check execution<br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 62, 0, null, 'Abstract_PHP_CodeSniffer_Check::run()', 'button-link' ); ?> - PHPCS wrapper<br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ) ); ?> - Main check orchestrator<br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 60, 0, null, 'run_check_with_result()', 'button-link' ) ); ?> - Individual check execution<br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks/Abstract_PHP_CodeSniffer_Check.php', 62, 0, null, 'Abstract_PHP_CodeSniffer_Check::run()', 'button-link' ) ); ?> - PHPCS wrapper<br>
 					<div class="wpv-arch-substep">
 						<strong>✅ NEW: Early Termination Implementation (Option 3):</strong><br>
-						• <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 35, 0, null, 'get_issue_limit_from_request()', 'button-link' ); ?> - Reads limit_results from check_options<br>
-						• <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 50, 0, null, 'count_issues_in_result()', 'button-link' ); ?> - Counts issues after each check<br>
+						• <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 35, 0, null, 'get_issue_limit_from_request()', 'button-link' ) ); ?> - Reads limit_results from check_options<br>
+						• <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 50, 0, null, 'count_issues_in_result()', 'button-link' ) ); ?> - Counts issues after each check<br>
 						• Stops processing when 20 issues reached<br>
 						• Processes checks one by one instead of batch<br>
 						• Provides detailed debug logging<br>
 						<strong>Key Classes & Functions:</strong><br>
-						• <?php echo wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ); ?> - Main execution controller<br>
-						• <?php echo wpv_get_vscode_button( 'includes/Checker/Abstract_Check_Runner.php', 200, 0, null, 'Abstract_Check_Runner::run()', 'button-link' ); ?> - Orchestrates check execution<br>
+						• <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/AJAX_Runner.php', 0, 0, null, 'AJAX_Runner::run()', 'button-link' ) ); ?> - Main execution controller<br>
+						• <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Abstract_Check_Runner.php', 200, 0, null, 'Abstract_Check_Runner::run()', 'button-link' ) ); ?> - Orchestrates check execution<br>
 						• <code>get_files_to_scan()</code> - Determines which files to process<br>
 						• <code>get_argv_defaults()</code> - Builds PHPCS command arguments<br>
 						• <code>runPHPCS()</code> - External PHPCS execution<br>
 						<strong>Configuration Applied:</strong><br>
-						• Ignored directories from <?php echo wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'get_directories_to_ignore()', 'button-link' ); ?><br>
+						• Ignored directories from <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Utilities/Plugin_Request_Utility.php', 0, 0, null, 'get_directories_to_ignore()', 'button-link' ) ); ?><br>
 						• WordPress coding standards from rulesets<br>
 						• File extensions (.php, .inc, .module)<br>
 						• JSON ignored paths via wp_plugin_check_ignore_directories filter<br>
@@ -573,21 +574,21 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				
 				<div class="wpv-arch-step">
 					<strong>4. HASH GENERATION</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator::generate_file_hash()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage::initialize_verification_file()', 'button-link' ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator::generate_file_hash()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage::initialize_verification_file()', 'button-link' ) ); ?><br>
 					→ Store in verification tracking
 				</div>
 				
 				<div class="wpv-arch-step">
 					<strong>5. RESULTS PROCESSING</strong><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'Verification_AJAX_Handler::run_checks()', 'button-link' ); ?><br>
-					→ <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'Verification_AJAX_Handler::run_checks()', 'button-link' ) ); ?><br>
+					→ <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ) ); ?><br>
 					→ Calculate readiness score<br>
 					→ Save to <code>.wpv-results.json</code><br>
 					<div class="wpv-arch-substep">
 						<strong>🟢 UPDATED: Issue Limiting Implementation:</strong><br>
-						• Early termination now occurs in <?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ); ?><br>
-						• <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 180, 0, null, 'limit_issues_to_count()', 'button-link' ); ?> - Still available for display limiting<br>
+						• Early termination now occurs in <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 30, 0, null, 'Checks::run_checks()', 'button-link' ) ); ?><br>
+						• <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 180, 0, null, 'limit_issues_to_count()', 'button-link' ) ); ?> - Still available for display limiting<br>
 						• Processing stops when 20 issues found (not just display)<br>
 						• Prioritizes errors over warnings during execution<br>
 						• Maintains file/line/column structure<br>
@@ -840,9 +841,9 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<li><strong>Function:</strong> Initiates verification process for selected plugin</li>
 					<li><strong>Key Files:</strong> 
 						<ul>
-							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ); ?> - Main verification interface</li>
-							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ); ?> - Handles scan requests</li>
-							<li><?php echo wpv_get_vscode_button( 'includes/Checker/Checks.php', 0, 0, null, 'Checks.php', 'button-link' ); ?> - Orchestrates all verification checks</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ) ); ?> - Main verification interface</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 0, 0, null, 'Verification_AJAX_Handler.php', 'button-link' ) ); ?> - Handles scan requests</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Checker/Checks.php', 0, 0, null, 'Checks.php', 'button-link' ) ); ?> - Orchestrates all verification checks</li>
 						</ul>
 					</li>
 					<li><strong>Output:</strong> Creates 3 JSON files:
@@ -862,9 +863,9 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<li><strong>Function:</strong> Manages vendor folders and ignored paths via drag-and-drop interface</li>
 					<li><strong>Key Files:</strong>
 						<ul>
-							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-configuration.php', 0, 0, null, 'admin-page-configuration.php', 'button-link' ); ?> - Configuration interface</li>
-							<li><?php echo wpv_get_vscode_button( 'assets/js/admin-configuration.js', 0, 0, null, 'admin-configuration.js', 'button-link' ); ?> - Drag-and-drop functionality</li>
-							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Configuration_AJAX_Handler.php', 0, 0, null, 'Configuration_AJAX_Handler.php', 'button-link' ); ?> - Saves configuration</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-configuration.php', 0, 0, null, 'admin-page-configuration.php', 'button-link' ) ); ?> - Configuration interface</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/admin-configuration.js', 0, 0, null, 'admin-configuration.js', 'button-link' ) ); ?> - Drag-and-drop functionality</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Configuration_AJAX_Handler.php', 0, 0, null, 'Configuration_AJAX_Handler.php', 'button-link' ) ); ?> - Saves configuration</li>
 						</ul>
 					</li>
 					<li><strong>Updates:</strong> Modifies <code>.wpv-config.json</code> with new ignored paths</li>
@@ -887,8 +888,8 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<li><strong>Function:</strong> Generates file hashes for incremental scanning and change detection</li>
 					<li><strong>Key Files:</strong>
 						<ul>
-							<li><?php echo wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ); ?> - Hash generation logic</li>
-							<li><?php echo wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ); ?> - Stores hashes in verification file</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/Hash_Generator.php', 0, 0, null, 'Hash_Generator.php', 'button-link' ) ); ?> - Hash generation logic</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Verification/JSON_Storage.php', 0, 0, null, 'JSON_Storage.php', 'button-link' ) ); ?> - Stores hashes in verification file</li>
 							<li><strong>Future:</strong> <code>templates/admin-page-hash-generation.php</code> - Dedicated template</li>
 						</ul>
 					</li>
@@ -918,9 +919,9 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<li><strong>Function:</strong> Runs PHPCS verification and generates results</li>
 					<li><strong>Key Files:</strong>
 						<ul>
-							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ); ?> - Verification interface</li>
-							<li><?php echo wpv_get_vscode_button( 'assets/js/admin-verification.js', 0, 0, null, 'admin-verification.js', 'button-link' ); ?> - Frontend verification logic</li>
-							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'run_checks()', 'button-link' ); ?> - Backend verification handler</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-verification.php', 0, 0, null, 'admin-page-verification.php', 'button-link' ) ); ?> - Verification interface</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/admin-verification.js', 0, 0, null, 'admin-verification.js', 'button-link' ) ); ?> - Frontend verification logic</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 200, 0, null, 'run_checks()', 'button-link' ) ); ?> - Backend verification handler</li>
 						</ul>
 					</li>
 					<li><strong>Updates:</strong> Populates <code>.wpv-results.json</code> with scan results and readiness scores</li>
@@ -947,9 +948,9 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<li><strong>Function:</strong> Shows files with accordion expansion and sidebar panels</li>
 					<li><strong>Key Files:</strong>
 						<ul>
-							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-saved.php', 0, 0, null, 'admin-page-saved.php', 'button-link' ); ?> - File accordion template</li>
-							<li><?php echo wpv_get_vscode_button( 'assets/js/wp-verifier-ast.js', 0, 0, null, 'wp-verifier-ast.js', 'button-link' ); ?> - AST JavaScript for sidebar</li>
-							<li><?php echo wpv_get_vscode_button( 'templates/results-ast.php', 0, 0, null, 'results-ast.php', 'button-link' ); ?> - AST template for PAN01</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-saved.php', 0, 0, null, 'admin-page-saved.php', 'button-link' ) ); ?> - File accordion template</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/wp-verifier-ast.js', 0, 0, null, 'wp-verifier-ast.js', 'button-link' ) ); ?> - AST JavaScript for sidebar</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'templates/results-ast.php', 0, 0, null, 'results-ast.php', 'button-link' ) ); ?> - AST template for PAN01</li>
 						</ul>
 					</li>
 					<li><strong>UI Flow:</strong> Click file → sidebar shows file details → click issue → PAN01 shows issue details with Fixed button</li>
@@ -971,9 +972,9 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<li><strong>Function:</strong> Displays all issues in flat table without grouping</li>
 					<li><strong>Key Files:</strong>
 						<ul>
-							<li><?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 0, 0, null, 'admin-page-issues.php', 'button-link' ); ?> - Issues table template</li>
-							<li><?php echo wpv_get_vscode_button( 'assets/js/issues-tab.js', 0, 0, null, 'issues-tab.js', 'button-link' ); ?> - Table interaction JavaScript</li>
-							<li><?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 2100, 0, null, 'mark_issue_as_fixed()', 'button-link' ); ?> - Fixed button handler</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-issues.php', 0, 0, null, 'admin-page-issues.php', 'button-link' ) ); ?> - Issues table template</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/issues-tab.js', 0, 0, null, 'issues-tab.js', 'button-link' ) ); ?> - Table interaction JavaScript</li>
+							<li><?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 2100, 0, null, 'mark_issue_as_fixed()', 'button-link' ) ); ?> - Fixed button handler</li>
 						</ul>
 					</li>
 					<li><strong>UI Flow:</strong> Click row → expand details → show Fixed button in expanded row</li>
@@ -1029,8 +1030,8 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<h5><code>.wpv-results.json</code> - Main Results Storage</h5>
 					<div class="wpv-arch-json-content">
 						<strong>Purpose:</strong> Stores all scan results, readiness scores, and issue data<br>
-						<strong>Created by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1400, 0, null, 'save_results_to_json()', 'button-link' ); ?><br>
-						<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 25, 0, null, 'TAB05 Issues Display', 'button-link' ); ?><br>
+						<strong>Created by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1400, 0, null, 'save_results_to_json()', 'button-link' ) ); ?><br>
+						<strong>Read by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-issues.php', 25, 0, null, 'TAB05 Issues Display', 'button-link' ) ); ?><br>
 						<strong>Structure:</strong>
 						<pre>{
   "generated_at": "2024-01-01 12:00:00",
@@ -1063,7 +1064,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 					<div class="wpv-arch-json-content">
 						<strong>Purpose:</strong> Stores ignored paths and plugin configuration<br>
 						<strong>Created by:</strong> TAB02 Configuration interface<br>
-						<strong>Read by:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ); ?><br>
+						<strong>Read by:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 1598, 0, null, 'apply_ignored_paths_filter()', 'button-link' ) ); ?><br>
 						<strong>Structure:</strong>
 						<pre>{
   "ignored_paths": [
@@ -1103,7 +1104,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 							<span class="wpv-arch-button-tooltip">Permanently removes issue from results</span>
 						</div>
 						<div class="wpv-arch-button-details">
-							<strong>Function:</strong> <?php echo wpv_get_vscode_button( 'assets/js/wp-verifier-ast.js', 400, 0, null, 'markComplete()', 'button-link' ); ?><br>
+							<strong>Function:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/wp-verifier-ast.js', 400, 0, null, 'markComplete()', 'button-link' ) ); ?><br>
 							<strong>AJAX Action:</strong> <code>plugin_check_mark_complete</code><br>
 							<strong>Data Modified:</strong> Removes entire issue from <code>.wpv-results.json</code><br>
 							<strong>Use Case:</strong> When you've actually fixed the code issue<br>
@@ -1137,9 +1138,9 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 							<span class="wpv-arch-button-tooltip">Permanently removes issue from results</span>
 						</div>
 						<div class="wpv-arch-button-details">
-							<strong>Function:</strong> <?php echo wpv_get_vscode_button( 'assets/js/issues-tab.js', 0, 0, null, 'wpv-fixed-link handler', 'button-link' ); ?><br>
+							<strong>Function:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'assets/js/issues-tab.js', 0, 0, null, 'wpv-fixed-link handler', 'button-link' ) ); ?><br>
 							<strong>AJAX Action:</strong> <code>wpv_mark_resolved</code><br>
-							<strong>Handler:</strong> <?php echo wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 2100, 0, null, 'mark_issue_as_fixed()', 'button-link' ); ?><br>
+							<strong>Handler:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'includes/Admin/Verification_AJAX_Handler.php', 2100, 0, null, 'mark_issue_as_fixed()', 'button-link' ) ); ?><br>
 							<strong>Data Modified:</strong> Removes entire issue from <code>.wpv-results.json</code><br>
 							<strong>Use Case:</strong> When you've actually fixed the code issue<br>
 							<strong>Result:</strong> Issue disappears from all displays, readiness score recalculated
@@ -1230,7 +1231,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				<div class="wpv-arch-issue-suspects">
 					<strong>Possible Causes:</strong>
 					<ul>
-						<li><strong>Template filtering:</strong> <?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 35, 0, null, 'Issue merging logic', 'button-link' ); ?> may be filtering out issues</li>
+						<li><strong>Template filtering:</strong> <?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-issues.php', 35, 0, null, 'Issue merging logic', 'button-link' ) ); ?> may be filtering out issues</li>
 						<li><strong>ID mismatch:</strong> Generated <code>issue_id</code> in template doesn't match stored <code>issue_id</code> in JSON</li>
 						<li><strong>JSON structure:</strong> Issue may be in wrong file path key or malformed</li>
 						<li><strong>Caching:</strong> Browser or server-side caching of JSON file</li>
@@ -1241,7 +1242,7 @@ $validations = validate_plugin_files( $current_plugin['folder'] ?? null );
 				<div class="wpv-arch-issue-debug">
 					<strong>Debug Steps:</strong>
 					<ol>
-						<li>Check <code>$plugin_data['results']</code> array in <?php echo wpv_get_vscode_button( 'templates/admin-page-issues.php', 25, 0, null, 'admin-page-issues.php', 'button-link' ); ?></li>
+						<li>Check <code>$plugin_data['results']</code> array in <?php echo wp_kses_post( wpv_get_vscode_button( 'templates/admin-page-issues.php', 25, 0, null, 'admin-page-issues.php', 'button-link' ) ); ?></li>
 						<li>Verify <code>$merged_issues</code> array contains the missing issue</li>
 						<li>Compare generated <code>issue_id</code> with stored <code>issue_id</code></li>
 						<li>Check file path key matching between JSON and template</li>

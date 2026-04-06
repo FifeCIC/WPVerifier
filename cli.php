@@ -8,6 +8,8 @@
  * @since 1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use WordPress\Plugin_Check\Checker\CLI_Runner;
 use WordPress\Plugin_Check\CLI\Plugin_Check_Command;
 use WordPress\Plugin_Check\Plugin_Context;
@@ -28,15 +30,16 @@ if ( ! class_exists( 'WordPress\Plugin_Check\CLI\Plugin_Check_Command' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
 }
 
-if ( ! isset( $context ) ) {
-	$context = new Plugin_Context( __DIR__ . '/plugin.php' );
+if ( ! isset( $wpverifier_context ) ) {
+	// Prefixed to comply with WordPress global naming conventions.
+	$wpverifier_context = new Plugin_Context( __DIR__ . '/plugin.php' );
 }
 
 // Create the CLI command instance and add to WP CLI.
-$plugin_command = new Plugin_Check_Command( $context );
+$wpverifier_plugin_command = new Plugin_Check_Command( $wpverifier_context );
 WP_CLI::add_command(
 	'plugin',
-	$plugin_command,
+	$wpverifier_plugin_command,
 	array(
 		/**
 		 * This is a cleanup for the below hook which adds the object-cache.php drop-in.
@@ -55,7 +58,7 @@ WP_CLI::add_command(
 				file_exists( WP_CONTENT_DIR . '/object-cache.php' ) &&
 				false !== strpos( file_get_contents( WP_CONTENT_DIR . '/object-cache.php' ), 'WP_PLUGIN_CHECK_OBJECT_CACHE_DROPIN_VERSION' )
 			) {
-				unlink( WP_CONTENT_DIR . '/object-cache.php' );
+				wp_delete_file( WP_CONTENT_DIR . '/object-cache.php' );
 			}
 		},
 	)

@@ -7,6 +7,9 @@
 
 namespace WordPress\Plugin_Check\Utilities;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+
 use Exception;
 use WordPress\Plugin_Check\Checker\Abstract_Check_Runner;
 use WordPress\Plugin_Check\Checker\AJAX_Runner;
@@ -63,7 +66,7 @@ class Plugin_Request_Utility {
 			throw new Exception(
 				sprintf(
 					'Invalid plugin basename: Plugin with basename %s is not installed.',
-					$plugin_slug
+					esc_html( $plugin_slug )
 				)
 			);
 		}
@@ -77,7 +80,7 @@ class Plugin_Request_Utility {
 		throw new Exception(
 			sprintf(
 				'Invalid plugin slug: Plugin with slug %s is not installed.',
-				$plugin_slug
+				esc_html( $plugin_slug )
 			)
 		);
 	}
@@ -231,7 +234,7 @@ class Plugin_Request_Utility {
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			throw new Exception(
-				__( 'Downloading the zip file failed.', 'wpverifier' )
+				esc_html__( 'Downloading the zip file failed.', 'wpverifier' )
 			);
 		}
 
@@ -259,7 +262,7 @@ class Plugin_Request_Utility {
 
 		if ( ! $wp_filesystem->put_contents( $plugin_check_dir . $basename, $response_zip_body ) ) {
 			throw new Exception(
-				__( 'Saving zip file failed.', 'wpverifier' )
+				esc_html__( 'Saving zip file failed.', 'wpverifier' )
 			);
 		}
 
@@ -269,18 +272,18 @@ class Plugin_Request_Utility {
 		$unzip_file = unzip_file( $file_path, $temp_dir );
 
 		if ( true !== $unzip_file ) {
-			throw new Exception( $unzip_file->get_error_message() );
+			throw new Exception( esc_html( $unzip_file->get_error_message() ) );
 		}
 
 		// Remove zip file.
-		unlink( $file_path );
+		wp_delete_file( $file_path );
 
 		if ( ! empty( $plugin_info_url ) && filter_var( $plugin_info_url, FILTER_VALIDATE_URL ) ) {
 			$response_json = wp_safe_remote_get( $plugin_info_url );
 
 			if ( is_wp_error( $response_json ) || 200 !== wp_remote_retrieve_response_code( $response_json ) ) {
 				throw new Exception(
-					__( 'Fetching data failed.', 'wpverifier' )
+					esc_html__( 'Fetching data failed.', 'wpverifier' )
 				);
 			}
 
@@ -290,13 +293,13 @@ class Plugin_Request_Utility {
 
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				throw new Exception(
-					__( 'Invalid JSON content.', 'wpverifier' )
+					esc_html__( 'Invalid JSON content.', 'wpverifier' )
 				);
 			}
 
 			if ( ! $wp_filesystem->put_contents( $plugin_check_dir . 'plugin-info.json', $response_body ) ) {
 				throw new Exception(
-					__( 'Saving JSON file failed.', 'wpverifier' )
+					esc_html__( 'Saving JSON file failed.', 'wpverifier' )
 				);
 			}
 		}
@@ -319,7 +322,7 @@ class Plugin_Request_Utility {
 		$upload_dir = trailingslashit( get_temp_dir() ) . 'plugin-check/';
 
 		if ( ! is_dir( $upload_dir ) ) {
-			mkdir( $upload_dir, 0755, true );
+			wp_mkdir_p( $upload_dir );
 		}
 
 		return $upload_dir;

@@ -1,9 +1,13 @@
 <?php
 /**
- * AST (Accordion Sidebar Table) Results Template
+ * AST (Accordion Sidebar Table) Results Template.
  * 
  * @package WPVerifier
+ * @version 1.9.0 Added ABSPATH direct access protection.
  */
+
+// Prevent direct file access for security.
+if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 
 <div class="wpv-ast-container">

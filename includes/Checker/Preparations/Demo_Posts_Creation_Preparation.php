@@ -37,9 +37,10 @@ class Demo_Posts_Creation_Preparation implements Preparation {
 	}
 
 	/**
-	 * Creates the demo posts in the database to be us
+	 * Creates the demo posts in the database to be used by checks.
 	 *
 	 * @since 1.0.0
+	 * @version 1.9.0 Escaped exception message to satisfy WordPress output escaping standards.
 	 *
 	 * @return callable Cleanup function to revert changes made by theme and plugin preparation classes.
 	 *
@@ -52,7 +53,8 @@ class Demo_Posts_Creation_Preparation implements Preparation {
 			$post_id = wp_insert_post( $postarr, true );
 
 			if ( is_wp_error( $post_id ) ) {
-				throw new Exception( $post_id->get_error_message() );
+				// Escape the WP_Error message to prevent unescaped output in exception handlers.
+				throw new Exception( esc_html( $post_id->get_error_message() ) );
 			}
 
 			$post_ids[] = $post_id;
