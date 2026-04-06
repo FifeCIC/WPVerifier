@@ -4026,15 +4026,6 @@
                                    ],
                     "cli.php":  [
                                     {
-                                        "issue_id":  "W-ccd36ad9",
-                                        "message":  "Global variables defined by a theme/plugin should start with the theme/plugin prefix. Found: \u0026quot;$context\u0026quot;.",
-                                        "code":  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound",
-                                        "type":  "WARNING",
-                                        "line":  34,
-                                        "column":  5,
-                                        "ignored":  false
-                                    },
-                                    {
                                         "issue_id":  "W-8017459f",
                                         "message":  "Global variables defined by a theme/plugin should start with the theme/plugin prefix. Found: \u0026quot;$plugin_command\u0026quot;.",
                                         "code":  "WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound",
