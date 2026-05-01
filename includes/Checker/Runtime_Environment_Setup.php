@@ -1,6 +1,4 @@
 <?php
-// Prevent direct file access.
-if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Class WordPress\Plugin_Check\Checker\Runtime_Environment_Setup
  *
@@ -8,6 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 
 namespace WordPress\Plugin_Check\Checker;
+
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 use WordPress\Plugin_Check\Traits\Amend_DB_Base_Prefix;
 
@@ -152,10 +155,10 @@ final class Runtime_Environment_Setup {
 	 */
 	private function ignore_custom_tables( array $tables ): array {
 		// Do not remove custom tables (which by definition weren't duplicated because we cannot override constants).
-		if ( isset( $tables['users'] ) && defined( 'CUSTOM_USER_TABLE' ) && CUSTOM_USER_TABLE === $tables['users'] ) {
+		if ( isset( $tables['users'] ) && defined( 'CUSTOM_USER_TABLE' ) && constant( 'CUSTOM_USER_TABLE' ) === $tables['users'] ) {
 			unset( $tables['users'] );
 		}
-		if ( isset( $tables['usermeta'] ) && defined( 'CUSTOM_USER_META_TABLE' ) && CUSTOM_USER_META_TABLE === $tables['usermeta'] ) {
+		if ( isset( $tables['usermeta'] ) && defined( 'CUSTOM_USER_META_TABLE' ) && constant( 'CUSTOM_USER_META_TABLE' ) === $tables['usermeta'] ) {
 			unset( $tables['usermeta'] );
 		}
 		return $tables;

@@ -143,7 +143,7 @@ class Setup_Wizard {
 		$providers = require WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/AI_Providers.php';
 		?>
 		<h1><?php esc_html_e( 'AI Configuration', 'wpverifier' ); ?></h1>
-		<p><?php esc_html_e( 'Configure AI settings for the Plugin Namer tool (optional).', 'wpverifier' ); ?></p>
+		<p><?php esc_html_e( 'Configure AI settings for optional analysis features.', 'wpverifier' ); ?></p>
 		<form method="post">
 			<table class="form-table">
 				<tr>
@@ -199,13 +199,6 @@ class Setup_Wizard {
 		<form method="post">
 			<table class="form-table">
 				<tr>
-					<th scope="row"><label for="enable_namer"><?php esc_html_e( 'Plugin Namer', 'wpverifier' ); ?></label></th>
-					<td>
-						<input type="checkbox" id="enable_namer" name="enable_namer" value="1" checked />
-						<label for="enable_namer"><?php esc_html_e( 'Enable Plugin Namer tool', 'wpverifier' ); ?></label>
-					</td>
-				</tr>
-				<tr>
 					<th scope="row"><label for="enable_assets"><?php esc_html_e( 'Asset Tracking', 'wpverifier' ); ?></label></th>
 					<td>
 						<input type="checkbox" id="enable_assets" name="enable_assets" value="1" checked />
@@ -224,7 +217,6 @@ class Setup_Wizard {
 
 	public function step_features_save() {
 		check_admin_referer( 'wp-verifier-setup' );
-		update_option( 'wp_verifier_enable_namer', ! empty( $_POST['enable_namer'] ) ? 'yes' : 'no' );
 		update_option( 'wp_verifier_enable_assets', ! empty( $_POST['enable_assets'] ) ? 'yes' : 'no' );
 		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 		exit;
@@ -239,7 +231,6 @@ class Setup_Wizard {
 				<h2><?php esc_html_e( 'Next Steps', 'wpverifier' ); ?></h2>
 				<ul>
 					<li class="setup-thing"><a class="button button-primary button-large" href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check' ) ); ?>"><?php esc_html_e( 'Verify a Plugin', 'wpverifier' ); ?></a></li>
-					<li><a href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check&tab=namer' ) ); ?>"><?php esc_html_e( 'Try Plugin Namer', 'wpverifier' ); ?></a></li>
 					<li><a href="<?php echo esc_url( admin_url( 'plugins.php?page=plugin-check&tab=settings' ) ); ?>"><?php esc_html_e( 'Configure Settings', 'wpverifier' ); ?></a></li>
 				</ul>
 			</div>

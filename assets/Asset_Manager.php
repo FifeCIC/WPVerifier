@@ -350,4 +350,84 @@ class Asset_Manager {
         $settings = get_option( 'plugin_check_settings', array() );
         return isset( $settings['auto_save_results'] ) ? (bool) $settings['auto_save_results'] : true;
     }
+
+    /**
+     * Return all assets for a given type.
+     *
+     * @param string $type Asset type ('css' or 'js').
+     * @return array
+     */
+    public function get_all_assets( $type ) {
+        return isset( $this->assets[ $type ] ) && is_array( $this->assets[ $type ] )
+            ? $this->assets[ $type ]
+            : array();
+    }
+
+    /**
+     * Return aggregate stats for a given asset type.
+     *
+     * @param string $type Asset type ('css' or 'js').
+     * @return array
+     */
+    public function get_asset_stats( $type ) {
+        $assets = $this->get_all_assets( $type );
+
+        $total   = 0;
+        $found   = 0;
+        $missing = 0;
+
+        foreach ( $assets as $category_assets ) {
+            if ( ! is_array( $category_assets ) ) {
+                continue;
+            }
+
+            foreach ( $category_assets as $name => $asset ) {
+                if ( ! is_array( $asset ) ) {
+                    continue;
+                }
+
+                ++$total;
+                if ( $this->asset_exists( $type, $name ) ) {
+                    ++$found;
+                } else {
+                    ++$missing;
+                }
+            }
+        }
+
+        return array(
+            'total'   => $total,
+            'found'   => $found,
+            'missing' => $missing,
+        );
+    }
+
+    /**
+     * Check whether an asset's file exists on disk.
+     *
+     * @param string $type Asset type ('css' or 'js').
+     * @param string $name Asset handle.
+     * @return bool
+     */
+    public function asset_exists( $type, $name ) {
+        $assets = $this->get_all_assets( $type );
+
+        foreach ( $assets as $category_assets ) {
+            if ( ! is_array( $category_assets ) || ! isset( $category_assets[ $name ] ) ) {
+                continue;
+            }
+
+            $asset = $category_assets[ $name ];
+            if ( ! is_array( $asset ) || empty( $asset['path'] ) || ! is_string( $asset['path'] ) ) {
+                return false;
+            }
+
+            $relative_path = ltrim( $asset['path'], '/\\' );
+            $absolute_path = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/' . $relative_path;
+
+            return file_exists( $absolute_path );
+        }
+
+        return false;
+    }
 }

@@ -12,6 +12,31 @@
 		ignoredFolders: [],
 		aiGuidanceConfig: {},
 		debugMode: window.wpvDebugMode || false, // Set to true for verbose logging or add ?wpv_debug=1 to URL
+
+		/**
+		 * PHPCS codes that Auto_Fix_Engine can handle deterministically.
+		 * Must match Auto_Fix_Engine::FIXABLE_CODES keys in PHP.
+		 */
+		AUTO_FIXABLE_CODES: [
+			'WordPress.Security.EscapeOutput.UnsafePrintingFunction',
+			'WordPress.Security.EscapeOutput.OutputNotEscaped',
+			'WordPress.Security.SafeRedirect.wp_redirect_wp_redirect',
+			'WordPress.DateTime.RestrictedFunctions.date_date',
+			'WordPress.PHP.DevelopmentFunctions.error_log_error_log',
+			'WordPress.PHP.DevelopmentFunctions.error_log_print_r',
+			'WordPress.Security.ValidatedSanitizedInput.MissingUnslash',
+			'WordPress.Security.NonceVerification.Recommended',
+			'WordPress.Security.NonceVerification.Missing',
+			'WordPress.Security.ValidatedSanitizedInput.InputNotSanitized',
+			'WordPress.Security.ValidatedSanitizedInput.InputNotValidated',
+			'WordPress.DB.PreparedSQL.NotPrepared',
+			'WordPress.DB.PreparedSQL.InterpolatedNotPrepared',
+			'WordPress.WP.AlternativeFunctions.rand_rand',
+			'WordPress.WP.AlternativeFunctions.rand_mt_rand',
+			'WordPress.WP.AlternativeFunctions.file_system_operations_fopen',
+			'WordPress.WP.AlternativeFunctions.file_system_operations_fwrite',
+			'WordPress.WP.AlternativeFunctions.file_system_operations_fclose'
+		],
 		
 		log: function(message, ...args) {
 			if (this.debugMode || new URLSearchParams(window.location.search).get('wpv_debug') === '1') {
@@ -292,6 +317,17 @@
 				const code = $(this).data('code');
 				WPVerifierAST.markComplete(issueId, file, null, code);
 			});
+
+			// Handle Auto Fix button clicks in sidebar (PAN01)
+			$(document).off('click', '.wpv-autofix-btn').on('click', '.wpv-autofix-btn', function(e) {
+				e.preventDefault();
+				const $btn = $(this);
+				const issueId = $btn.data('issue-id');
+				const file    = $btn.data('file');
+				const line    = $btn.data('line');
+				const code    = $btn.data('code');
+				WPVerifierAST.performAutoFix(issueId, file, line, code, $btn);
+			});
 			
 			// Handle copy prompt button
 			$(document).off('click', '.wpv-copy-prompt').on('click', '.wpv-copy-prompt', function(e) {
@@ -332,6 +368,34 @@
 				'data-code': code || ''
 			});
 			$('#wpv-current-vscode-btn').attr('href', 'vscode://file/' + this.getVSCodePath(file) + ':' + (line || 1));
+
+			// Show or inject Auto Fix button depending on whether this code is auto-fixable.
+			const autoFixable = WPVerifierAST.AUTO_FIXABLE_CODES.indexOf(code) !== -1;
+			let $autoFixBtn = $('#wpv-current-autofix-btn');
+			if ( autoFixable ) {
+				if ( $autoFixBtn.length ) {
+					// Update existing button.
+					$autoFixBtn.attr({
+						'data-issue-id': issueId || '',
+						'data-file':     file || '',
+						'data-line':     line || '',
+						'data-code':     code || ''
+					}).show();
+				} else {
+					// Inject the button after the Fixed button.
+					$('#wpv-current-fixed-btn').after(
+						'<a href="#" id="wpv-current-autofix-btn" class="button button-secondary wpv-autofix-btn"' +
+						' data-issue-id="' + WPVerifierAST.escapeAttr(issueId || '') + '"' +
+						' data-file="' + WPVerifierAST.escapeAttr(file || '') + '"' +
+						' data-line="' + WPVerifierAST.escapeAttr(String(line || '')) + '"' +
+						' data-code="' + WPVerifierAST.escapeAttr(code || '') + '"' +
+						' title="Apply deterministic code fix to the source file">' +
+						'<span class="dashicons dashicons-hammer"></span> Auto Fix</a>'
+					);
+				}
+			} else {
+				$autoFixBtn.hide();
+			}
 			
 			// Update PAN02 - AI Prompt
 			$('#wpv-ai-issue-id').text(issueId || 'N/A');
@@ -477,6 +541,76 @@ Please review this WordPress coding standards issue and provide a fix. The issue
 				console.error('Fixed request error:', error);
 				alert('Failed to mark as fixed.');
 			});
+		},
+
+		/**
+		 * Apply an auto-fix to the source file via AJAX.
+		 *
+		 * @param {string} issueId Issue ID from results JSON.
+		 * @param {string} file    Relative file path.
+		 * @param {number} line    1-based line number.
+		 * @param {string} code    PHPCS sniff code.
+		 * @param {jQuery} $btn   Button element that was clicked.
+		 */
+		performAutoFix: function(issueId, file, line, code, $btn) {
+			if (!window.PLUGIN_CHECK || !window.PLUGIN_CHECK.nonce) {
+				alert('Configuration error: nonce missing.');
+				return;
+			}
+
+			const originalLabel = $btn.html();
+			$btn.html('<span class="dashicons dashicons-update wpv-spin"></span> Fixing…').prop('disabled', true);
+
+			const payload = new FormData();
+			payload.append('nonce',    window.PLUGIN_CHECK.nonce);
+			payload.append('action',   'wpv_auto_fix');
+			payload.append('plugin',   this.currentPlugin);
+			payload.append('issue_id', issueId);
+			payload.append('file',     file);
+			payload.append('line',     line);
+			payload.append('code',     code);
+
+			fetch(ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body: payload
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					$btn.html('<span class="dashicons dashicons-yes"></span> Fixed!');
+					const d = data.data || {};
+					const info = d.original_line
+						? '\n\nBefore: ' + d.original_line + '\nAfter:  ' + d.fixed_line
+						: '';
+					alert('Auto fix applied.' + info + '\n\nPage will reload.');
+					location.reload();
+				} else {
+					$btn.html(originalLabel).prop('disabled', false);
+					const msg = (data.data && data.data.message) ? data.data.message : 'Unknown error.';
+					alert('Auto fix failed: ' + msg + '\n\nPlease fix this issue manually.');
+				}
+			})
+			.catch(error => {
+				console.error('Auto fix AJAX error:', error);
+				$btn.html(originalLabel).prop('disabled', false);
+				alert('Auto fix request failed — see console for details.');
+			});
+		},
+
+		/**
+		 * Escape a string for use in an HTML attribute value.
+		 *
+		 * @param {string} str Raw string.
+		 * @return {string} Escaped string.
+		 */
+		escapeAttr: function(str) {
+			return String(str)
+				.replace(/&/g, '&amp;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#39;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;');
 		},
 
 		showAIGuidance: function(issue, aiPrompt) {

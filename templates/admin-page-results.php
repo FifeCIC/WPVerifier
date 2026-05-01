@@ -266,20 +266,37 @@ if ( $selected_issue ) {
 									</div>
 								</div>
 								<div class="wpv-issue-actions">
-									<?php $is_ignored = isset( $selected_issue['ignored'] ) && $selected_issue['ignored']; ?>
-									<a href="#" class="button button-primary wpv-fixed-btn"
+									<?php
+									$is_ignored       = isset( $selected_issue['ignored'] ) && $selected_issue['ignored'];
+									$issue_code       = $selected_issue['code'] ?? '';
+									$issue_line       = (int) ( $selected_issue['line'] ?? 0 );
+									$is_auto_fixable  = class_exists( 'WordPress\\Plugin_Check\\Utilities\\Auto_Fix_Engine' )
+										? \WordPress\Plugin_Check\Utilities\Auto_Fix_Engine::is_fixable( $issue_code )
+										: false;
+									?>
+									<a href="#" id="wpv-current-fixed-btn" class="button button-primary wpv-fixed-btn"
 										data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
 										title="<?php esc_attr_e( 'Permanently removes this issue from results', 'wpverifier' ); ?>">
 										<span class="dashicons dashicons-yes"></span> <?php esc_html_e( 'Fixed', 'wpverifier' ); ?>
 									</a>
+									<?php if ( $is_auto_fixable ) : ?>
+										<a href="#" id="wpv-current-autofix-btn" class="button button-secondary wpv-autofix-btn"
+											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
+											data-file="<?php echo esc_attr( $selected_file ); ?>"
+											data-line="<?php echo esc_attr( $issue_line ); ?>"
+											data-code="<?php echo esc_attr( $issue_code ); ?>"
+											title="<?php esc_attr_e( 'Apply deterministic code fix to the source file', 'wpverifier' ); ?>">
+											<span class="dashicons dashicons-hammer"></span> <?php esc_html_e( 'Auto Fix', 'wpverifier' ); ?>
+										</a>
+									<?php endif; ?>
 									<?php if ( $is_ignored ) : ?>
-										<a href="#" class="button wpv-unignore-btn"
+										<a href="#" id="wpv-current-ignore-btn" class="button wpv-unignore-btn"
 											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
 											title="<?php esc_attr_e( 'Remove ignored status from this issue', 'wpverifier' ); ?>">
 											<span class="dashicons dashicons-visibility"></span> <?php esc_html_e( 'Unignore', 'wpverifier' ); ?>
 										</a>
 									<?php else : ?>
-										<a href="#" class="button wpv-ignore-btn"
+										<a href="#" id="wpv-current-ignore-btn" class="button wpv-ignore-btn"
 											data-issue-id="<?php echo esc_attr( $selected_issue_id ); ?>"
 											title="<?php esc_attr_e( 'Marks as ignored but keeps in results (for false positives)', 'wpverifier' ); ?>">
 											<span class="dashicons dashicons-hidden"></span> <?php esc_html_e( 'Ignore', 'wpverifier' ); ?>
@@ -289,7 +306,7 @@ if ( $selected_issue ) {
 									$vscode_url = Path_Builder::get_vscode_url(
 										$plugin_info['basename'],
 										$selected_file,
-										(int) ( $selected_issue['line'] ?? 0 ),
+										$issue_line,
 										(int) ( $selected_issue['column'] ?? 0 )
 									);
 									if ( $vscode_url ) :

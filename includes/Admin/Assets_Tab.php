@@ -21,10 +21,10 @@ class Assets_Tab {
         }
 
         $asset_manager = new Asset_Manager();
-        $css_assets = $asset_manager->get_all_assets('css');
-        $js_assets = $asset_manager->get_all_assets('js');
-        $css_stats = $asset_manager->get_asset_stats('css');
-        $js_stats = $asset_manager->get_asset_stats('js');
+        $css_assets = self::get_registered_assets('css');
+        $js_assets = self::get_registered_assets('js');
+        $css_stats = self::get_asset_stats( $css_assets, 'css', $asset_manager );
+        $js_stats = self::get_asset_stats( $js_assets, 'js', $asset_manager );
         $overall_status = self::get_overall_status($css_stats, $js_stats);
         ?>
         <div class="wp-verifier-assets-container">
@@ -147,5 +147,82 @@ class Assets_Tab {
                 'details' => sprintf(__('%1$d of %2$d missing', 'wpverifier'), $total_missing, $total_assets)
             );
         }
+    }
+
+    /**
+     * Load registered assets from the asset registry files.
+     *
+     * @param string $type Asset type (css|js).
+     * @return array
+     */
+    private static function get_registered_assets( $type ) {
+        $registry_file = 'css' === $type
+            ? WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/style-assets.php'
+            : WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/script-assets.php';
+
+        if ( ! file_exists( $registry_file ) ) {
+            return array();
+        }
+
+        $assets = require $registry_file;
+
+        return is_array( $assets ) ? $assets : array();
+    }
+
+    /**
+     * Build summary stats for a registry grouped by category.
+     *
+     * @param array         $assets        Registry data.
+     * @param string        $type          Asset type (css|js).
+     * @param Asset_Manager $asset_manager Asset manager instance.
+     * @return array
+     */
+    private static function get_asset_stats( array $assets, $type, Asset_Manager $asset_manager ) {
+        $total   = 0;
+        $found   = 0;
+        $missing = 0;
+
+        foreach ( $assets as $category_assets ) {
+            if ( ! is_array( $category_assets ) ) {
+                continue;
+            }
+
+            foreach ( $category_assets as $name => $asset ) {
+                ++$total;
+
+                $exists = method_exists( $asset_manager, 'asset_exists' )
+                    ? $asset_manager->asset_exists( $type, $name )
+                    : self::asset_exists_from_registry( $asset );
+
+                if ( $exists ) {
+                    ++$found;
+                } else {
+                    ++$missing;
+                }
+            }
+        }
+
+        return array(
+            'total'   => $total,
+            'found'   => $found,
+            'missing' => $missing,
+        );
+    }
+
+    /**
+     * Fallback existence check when helper methods are unavailable.
+     *
+     * @param array $asset Asset data.
+     * @return bool
+     */
+    private static function asset_exists_from_registry( $asset ) {
+        if ( ! is_array( $asset ) || empty( $asset['path'] ) || ! is_string( $asset['path'] ) ) {
+            return false;
+        }
+
+        $relative_path = ltrim( $asset['path'], '/\\' );
+        $absolute_path = WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'assets/' . $relative_path;
+
+        return file_exists( $absolute_path );
     }
 }
