@@ -5,9 +5,6 @@
  * @package plugin-check
  */
 
-// Prevent direct file access for security.
-if ( ! defined( 'ABSPATH' ) ) exit;
-
 namespace WordPress\Plugin_Check\CLI;
 
 use Exception;

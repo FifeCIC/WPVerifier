@@ -69,6 +69,12 @@ final class Admin_Page {
 		}
 		Ignore_Rules_Handler::add_hooks();
 
+		// Initialize CSV export handler
+		if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\CSV_Export_Handler' ) ) {
+			require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/CSV_Export_Handler.php';
+		}
+		CSV_Export_Handler::add_hooks();
+
 		$this->ajax_manager->add_hooks();
 	}
 

@@ -43,6 +43,7 @@ if ( $selected_issue_id && $results_data && ! empty( $results_data['results'] ) 
 
 // Sort results: files with stale ignored_files entries (hash mismatch) first,
 // then active files ordered by error count descending, warnings descending.
+$ignored_files = array();
 if ( ! empty( $results_data['results'] ) ) {
 	$verification_file = Path_Builder::get_verification_file_path( $plugin_info['slug'] );
 	$ignored_files     = array();
@@ -85,6 +86,15 @@ if ( ! empty( $results_data['results'] ) ) {
 
 	// Stale-ignored files bubble to the top so the developer notices them.
 	$results_data['results'] = array_merge( $stale, $normal );
+} elseif ( $plugin_info && empty( $ignored_files ) ) {
+	// No active results — load ignored_files so the ignored files panel can render.
+	$verification_file = Path_Builder::get_verification_file_path( $plugin_info['slug'] );
+	if ( $verification_file && file_exists( $verification_file ) ) {
+		$vdata = json_decode( file_get_contents( $verification_file ), true );
+		if ( is_array( $vdata ) ) {
+			$ignored_files = $vdata['ignored_files'] ?? array();
+		}
+	}
 }
 
 // Load AI guidance for selected issue
@@ -133,11 +143,19 @@ if ( $selected_issue ) {
 <?php else : ?>
 
 	<?php if ( isset( $results_data['readiness'] ) ) : ?>
-		<div class="wpv-readiness-score">
-			<strong><?php esc_html_e( 'Readiness Score:', 'wpverifier' ); ?></strong>
-			<?php echo esc_html( $results_data['readiness']['overall'] ); ?>%
-			(<?php echo esc_html( $results_data['readiness']['errors'] ); ?> errors,
-			<?php echo esc_html( $results_data['readiness']['warnings'] ); ?> warnings)
+		<div class="wpv-readiness-score" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+			<span>
+				<strong><?php esc_html_e( 'Readiness Score:', 'wpverifier' ); ?></strong>
+				<?php echo esc_html( $results_data['readiness']['overall'] ); ?>%
+				(<?php echo esc_html( $results_data['readiness']['errors'] ); ?> errors,
+				<?php echo esc_html( $results_data['readiness']['warnings'] ); ?> warnings)
+			</span>
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wpv_export_csv&plugin=' . rawurlencode( $plugin_info['slug'] ) ), 'wpv_export_csv_' . $plugin_info['slug'] ) ); ?>"
+			   class="button button-secondary"
+			   title="<?php esc_attr_e( 'Download all issues as a CSV file', 'wpverifier' ); ?>">
+				<span class="dashicons dashicons-download" style="vertical-align:middle; margin-top:-2px;"></span>
+				<?php esc_html_e( 'Export CSV', 'wpverifier' ); ?>
+			</a>
 		</div>
 	<?php endif; ?>
 
@@ -220,6 +238,43 @@ if ( $selected_issue ) {
 					<?php endforeach; ?>
 				</div>
 			</div>
+
+			<?php
+			// Compute truly-ignored files: in ignored_files but NOT stale (not re-appearing in results).
+			$truly_ignored = array_diff_key( $ignored_files, $results_data['results'] ?? array() );
+			if ( ! empty( $truly_ignored ) ) :
+				?>
+			<!-- IGNORED FILES PANEL -->
+			<div class="wpv-ast-table-container" style="margin-top:16px;">
+				<h3><?php esc_html_e( 'Ignored Files', 'wpverifier' ); ?></h3>
+				<p class="description" style="margin-bottom:8px;"><?php esc_html_e( 'These files are skipped during plugin checks because all their issues were ignored. Click "Unignore File" to re-enable scanning. Issues are not restored — run a plugin check after unignoring.', 'wpverifier' ); ?></p>
+				<table class="widefat striped" style="table-layout:fixed;">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'File', 'wpverifier' ); ?></th>
+							<th style="width:140px;"><?php esc_html_e( 'Ignored On', 'wpverifier' ); ?></th>
+							<th style="width:130px;"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $truly_ignored as $file_path => $entry ) : ?>
+							<tr>
+								<td><code style="word-break:break-all;"><?php echo esc_html( $file_path ); ?></code></td>
+								<td><?php echo esc_html( $entry['ignored_at'] ?? '' ); ?></td>
+								<td>
+									<a href="#"
+										class="button button-small wpv-unignore-file-btn"
+										data-file-path="<?php echo esc_attr( $file_path ); ?>"
+										title="<?php esc_attr_e( 'Remove this file from the ignored list so it is scanned on the next plugin check', 'wpverifier' ); ?>">
+										<span class="dashicons dashicons-visibility" style="vertical-align:middle;"></span> <?php esc_html_e( 'Unignore File', 'wpverifier' ); ?>
+									</a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+			<?php endif; ?>
 
 			<!-- SIDEBAR (right) -->
 			<div class="wpv-ast-sidebar">

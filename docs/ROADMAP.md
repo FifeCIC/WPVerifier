@@ -1,13 +1,6 @@
 # WP Verifier Development Roadmap
 
-## PHASE 2: Path Building Consolidation ✅ COMPLETE
-Centralized `Path_Builder` class. All path logic consolidated. VSCode URLs working.
-
-## PHASE 5: Results Tab Refactor ✅ COMPLETE
-
-
-### Remaining Cleanup
-- [x] Delete old files: `admin-page-issues-byfile.php`, `admin-page-issues.php` — deleted. `admin-page-saved.js`, `issues-tab.js`, `plugin-check-saved.js` — not found, likely already removed.
+## PHASE 5: Remaining Cleanup 📋 PLANNED
 - [ ] Strip TAB04/TAB05 code from `wp-verifier-ast.js` (keep TAB03 post-verification display)
 - [ ] Remove `results-ast.php` template from `admin_footer()` if safe
 
@@ -17,15 +10,6 @@ Centralized `Path_Builder` class. All path logic consolidated. VSCode URLs worki
 
 ### Overview
 When a developer has ignored ALL issues in a file one by one, the file is automatically marked as ignored in `.wpv-verification.json`. On subsequent plugin checks, ignored files are skipped entirely — making checks faster and keeping `.wpv-results.json` as a clean task list of only actionable issues.
-
-
-### Phase 6.4: Unignore File (Manual Override)
-**Requirement:** Allow developer to manually unignore a file from TAB04.
-**Where:** Show "Unignore File" button somewhere accessible — possibly a separate ignored files list panel.
-**Logic:**
-1. Remove file from `ignored_files` in `.wpv-verification.json`
-2. Do NOT restore issues to `.wpv-results.json` (they are gone — user must re-run check)
-3. On next plugin check, file will be scanned normally
 
 ---
 
@@ -404,18 +388,6 @@ Downloadable export formats for results data. The sharing and client-communicati
 
 ---
 
-### Phase 11.1: CSV Export
-
-**Concept:** Flat CSV download for import into spreadsheets, project management tools, or bug trackers.
-
-**Columns:** `file_path, line, code, type, severity, message, status, scan_date`
-
-**Options:** All issues / Open only / Fixed only / Ignored only
-
-**Files to create:** `includes/Export/CSV_Exporter.php` — pure PHP, streamed as download.
-
----
-
 ### Phase 11.2: XML Export
 
 **Concept:** Structured XML export mirroring the PHPCS XML output format so existing tooling that consumes PHPCS XML can consume WP Verifier output without modification.
@@ -451,7 +423,7 @@ A compact export toolbar added to the TAB04 header:
 
 | Milestone | Deliverable |
 |---|---|
-| 11.1 | CSV export with status filter options |
+| 11.1 | ~~CSV export~~ ✅ Complete |
 | 11.2 | XML export in PHPCS-compatible format |
 | 11.3 | Export toolbar in TAB04 |
 
