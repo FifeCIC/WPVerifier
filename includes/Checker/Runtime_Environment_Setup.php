@@ -1,6 +1,4 @@
 <?php
-// Prevent direct file access.
-if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Class WordPress\Plugin_Check\Checker\Runtime_Environment_Setup
  *
@@ -8,6 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 
 namespace WordPress\Plugin_Check\Checker;
+
+// Prevent direct file access.
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 use WordPress\Plugin_Check\Traits\Amend_DB_Base_Prefix;
 

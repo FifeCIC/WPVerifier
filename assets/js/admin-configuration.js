@@ -55,13 +55,13 @@
                 return;
             }
 
-            // Use the correct AJAX action for detecting vendors
-            WPVerifierAjax.makeRequest('plugin_check_detect_vendors', { plugin }, {
+            // Use wpv_detect_vendors which includes JS libraries
+            WPVerifierAjax.makeRequest('wpv_detect_vendors', { plugin }, {
                 onSuccess: (result) => {
                     if (result.success && result.data.vendors) {
                         // Convert vendors object to array format if needed
                         const vendors = this.normalizeVendorsData(result.data.vendors);
-                        this.populateVendorFolders(vendors);
+                        this.populateVendorFolders(vendors, result.data.js_libraries);
                         WPVerifierAjax.showMessage('config-content', 'Vendor folders detected successfully', 'success');
                     } else {
                         WPVerifierAjax.showMessage('config-content', 'No vendor folders found', 'info');
@@ -100,11 +100,11 @@
             return vendorArray;
         },
 
-        populateVendorFolders(vendors) {
+        populateVendorFolders(vendors, jsLibraries) {
             // Clear existing folders
             $('#included-folders .folder-item, #excluded-folders .folder-item').remove();
             
-            // Add detected folders to included by default
+            // Add detected vendor folders to included by default
             vendors.forEach(vendor => {
                 if (vendor.subdirs && vendor.subdirs.length > 0) {
                     vendor.subdirs.forEach(subdir => {
@@ -116,12 +116,45 @@
                 }
             });
             
+            // Add JS library directories to included by default
+            if (jsLibraries) {
+                const addedPaths = new Set();
+                
+                Object.values(jsLibraries).forEach(library => {
+                    library.files.forEach(file => {
+                        // Extract directory path from file path
+                        const filePath = file.path.replace(/\\/g, '/');
+                        const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+                        
+                        // Only add unique directory paths
+                        if (dirPath && !addedPaths.has(dirPath)) {
+                            addedPaths.add(dirPath);
+                            this.addFolderItem(dirPath, '#included-folders', library.name);
+                        }
+                    });
+                });
+            }
+            
             this.updateDropHints();
         },
 
-        addFolderItem(path, container) {
+        addFolderItem(path, container, libraryName) {
+            // Clean up path - remove absolute path prefix if present
+            let displayPath = path;
+            if (path.includes('wp-content/plugins/')) {
+                displayPath = path.substring(path.indexOf('wp-content/plugins/') + 'wp-content/plugins/'.length);
+            }
+            
+            // Extract just the plugin-relative path
+            const pathParts = displayPath.split('/');
+            if (pathParts.length > 1) {
+                displayPath = pathParts.slice(1).join('/');
+            }
+            
+            const label = libraryName ? `${displayPath} <span style="color: #856404; font-weight: normal;">(${libraryName})</span>` : displayPath;
+            
             const folderHtml = `
-                <div class="folder-item" data-path="${path}" style="
+                <div class="folder-item" data-path="${displayPath}" style="
                     background: #fff;
                     border: 1px solid #ddd;
                     border-radius: 3px;
@@ -132,7 +165,7 @@
                     justify-content: space-between;
                     align-items: center;
                 ">
-                    <code style="font-size: 12px;">${path}</code>
+                    <code style="font-size: 12px;">${label}</code>
                     <span class="dashicons dashicons-move" style="color: #666; font-size: 16px;"></span>
                 </div>
             `;
@@ -182,16 +215,16 @@
             // Clear existing folders
             $('#included-folders .folder-item, #excluded-folders .folder-item').remove();
             
-            // First detect all available vendor folders
+            // First detect all available vendor folders and JS libraries
             const plugin = this.getCurrentPlugin();
-            WPVerifierAjax.makeRequest('plugin_check_detect_vendors', { plugin }, {
+            WPVerifierAjax.makeRequest('wpv_detect_vendors', { plugin }, {
                 onSuccess: (result) => {
                     if (result.success && result.data.vendors) {
                         // Convert vendors object to array format if needed
                         const vendors = this.normalizeVendorsData(result.data.vendors);
                         const allFolders = [];
                         
-                        // Collect all detected folders
+                        // Collect all detected vendor folders
                         vendors.forEach(vendor => {
                             if (vendor.subdirs && vendor.subdirs.length > 0) {
                                 vendor.subdirs.forEach(subdir => {
@@ -201,6 +234,21 @@
                                 allFolders.push(vendor.path);
                             }
                         });
+                        
+                        // Collect JS library directories
+                        const jsLibraryFolders = [];
+                        if (result.data.js_libraries) {
+                            Object.values(result.data.js_libraries).forEach(library => {
+                                library.files.forEach(file => {
+                                    const filePath = file.path.replace(/\\/g, '/');
+                                    const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+                                    if (dirPath && !jsLibraryFolders.includes(dirPath)) {
+                                        jsLibraryFolders.push(dirPath);
+                                        allFolders.push(dirPath);
+                                    }
+                                });
+                            });
+                        }
                         
                         // Get list of ignored paths
                         const ignoredPathsList = ignoredPaths.map(item => 

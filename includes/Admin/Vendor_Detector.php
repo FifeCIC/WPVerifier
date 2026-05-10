@@ -29,9 +29,10 @@ class Vendor_Detector {
 		}
 
 		$patterns = Vendor_Patterns::get_patterns();
+		$asset_patterns = Vendor_Patterns::get_asset_patterns();
 		$results = array();
 
-		// Check root level
+		// Check root level for vendor patterns
 		foreach ( $patterns as $pattern ) {
 			$vendor_path = $plugin_dir . '/' . $pattern;
 			
@@ -43,7 +44,7 @@ class Vendor_Detector {
 			}
 		}
 
-		// Check includes/ subdirectory
+		// Check includes/ subdirectory for vendor patterns
 		$includes_dir = $plugin_dir . '/includes';
 		if ( is_dir( $includes_dir ) ) {
 			foreach ( $patterns as $pattern ) {
@@ -54,6 +55,18 @@ class Vendor_Detector {
 					if ( ! empty( $subdirs ) ) {
 						$results[ 'includes/' . $pattern ] = $subdirs;
 					}
+				}
+			}
+		}
+
+		// Check asset directory patterns
+		foreach ( $asset_patterns as $pattern ) {
+			$asset_path = $plugin_dir . '/' . $pattern;
+			
+			if ( is_dir( $asset_path ) ) {
+				$subdirs = self::get_subdirectories( $asset_path );
+				if ( ! empty( $subdirs ) ) {
+					$results[ $pattern ] = $subdirs;
 				}
 			}
 		}

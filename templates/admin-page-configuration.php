@@ -39,6 +39,37 @@ $rules = Ignore_Rules::get_rules();
                         <h4><?php esc_html_e('Vendor/Library Folders', 'wpverifier'); ?></h4>
                         <p><?php esc_html_e('Drag folders between columns to include or exclude them from verification:', 'wpverifier'); ?></p>
                         
+                        <!-- JS Library Detection -->
+                        <?php
+                        if (!class_exists('WordPress\\Plugin_Check\\Admin\\JS_Library_Detector')) {
+                            require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/JS_Library_Detector.php';
+                        }
+                        $js_libraries = \WordPress\Plugin_Check\Admin\JS_Library_Detector::detect_libraries($current_plugin);
+                        if (!empty($js_libraries)) :
+                        ?>
+                            <div style="margin: 15px 0; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
+                                <h5 style="margin-top: 0; color: #856404;">
+                                    <span class="dashicons dashicons-info" style="color: #856404;"></span>
+                                    <?php esc_html_e('JavaScript Libraries Detected', 'wpverifier'); ?>
+                                </h5>
+                                <p><?php esc_html_e('The following JavaScript libraries were found in your plugin:', 'wpverifier'); ?></p>
+                                <ul style="margin: 10px 0;">
+                                    <?php foreach ($js_libraries as $key => $library) : ?>
+                                        <li>
+                                            <strong><?php echo esc_html($library['name']); ?></strong>
+                                            <?php foreach ($library['files'] as $file) : ?>
+                                                <br>&nbsp;&nbsp;&nbsp;&nbsp;<code><?php echo esc_html($file['path']); ?></code>
+                                                <?php if ($file['version'] !== 'unknown') : ?>
+                                                    - v<?php echo esc_html($file['version']); ?>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                                <p style="margin-bottom: 0;"><em><?php esc_html_e('Consider excluding these library directories from verification or ensure they are up-to-date.', 'wpverifier'); ?></em></p>
+                            </div>
+                        <?php endif; ?>
+                        
                         <div id="vendor-folders-manager" style="margin: 15px 0;">
                             <div style="display: flex; gap: 20px; margin-bottom: 15px;">
                                 <div style="flex: 1;">

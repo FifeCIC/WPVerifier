@@ -229,8 +229,15 @@ class Config_AJAX_Handler {
 				}
 			}
 
+			// Detect JS libraries
+			if ( ! class_exists( 'WordPress\\Plugin_Check\\Admin\\JS_Library_Detector' ) ) {
+				require_once WP_PLUGIN_CHECK_PLUGIN_DIR_PATH . 'includes/Admin/JS_Library_Detector.php';
+			}
+			$js_libraries = JS_Library_Detector::detect_libraries( $plugin );
+
 			wp_send_json_success( array(
 				'vendors' => $vendors,
+				'js_libraries' => $js_libraries,
 			) );
 
 		} catch ( InvalidArgumentException $exception ) {
