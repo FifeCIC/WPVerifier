@@ -145,4 +145,38 @@ jQuery(function($) {
 			}
 		});
 	});
+
+	// Unignore File button (file-level ignore removal)
+	$(document).on('click', '.wpv-unignore-file-btn', function(e) {
+		e.preventDefault();
+		var $btn     = $(this);
+		var filePath = $btn.data('file-path');
+		var plugin   = wpv_ajax_object.current_plugin || '';
+
+		if (!filePath || !plugin) { alert('Missing file path or plugin.'); return; }
+
+		if (!confirm('Remove "' + filePath + '" from the ignored files list?\n\nIssues will not be restored — run a plugin check to re-scan this file.')) {
+			return;
+		}
+
+		$btn.prop('disabled', true).html('<span class="dashicons dashicons-update-alt"></span> Removing...');
+
+		$.ajax({
+			url:  wpv_ajax_object.ajax_url,
+			type: 'POST',
+			data: { action: 'wpv_unignore_file', file_path: filePath, plugin: plugin, nonce: wpv_ajax_object.nonce },
+			success: function(response) {
+				if (response.success) {
+					window.location.reload();
+				} else {
+					alert('Failed: ' + (response.data && response.data.message || 'Unknown error'));
+					$btn.prop('disabled', false).html('<span class="dashicons dashicons-visibility"></span> Unignore File');
+				}
+			},
+			error: function() {
+				alert('Request failed.');
+				$btn.prop('disabled', false).html('<span class="dashicons dashicons-visibility"></span> Unignore File');
+			}
+		});
+	});
 });

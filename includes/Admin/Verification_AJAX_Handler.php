@@ -45,6 +45,7 @@ class Verification_AJAX_Handler {
 		add_action( 'wp_ajax_wpv_mark_resolved', array( $this, 'mark_issue_as_fixed' ) );
 		add_action( 'wp_ajax_wpv_mark_ignored', array( $this, 'mark_issue_as_ignored' ) );
 		add_action( 'wp_ajax_wpv_mark_unignored', array( $this, 'mark_issue_as_unignored' ) );
+		add_action( 'wp_ajax_wpv_unignore_file', array( $this, 'unignore_file' ) );
 	}
 
 	/**
@@ -1291,6 +1292,55 @@ class Verification_AJAX_Handler {
 		wp_send_json_success( array(
 			'message'  => __( 'Issue unmarked as ignored.', 'wpverifier' ),
 			'issue_id' => $issue_id,
+		) );
+	}
+
+	/**
+	 * Remove a file from the file-level ignore list in .wpv-verification.json.
+	 *
+	 * Does not restore issues — the developer must re-run a plugin check to
+	 * surface any issues in the unignored file. Registered to wpv_unignore_file.
+	 *
+	 * @return void
+	 */
+	public function unignore_file() {
+		$this->check_request_validity();
+
+		$file_path = filter_input( INPUT_POST, 'file_path', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$plugin    = filter_input( INPUT_POST, 'plugin', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		if ( empty( $file_path ) ) {
+			wp_send_json_error( array( 'message' => __( 'File path is required.', 'wpverifier' ) ), 400 );
+		}
+
+		if ( empty( $plugin ) ) {
+			wp_send_json_error( array( 'message' => __( 'Plugin is required.', 'wpverifier' ) ), 400 );
+		}
+
+		$verification_file = Path_Builder::get_verification_file_path( $plugin );
+
+		if ( ! $verification_file || ! file_exists( $verification_file ) ) {
+			wp_send_json_error( array( 'message' => __( 'Verification file not found.', 'wpverifier' ) ), 404 );
+		}
+
+		$verification_data = json_decode( file_get_contents( $verification_file ), true );
+		if ( ! is_array( $verification_data ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid verification file.', 'wpverifier' ) ), 500 );
+		}
+
+		$file_path = str_replace( '\\', '/', $file_path );
+
+		if ( ! isset( $verification_data['ignored_files'][ $file_path ] ) ) {
+			wp_send_json_error( array( 'message' => __( 'File is not in the ignored files list.', 'wpverifier' ) ), 404 );
+		}
+
+		unset( $verification_data['ignored_files'][ $file_path ] );
+
+		file_put_contents( $verification_file, wp_json_encode( $verification_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+		wp_send_json_success( array(
+			'message'   => __( 'File removed from ignored list. Run a plugin check to re-scan it.', 'wpverifier' ),
+			'file_path' => $file_path,
 		) );
 	}
 

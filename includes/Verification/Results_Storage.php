@@ -35,7 +35,7 @@ class Results_Storage {
 		// resolve to WP_PLUGIN_DIR itself — an unsafe write target.
 		if ( '.' === $plugin_folder || empty( $plugin_folder ) ) {
 			throw new \InvalidArgumentException(
-				sprintf( esc_html__( 'Invalid plugin basename supplied to Results_Storage: "%s"', $plugin_basename )
+				sprintf( esc_html__( 'Invalid plugin basename supplied to Results_Storage: "%s"', 'wp-verifier' ), $plugin_basename )
 			);
 		}
 

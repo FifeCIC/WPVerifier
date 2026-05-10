@@ -36,6 +36,7 @@ class AJAX_Handler_Manager {
 	 */
 	private function init_handlers() {
 		$this->handlers = array(
+			'auto_fix'     => new Auto_Fix_AJAX_Handler(),
 			'config'       => new Config_AJAX_Handler(),
 			'hash'         => new Hash_AJAX_Handler(),
 			'results'      => new Results_AJAX_Handler(),
