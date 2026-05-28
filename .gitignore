@@ -1,0 +1,5 @@
+# WPVerifier runtime files
+.wpv-*.json
+*.backup
+temp_files.txt
+.ai-notes/

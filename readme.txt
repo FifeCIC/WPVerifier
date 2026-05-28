@@ -1,7 +1,7 @@
 === WP Verifier ===
 Contributors: Ryan Bayne
 Donate link: https://ryanbayne.uk
-Tested up to:      6.9
+Tested up to: 6.8
 Stable tag:        1.9.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
