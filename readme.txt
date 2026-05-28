@@ -96,7 +96,7 @@ Access the Ignore Rules manager via the Ignore Rules tab in the main WP Verifier
 
 = Where can I contribute to the plugin? =
 
-All development for this plugin is handled via [GitHub](https://github.com/WordPress/plugin-check/) any issues or pull requests should be posted there.
+All development for this plugin is handled via [GitHub](https://github.com/FifeCIC/WPVerifier/) any issues or pull requests should be posted there.
 
 = What if the plugin reports something that's correct as an "error" or "warning"? =
 
@@ -190,4 +190,4 @@ WP Verifier is based on the Plugin Check tool originally developed by:
 * WordPress Plugin Review Team
 * Contributors: wordpressdotorg
 
-Original Plugin Check: https://github.com/WordPress/plugin-check/
+Original Plugin Check: https://github.com/FifeCIC/WPVerifier/

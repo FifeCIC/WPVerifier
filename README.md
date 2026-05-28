@@ -1,4 +1,9 @@
 # WP Verifier
+
+![Version](https://img.shields.io/badge/version-1.9.0-green)
+![License](https://img.shields.io/badge/license-GPLv2+-blue)
+![WordPress](https://img.shields.io/badge/WordPress-6.8%20tested-blue)
+
 Verified code quality audit trail and standards enforcement for WordPress plugin development.
 
 ---
